@@ -1,7 +1,7 @@
 // app/(auth)/login/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -11,14 +11,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  
+
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -70,19 +70,19 @@ export default function LoginPage() {
             <rect width="100%" height="100%" fill="url(#grid)" />
           </svg>
         </div>
-        
+
         {/* Floating Elements */}
-        <motion.div 
+        <motion.div
           className="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-full blur-3xl"
-          animate={{ 
+          animate={{
             scale: [1, 1.2, 1],
             opacity: [0.3, 0.5, 0.3],
           }}
           transition={{ duration: 4, repeat: Infinity }}
         />
-        <motion.div 
+        <motion.div
           className="absolute bottom-40 left-20 w-48 h-48 bg-white/10 rounded-full blur-3xl"
-          animate={{ 
+          animate={{
             scale: [1, 1.3, 1],
             opacity: [0.2, 0.4, 0.2],
           }}
@@ -91,7 +91,7 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div className="relative z-10">
-          <motion.div 
+          <motion.div
             className="flex items-center gap-3"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -106,7 +106,7 @@ export default function LoginPage() {
 
         {/* Main Content */}
         <div className="relative z-10 space-y-6">
-          <motion.h1 
+          <motion.h1
             className="text-4xl lg:text-5xl font-bold text-white leading-tight"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -116,8 +116,8 @@ export default function LoginPage() {
             One salon.<br />
             <span className="text-white/90">Total control.</span>
           </motion.h1>
-          
-          <motion.p 
+
+          <motion.p
             className="text-lg text-white/80 max-w-md"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -127,7 +127,7 @@ export default function LoginPage() {
           </motion.p>
 
           {/* Feature Pills */}
-          <motion.div 
+          <motion.div
             className="flex flex-wrap gap-3"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -145,7 +145,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <motion.div 
+        <motion.div
           className="relative z-10 text-white/60 text-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -157,7 +157,7 @@ export default function LoginPage() {
 
       {/* Right Side - Login Form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
-        <motion.div 
+        <motion.div
           className="w-full max-w-md space-y-8"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -182,7 +182,7 @@ export default function LoginPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {successMessage && (
-              <motion.div 
+              <motion.div
                 className="p-4 bg-teal-50 border border-teal-200 rounded-lg text-sm text-teal-700 flex items-center gap-2"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -193,7 +193,7 @@ export default function LoginPage() {
             )}
 
             {error && (
-              <motion.div 
+              <motion.div
                 className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -220,8 +220,8 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <Link 
-                    href="/forgot-password" 
+                  <Link
+                    href="/forgot-password"
                     className="text-sm text-teal-600 hover:text-teal-700 hover:underline"
                   >
                     Forgot password?
@@ -253,8 +253,8 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
               disabled={isLoading}
             >
@@ -314,5 +314,26 @@ export default function LoginPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+// Loading fallback for Suspense
+function LoginLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex items-center gap-3">
+        <Loader2 className="w-6 h-6 animate-spin text-teal-600" />
+        <span className="text-muted-foreground">Loading...</span>
+      </div>
+    </div>
+  );
+}
+
+// Main export wrapped in Suspense
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginForm />
+    </Suspense>
   );
 }
