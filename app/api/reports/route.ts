@@ -55,19 +55,19 @@ export async function GET(request: Request) {
     });
 
     const appointmentsThisMonth = allAppointments.filter(
-      a => a.startTime >= monthStart && a.status === "COMPLETED"
+      a => a.requestedDate >= monthStart && a.status === "COMPLETED"
     );
     const appointmentsLastMonth = allAppointments.filter(
-      a => a.startTime >= lastMonthStart && a.startTime < monthStart && a.status === "COMPLETED"
+      a => a.requestedDate >= lastMonthStart && a.requestedDate < monthStart && a.status === "COMPLETED"
     );
     const appointmentsToday = allAppointments.filter(
-      a => a.startTime >= today && a.startTime < tomorrow
+      a => a.requestedDate >= today && a.requestedDate < tomorrow
     );
     const appointmentsThisWeek = allAppointments.filter(
-      a => a.startTime >= weekStart
+      a => a.requestedDate >= weekStart
     );
     const appointmentsInRange = allAppointments.filter(
-      a => a.startTime >= dateFilter && a.status === "COMPLETED"
+      a => a.requestedDate >= dateFilter && a.status === "COMPLETED"
     );
 
     // Calculate revenue
@@ -242,7 +242,7 @@ export async function GET(request: Request) {
       dayStats[i] = { appointments: 0, revenue: 0 };
     }
     appointmentsInRange.forEach(apt => {
-      const day = apt.startTime.getDay();
+      const day = apt.requestedDate.getDay();
       dayStats[day].appointments += 1;
       dayStats[day].revenue += apt.services.reduce((s, svc) => s + Number(svc.price), 0);
     });
@@ -315,7 +315,7 @@ export async function GET(request: Request) {
 
     const stylistData = allStylists.map(stylist => {
       const stylistAppointments = allAppointments.filter(
-        a => a.stylistId === stylist.id && a.startTime >= dateFilter
+        a => a.stylistId === stylist.id && a.requestedDate >= dateFilter
       );
       const completed = stylistAppointments.filter(a => a.status === "COMPLETED");
       const cancelled = stylistAppointments.filter(a => a.status === "CANCELLED");
@@ -361,7 +361,7 @@ export async function GET(request: Request) {
     // TODAY/WEEK REVENUE
     // ============================================
     const todayApptsRevenue = allAppointments
-      .filter(a => a.startTime >= today && a.startTime < tomorrow && a.status === "COMPLETED")
+      .filter(a => a.requestedDate >= today && a.requestedDate < tomorrow && a.status === "COMPLETED")
       .reduce((sum, apt) => sum + apt.services.reduce((s, svc) => s + Number(svc.price), 0), 0);
     const todayOrdersRevenue = allOrders
       .filter(o => o.createdAt >= today && o.createdAt < tomorrow && o.status === "COMPLETED" && o.paymentStatus === "PAID")
@@ -369,7 +369,7 @@ export async function GET(request: Request) {
     const revenueToday = todayApptsRevenue + todayOrdersRevenue;
 
     const weekApptsRevenue = allAppointments
-      .filter(a => a.startTime >= weekStart && a.status === "COMPLETED")
+      .filter(a => a.requestedDate >= weekStart && a.status === "COMPLETED")
       .reduce((sum, apt) => sum + apt.services.reduce((s, svc) => s + Number(svc.price), 0), 0);
     const weekOrdersRevenue = allOrders
       .filter(o => o.createdAt >= weekStart && o.status === "COMPLETED" && o.paymentStatus === "PAID")
