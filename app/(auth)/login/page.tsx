@@ -218,15 +218,7 @@ function LoginForm() {
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-sm text-teal-600 hover:text-teal-700 hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
+                <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -272,26 +264,6 @@ function LoginForm() {
             </Button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Demo Credentials
-              </span>
-            </div>
-          </div>
-
-          <div className="bg-teal-50 rounded-lg p-4 text-center border border-teal-100">
-            <p className="text-sm text-teal-800">
-              Username: <span className="font-semibold">admin</span>
-              {" · "}
-              Password: <span className="font-semibold">Admin@123</span>
-            </p>
-          </div>
-
           {/* Signup Link */}
           <div className="text-center">
             <p className="text-sm text-muted-foreground">
@@ -306,7 +278,7 @@ function LoginForm() {
           <div className="text-center text-sm text-muted-foreground">
             <p>
               Need help?{" "}
-              <Link href="/support" className="text-teal-600 hover:text-teal-700 hover:underline">
+              <Link href="mailto:support@salonixpro.com" className="text-teal-600 hover:text-teal-700 hover:underline">
                 Contact Support
               </Link>
             </p>
