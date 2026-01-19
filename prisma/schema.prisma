@@ -26,12 +26,12 @@ model Business {
   timezone      String   @default("America/St_Lucia")
   logo          String?
   businessHours Json?
-  
+
   // Location
   latitude      Float?
   longitude     Float?
   locationLandmark String?  // "Near KFC, beside the pharmacy"
-  
+
   // Deposit & Payment Settings
   requiresDeposit     Boolean @default(false)
   depositType         String  @default("percentage") // "fixed" or "percentage"
@@ -42,7 +42,7 @@ model Business {
   bankAccountName     String?
   bankAccountNumber   String?
   paymentInstructions String?
-  
+
   // Subscription & Trial
   subscriptionStatus SubscriptionStatus @default(TRIAL)
   trialEndsAt   DateTime?
@@ -50,7 +50,7 @@ model Business {
   paypalSubscriptionId String?
   subscriptionStartDate DateTime?
   subscriptionEndDate DateTime?
-  
+
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -66,7 +66,7 @@ model Business {
   productCategories ProductCategory[]
   orders        Order[]
   notifications Notification[]
-  
+
   @@index([slug])
 }
 
@@ -90,16 +90,18 @@ model User {
   role          Role     @default(STYLIST)
   avatar        String?
   isActive      Boolean  @default(true)
+  mustChangePassword Boolean @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   // Relations
   business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   stylist       Stylist?
-  
+
   @@unique([businessId, email])
   @@unique([businessId, username])
   @@index([businessId])
+  @@index([email])
 }
 
 enum Role {
@@ -127,7 +129,7 @@ model ServiceCategory {
   // Relations
   business      Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   services      Service[]
-  
+
   @@unique([businessId, name])
   @@index([businessId])
 }
@@ -150,7 +152,7 @@ model Service {
   category      ServiceCategory? @relation(fields: [categoryId], references: [id])
   stylistServices StylistService[]
   appointmentServices AppointmentService[]
-  
+
   @@index([businessId])
   @@index([categoryId])
 }
@@ -180,7 +182,7 @@ model Stylist {
   schedules     StylistSchedule[]
   timeOff       StylistTimeOff[]
   appointments  Appointment[]
-  
+
   @@index([businessId])
 }
 
@@ -195,7 +197,7 @@ model StylistService {
   // Relations
   stylist       Stylist  @relation(fields: [stylistId], references: [id], onDelete: Cascade)
   service       Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  
+
   @@unique([stylistId, serviceId])
 }
 
@@ -211,7 +213,7 @@ model StylistSchedule {
 
   // Relations
   stylist       Stylist  @relation(fields: [stylistId], references: [id], onDelete: Cascade)
-  
+
   @@unique([stylistId, dayOfWeek])
 }
 
@@ -225,7 +227,7 @@ model StylistTimeOff {
 
   // Relations
   stylist       Stylist  @relation(fields: [stylistId], references: [id], onDelete: Cascade)
-  
+
   @@index([stylistId])
 }
 
@@ -254,7 +256,7 @@ model Client {
   business      Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
   appointments  Appointment[]
   orders        Order[]
-  
+
   @@unique([businessId, phone])
   @@index([businessId])
 }
@@ -275,7 +277,7 @@ model Appointment {
   totalPrice    Decimal  @db.Decimal(10, 2)
   notes         String?
   cancelReason  String?
-  
+
   // Deposit Tracking
   bookingReference    String?   @unique  // BK-XXXXXX
   depositAmount       Decimal?  @db.Decimal(10, 2)
@@ -284,7 +286,7 @@ model Appointment {
   paymentSubmittedAt  DateTime?
   paymentConfirmedAt  DateTime?
   autoCancelledAt     DateTime?
-  
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -294,7 +296,7 @@ model Appointment {
   stylist       Stylist?  @relation(fields: [stylistId], references: [id])
   services      AppointmentService[]
   order         Order?
-  
+
   @@index([businessId])
   @@index([clientId])
   @@index([stylistId])
@@ -356,7 +358,7 @@ model ProductCategory {
   // Relations
   business      Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   products      Product[]
-  
+
   @@unique([businessId, name])
   @@index([businessId])
 }
@@ -368,30 +370,30 @@ model Product {
   sku           String
   name          String
   description   String?
-  
+
   // Hair-specific attributes
   texture       String?
   lengthInches  Int?
   color         String?
-  
+
   // Pricing
   costPrice     Decimal  @default(0) @db.Decimal(10, 2)
   retailPrice   Decimal  @db.Decimal(10, 2)
   salePrice     Decimal? @db.Decimal(10, 2)
   isOnSale      Boolean  @default(false)
   promoText     String?
-  
+
   // Inventory
   stockOnHand   Int      @default(0)
   stockReserved Int      @default(0)
   reorderLevel  Int      @default(5)
-  
+
   // Display
   images        String[] @default([])
   isFeatured    Boolean  @default(false)
   isAvailableOnline Boolean @default(true)
   isActive      Boolean  @default(true)
-  
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -399,7 +401,7 @@ model Product {
   business      Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
   category      ProductCategory? @relation(fields: [categoryId], references: [id])
   orderItems    OrderItem[]
-  
+
   @@unique([businessId, sku])
   @@index([businessId])
   @@index([categoryId])
@@ -415,27 +417,27 @@ model Order {
   orderNumber   String   @unique
   clientId      String?
   appointmentId String?  @unique
-  
+
   // Status
   status        OrderStatus    @default(PENDING)
   paymentStatus PaymentStatus  @default(UNPAID)
   paymentMethod PaymentMethod?
-  
+
   // Pricing
   subtotal      Decimal  @db.Decimal(10, 2)
   discount      Decimal  @default(0) @db.Decimal(10, 2)
   total         Decimal  @db.Decimal(10, 2)
-  
+
   // Customer info (for guest checkout)
   customerName  String?
   customerPhone String?
   customerEmail String?
   customerNotes String?
-  
+
   // Fulfillment
   pickupDate    DateTime?
   staffNotes    String?
-  
+
   // Timestamps
   confirmedAt   DateTime?
   readyAt       DateTime?
@@ -449,7 +451,7 @@ model Order {
   client        Client?      @relation(fields: [clientId], references: [id])
   appointment   Appointment? @relation(fields: [appointmentId], references: [id])
   items         OrderItem[]
-  
+
   @@index([businessId])
   @@index([clientId])
   @@index([status])
@@ -459,7 +461,7 @@ model OrderItem {
   id            String   @id @default(cuid())
   orderId       String
   productId     String
-  
+
   // Snapshot at time of order
   productSku    String
   productName   String
@@ -467,7 +469,7 @@ model OrderItem {
   unitPrice     Decimal  @db.Decimal(10, 2)
   salePrice     Decimal? @db.Decimal(10, 2)
   lineTotal     Decimal  @db.Decimal(10, 2)
-  
+
   createdAt     DateTime @default(now())
 
   // Relations
@@ -510,10 +512,10 @@ model Notification {
   isRead        Boolean  @default(false)
   isUrgent      Boolean  @default(false)
   createdAt     DateTime @default(now())
-  
+
   // Relations
   business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  
+
   @@index([businessId])
   @@index([isRead])
   @@index([createdAt])

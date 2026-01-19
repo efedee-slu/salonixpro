@@ -1,71 +1,68 @@
-// app/(auth)/login/page.tsx
+// app/(auth)/change-password/page.tsx
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
-import Link from "next/link";
+import { signOut } from "next-auth/react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Scissors, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import { Scissors, Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-function LoginForm() {
+function ChangePasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [showPassword, setShowPassword] = useState(false);
+  const required = searchParams.get("required") === "true";
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-  });
-
-  useEffect(() => {
-    if (searchParams.get("registered") === "true") {
-      setSuccessMessage("Account created! Sign in with your email and password.");
-    }
-    if (searchParams.get("passwordChanged") === "true") {
-      setSuccessMessage("Password changed successfully! Sign in with your new password.");
-    }
-  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError("");
 
+    if (newPassword !== confirmPassword) {
+      setError("New passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setError("New password must be at least 8 characters");
+      return;
+    }
+
+    if (currentPassword === newPassword) {
+      setError("New password must be different from temporary password");
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
-      const result = await signIn("credentials", {
-        username: formData.username,
-        password: formData.password,
-        redirect: false,
+      const response = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
       });
 
-      if (result?.error) {
-        // Check if it's a "must change password" error
-        if (result.error === "MUST_CHANGE_PASSWORD") {
-          router.push("/change-password?required=true");
-          return;
-        }
-        setError(result.error);
-      } else {
-        // Check if user needs to change password
-        const checkResponse = await fetch("/api/auth/check-password-status");
-        const checkData = await checkResponse.json();
-        
-        if (checkData.mustChangePassword) {
-          router.push("/change-password?required=true");
-        } else {
-          router.push("/dashboard");
-          router.refresh();
-        }
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Something went wrong");
       }
-    } catch (err) {
-      setError("An error occurred. Please try again.");
+
+      // Sign out and redirect to login with success message
+      await signOut({ redirect: false });
+      router.push("/login?passwordChanged=true");
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -128,9 +125,9 @@ function LoginForm() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            One system.<br />
-            One salon.<br />
-            <span className="text-white/90">Total control.</span>
+            Secure your<br />
+            account<br />
+            <span className="text-white/90">with a new password.</span>
           </motion.h1>
 
           <motion.p
@@ -139,25 +136,8 @@ function LoginForm() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            Appointments, clients, inventory, and operations — organised properly.
+            Choose a strong password that you'll remember to keep your account safe.
           </motion.p>
-
-          {/* Feature Pills */}
-          <motion.div
-            className="flex flex-wrap gap-3"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-          >
-            {["Booking", "Clients", "POS", "Reports"].map((feature, i) => (
-              <span
-                key={feature}
-                className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm text-white/90 border border-white/20"
-              >
-                {feature}
-              </span>
-            ))}
-          </motion.div>
         </div>
 
         {/* Footer */}
@@ -171,7 +151,7 @@ function LoginForm() {
         </motion.div>
       </div>
 
-      {/* Right Side - Login Form */}
+      {/* Right Side - Form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
         <motion.div
           className="w-full max-w-md space-y-8"
@@ -187,27 +167,26 @@ function LoginForm() {
             <span className="text-2xl font-bold">SalonixPro</span>
           </div>
 
+          {/* Security Icon */}
+          <div className="flex justify-center">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center">
+              <ShieldCheck className="w-8 h-8 text-amber-600" />
+            </div>
+          </div>
+
           {/* Header */}
-          <div className="text-center lg:text-left">
-            <h2 className="text-3xl font-bold tracking-tight">Welcome back</h2>
+          <div className="text-center">
+            <h2 className="text-3xl font-bold tracking-tight">Change your password</h2>
             <p className="mt-2 text-muted-foreground">
-              Sign in to your account to continue
+              {required 
+                ? "You must change your temporary password before continuing"
+                : "Create a new secure password for your account"
+              }
             </p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {successMessage && (
-              <motion.div
-                className="p-4 bg-teal-50 border border-teal-200 rounded-lg text-sm text-teal-700 flex items-center gap-2"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                {successMessage}
-              </motion.div>
-            )}
-
             {error && (
               <motion.div
                 className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive"
@@ -220,46 +199,79 @@ function LoginForm() {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Email or Username</Label>
-                <Input
-                  id="username"
-                  type="text"
-                  placeholder="Enter your email or username"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  required
-                  autoComplete="username"
-                  className="h-12"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-sm text-teal-600 hover:text-teal-700 hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
+                <Label htmlFor="currentPassword">
+                  {required ? "Temporary Password" : "Current Password"}
+                </Label>
                 <div className="relative">
                   <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    id="currentPassword"
+                    type={showCurrentPassword ? "text" : "password"}
+                    placeholder={required ? "Enter temporary password from email" : "Enter current password"}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
                     required
-                    autoComplete="current-password"
                     className="h-12 pr-12"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {showPassword ? (
+                    {showCurrentPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="newPassword"
+                    type={showNewPassword ? "text" : "password"}
+                    placeholder="Enter new password (min 8 characters)"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    className="h-12 pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showNewPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    className="h-12 pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showConfirmPassword ? (
                       <EyeOff className="w-5 h-5" />
                     ) : (
                       <Eye className="w-5 h-5" />
@@ -277,35 +289,22 @@ function LoginForm() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Signing in...
+                  Changing password...
                 </>
               ) : (
-                <>
-                  Sign in
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </>
+                "Change Password"
               )}
             </Button>
           </form>
 
-          {/* Signup Link */}
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
-              <Link href="/signup" className="text-teal-600 hover:text-teal-700 font-medium">
-                Start your free trial
-              </Link>
-            </p>
-          </div>
-
-          {/* Footer Links */}
-          <div className="text-center text-sm text-muted-foreground">
-            <p>
-              Need help?{" "}
-              <Link href="mailto:support@salonixpro.com" className="text-teal-600 hover:text-teal-700 hover:underline">
-                Contact Support
-              </Link>
-            </p>
+          {/* Password Tips */}
+          <div className="bg-muted/50 rounded-lg p-4">
+            <p className="text-sm font-medium text-muted-foreground mb-2">Password tips:</p>
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li>• At least 8 characters long</li>
+              <li>• Mix of letters, numbers, and symbols</li>
+              <li>• Don't reuse passwords from other sites</li>
+            </ul>
           </div>
         </motion.div>
       </div>
@@ -314,7 +313,7 @@ function LoginForm() {
 }
 
 // Loading fallback for Suspense
-function LoginLoading() {
+function ChangePasswordLoading() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="flex items-center gap-3">
@@ -326,10 +325,10 @@ function LoginLoading() {
 }
 
 // Main export wrapped in Suspense
-export default function LoginPage() {
+export default function ChangePasswordPage() {
   return (
-    <Suspense fallback={<LoginLoading />}>
-      <LoginForm />
+    <Suspense fallback={<ChangePasswordLoading />}>
+      <ChangePasswordForm />
     </Suspense>
   );
 }
