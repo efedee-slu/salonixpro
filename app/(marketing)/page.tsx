@@ -1,19 +1,15 @@
-// app/(marketing)/page.tsx
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import {
   Calendar,
   Users,
   Sparkles,
   ShoppingBag,
   BarChart3,
-  Clock,
-  Shield,
   Globe,
   Check,
   ArrowRight,
@@ -24,219 +20,230 @@ import {
   X,
   ChevronDown,
   HelpCircle,
+  Cloud,
+  HandHeart,
+  Coins,
+  Mail,
+  UserCheck,
+  Lock,
+  MousePointerClick,
+  Twitter,
+  Facebook,
+  Instagram,
+  Linkedin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+
+/* ──────────────────── scroll-fade hook ──────────────────── */
+function useScrollFade(threshold = 0.15) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.unobserve(el); } },
+      { threshold }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [threshold]);
+
+  return { ref, className: visible ? "animate-fade-up" : "opacity-0 translate-y-6" };
+}
+
+function FadeIn({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const { ref, className: fadeClass } = useScrollFade();
+  return (
+    <div
+      ref={ref}
+      className={`transition-all duration-700 ease-out ${fadeClass} ${className}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ──────────────────── data ──────────────────── */
+const navLinks = [
+  { label: "Features", href: "#features" },
+  { label: "How It Works", href: "#how-it-works" },
+  { label: "Why Us", href: "#why-us" },
+  { label: "Pricing", href: "#pricing" },
+  { label: "FAQ", href: "#faq" },
+];
 
 const features = [
-  {
-    icon: Calendar,
-    title: "Online Booking",
-    description: "Clients book 24/7 via your custom booking link. No more phone tag.",
-  },
-  {
-    icon: Clock,
-    title: "Appointment Calendar",
-    description: "See your day, week, or month at a glance. Never double-book again.",
-  },
-  {
-    icon: Users,
-    title: "Client Management",
-    description: "Track visit history, preferences, and contact info in one place.",
-  },
-  {
-    icon: Sparkles,
-    title: "Service Menu",
-    description: "Organize services by category with pricing. Easy to update anytime.",
-  },
-  {
-    icon: Shield,
-    title: "Staff Scheduling",
-    description: "Manage stylist availability, schedules, and workloads effortlessly.",
-  },
-  {
-    icon: ShoppingBag,
-    title: "Point of Sale",
-    description: "Sell products, track inventory, process orders, print receipts.",
-  },
-  {
-    icon: BarChart3,
-    title: "Reports & Analytics",
-    description: "Revenue trends, top services, busiest days. Know your numbers.",
-  },
-  {
-    icon: Globe,
-    title: "Your Booking Page",
-    description: "A beautiful public page where clients can book appointments online.",
-  },
+  { icon: Calendar, title: "Appointment Scheduling", description: "Smart calendar with stylist availability, conflict detection, and drag-and-drop rescheduling." },
+  { icon: Users, title: "Client Management", description: "Complete client profiles with visit history, preferences, VIP status, and spending analytics." },
+  { icon: Sparkles, title: "Service Catalog", description: "130+ pre-loaded Caribbean salon, barber, and nail services. Customize pricing and duration." },
+  { icon: ShoppingBag, title: "Inventory & POS", description: "Stock tracking, low-stock alerts, product sales, and order management in one system." },
+  { icon: BarChart3, title: "Financial Reports", description: "P&L statements, expense tracking, payroll management with commission calculations." },
+  { icon: Globe, title: "Online Booking", description: "Your branded booking page where clients browse services and book appointments 24/7." },
+];
+
+const advancedFeatures = [
+  { icon: UserCheck, title: "Customer Portal", description: "Clients view appointments and order history via secure email verification login." },
+  { icon: Coins, title: "Multi-Currency", description: "XCD, TTD, BBD, JMD, USD, and more. Built for Caribbean businesses from day one." },
+  { icon: Mail, title: "Email Notifications", description: "Automated booking confirmations, appointment reminders, and payment receipts." },
 ];
 
 const steps = [
-  {
-    number: "01",
-    title: "Sign Up",
-    description: "Create your account in under 2 minutes. No credit card required.",
-  },
-  {
-    number: "02",
-    title: "Set Up Your Salon",
-    description: "Add your services, staff, and business hours. We guide you through it.",
-  },
-  {
-    number: "03",
-    title: "Start Booking",
-    description: "Share your booking link. Clients book online. You stay in control.",
-  },
+  { number: "1", title: "Create Your Account", description: "Sign up in under a minute. No credit card required to start your 14-day free trial." },
+  { number: "2", title: "Set Up Your Salon", description: "Choose services from the catalog, add your team, set working hours. We guide every step." },
+  { number: "3", title: "Start Booking", description: "Share your booking link. Accept appointments, manage clients, and track revenue instantly." },
 ];
 
-const testimonials = [
-  {
-    quote: "Finally, software that understands how salons actually work. Simple, clean, and everything I need.",
-    author: "Michelle T.",
-    role: "Owner, Luxe Hair Studio",
-    rating: 5,
-  },
-  {
-    quote: "My clients love booking online. I love not answering the phone 50 times a day.",
-    author: "Karen P.",
-    role: "Owner, Glow Beauty Bar",
-    rating: 5,
-  },
-  {
-    quote: "The reports alone are worth it. I finally know which services make me money.",
-    author: "David R.",
-    role: "Owner, The Gentlemen's Room",
-    rating: 5,
-  },
+const whyCards = [
+  { icon: HandHeart, title: "Caribbean-Built", description: "Designed for our region — XCD currency, local services, Caribbean business workflows.", color: "from-teal-500 to-emerald-600" },
+  { icon: Lock, title: "Secure & Private", description: "Role-based access control, encrypted data, and your business information stays protected.", color: "from-blue-500 to-indigo-600" },
+  { icon: MousePointerClick, title: "Easy to Use", description: "Clean interface your staff can learn in minutes, not weeks. No training manual needed.", color: "from-amber-500 to-orange-600" },
+  { icon: Cloud, title: "Cloud-Based", description: "Access your salon from anywhere — no installation, automatic updates, works on any device.", color: "from-purple-500 to-violet-600" },
+];
+
+const included = [
+  "Unlimited Clients",
+  "Unlimited Appointments",
+  "Full Financial Suite",
+  "Service Catalog (130+ services)",
+  "Online Booking Page",
+  "Reports & Analytics",
+  "Team Management & Roles",
+  "Customer Self-Service Portal",
+  "Email Notifications",
+  "Inventory Management",
 ];
 
 const faqs = [
-  {
-    question: "How does the 14-day free trial work?",
-    answer: "You get full access to all features for 14 days. No credit card required to start. At the end of your trial, simply choose a plan to continue.",
-  },
-  {
-    question: "Can I cancel anytime?",
-    answer: "Yes! You can cancel your subscription at any time from your Settings page. No long-term contracts or cancellation fees.",
-  },
-  {
-    question: "How do I get my online booking link?",
-    answer: "Once you sign up, you'll get a unique booking page at salonixpro.com/book/your-salon-name. Share this link with clients via WhatsApp, Instagram, or your website.",
-  },
-  {
-    question: "Is my data secure?",
-    answer: "Absolutely. We use industry-standard encryption and secure servers. Your client data is private and never shared with third parties.",
-  },
-  {
-    question: "Can I add multiple staff members?",
-    answer: "Yes! Add unlimited staff accounts. Each stylist can have their own schedule, services, and login.",
-  },
-  {
-    question: "What payment methods do you accept?",
-    answer: "We accept all major credit/debit cards and PayPal for your subscription payments.",
-  },
-  {
-    question: "Do I need to install anything?",
-    answer: "No installation needed. SalonixPro works in your web browser on any device - computer, tablet, or phone.",
-  },
-  {
-    question: "Can I import my existing clients?",
-    answer: "Yes, you can add clients manually or contact us for help importing from a spreadsheet.",
-  },
-  {
-    question: "What if I need help?",
-    answer: "We offer email support for all users. Just reach out and we'll help you get set up.",
-  },
-  {
-    question: "Is there a contract or setup fee?",
-    answer: "No contracts, no setup fees. Just simple monthly or yearly pricing. Cancel anytime.",
-  },
+  { q: "How does the 14-day free trial work?", a: "You get full access to all features for 14 days. No credit card required to start. At the end of your trial, simply choose a plan to continue." },
+  { q: "Can I cancel anytime?", a: "Yes! You can cancel your subscription at any time from your Settings page. No long-term contracts or cancellation fees." },
+  { q: "How do I get my online booking link?", a: "Once you sign up, you'll get a unique booking page at salonixpro.com/book/your-salon-name. Share this link with clients via WhatsApp, Instagram, or your website." },
+  { q: "Is my data secure?", a: "Absolutely. We use industry-standard encryption and secure servers. Your client data is private and never shared with third parties." },
+  { q: "Can I add multiple staff members?", a: "Yes! Add unlimited staff accounts. Each stylist gets their own schedule, services, and login with role-based permissions." },
+  { q: "Do I need to install anything?", a: "No installation needed. SalonixPro works in your web browser on any device — computer, tablet, or phone." },
+  { q: "What currencies are supported?", a: "We support XCD, USD, TTD, BBD, JMD, GYD, and more. Currency is set during onboarding and displayed throughout the app." },
+  { q: "What if I need help?", a: "We offer email support for all users. Just reach out and we'll help you get set up." },
 ];
 
+/* ──────────────────── component ──────────────────── */
 export default function LandingPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [scrolled, setScrolled] = useState(false);
 
-  // Redirect logged-in users to dashboard
   useEffect(() => {
-    if (status === "authenticated") {
-      router.push("/dashboard");
-    }
+    if (status === "authenticated") router.push("/dashboard");
   }, [status, router]);
 
-  // Show loading while checking auth
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
-
-  // Don't render if authenticated (will redirect)
-  if (status === "authenticated") {
-    return null;
-  }
+  if (status === "authenticated") return null;
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b">
+      {/* ─── Global style for scroll animation ─── */}
+      <style jsx global>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up {
+          animation: fadeUp 0.7s ease-out forwards;
+        }
+        html { scroll-behavior: smooth; }
+      `}</style>
+
+      {/* ══════════════ NAVBAR ══════════════ */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-white/92 backdrop-blur-xl shadow-sm border-b border-gray-200/60"
+          : "bg-transparent"
+      }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-16 lg:h-18">
             {/* Logo */}
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-teal-600 flex items-center justify-center">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-teal-500/25">
                 <Scissors className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">SalonixPro</span>
+              <span className={`text-xl font-bold transition-colors ${scrolled ? "text-gray-900" : "text-white"}`}>
+                SalonixPro
+              </span>
             </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-sm text-gray-600 hover:text-gray-900">Features</a>
-              <a href="#pricing" className="text-sm text-gray-600 hover:text-gray-900">Pricing</a>
-              <a href="#testimonials" className="text-sm text-gray-600 hover:text-gray-900">Testimonials</a>
-              <a href="#faq" className="text-sm text-gray-600 hover:text-gray-900">FAQ</a>
+            {/* Desktop Links */}
+            <div className="hidden lg:flex items-center gap-8">
+              {navLinks.map((l) => (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  className={`text-sm font-medium transition-colors hover:text-teal-500 ${
+                    scrolled ? "text-gray-600" : "text-white/80 hover:text-white"
+                  }`}
+                >
+                  {l.label}
+                </a>
+              ))}
             </div>
 
             {/* Desktop CTA */}
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden lg:flex items-center gap-3">
               <Link href="/login">
-                <Button variant="ghost">Sign In</Button>
+                <Button
+                  variant="ghost"
+                  className={`font-medium ${scrolled ? "text-gray-700 hover:text-gray-900" : "text-white/90 hover:text-white hover:bg-white/10"}`}
+                >
+                  Sign In
+                </Button>
               </Link>
               <Link href="/signup">
-                <Button className="bg-teal-600 hover:bg-teal-700">
+                <Button className="bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-600/25">
                   Start Free Trial
+                  <ArrowRight className="ml-1.5 w-4 h-4" />
                 </Button>
               </Link>
             </div>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile Toggle */}
             <button
-              className="md:hidden p-2"
+              className="lg:hidden p-2 rounded-lg"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen
+                ? <X className={`w-6 h-6 ${scrolled ? "text-gray-900" : "text-white"}`} />
+                : <Menu className={`w-6 h-6 ${scrolled ? "text-gray-900" : "text-white"}`} />}
             </button>
           </div>
         </div>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="md:hidden bg-white border-b px-4 py-4 space-y-4"
-          >
-            <a href="#features" className="block text-gray-600">Features</a>
-            <a href="#pricing" className="block text-gray-600">Pricing</a>
-            <a href="#testimonials" className="block text-gray-600">Testimonials</a>
-            <a href="#faq" className="block text-gray-600">FAQ</a>
+          <div className="lg:hidden bg-white border-b shadow-lg px-4 py-5 space-y-3">
+            {navLinks.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-2 text-gray-700 font-medium"
+              >
+                {l.label}
+              </a>
+            ))}
             <div className="pt-4 border-t space-y-2">
               <Link href="/login" className="block">
                 <Button variant="outline" className="w-full">Sign In</Button>
@@ -245,379 +252,422 @@ export default function LandingPage() {
                 <Button className="w-full bg-teal-600 hover:bg-teal-700">Start Free Trial</Button>
               </Link>
             </div>
-          </motion.div>
+          </div>
         )}
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-center max-w-4xl mx-auto"
-          >
-            <Badge className="mb-6 bg-teal-50 text-teal-700 hover:bg-teal-100">
-              14-day free trial • No credit card required
-            </Badge>
-            
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 tracking-tight mb-6">
-              SalonixPro
-            </h1>
-            
-            <p className="text-2xl sm:text-3xl text-gray-600 font-medium mb-8">
-              One system. One salon. Total control.
-            </p>
-            
-            <p className="text-lg text-gray-500 max-w-2xl mx-auto mb-10">
-              Appointments, clients, inventory, and operations — organised properly. 
-              The salon management system built for owners who want simplicity without compromise.
-            </p>
+      {/* ══════════════ HERO ══════════════ */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-teal-950 pt-32 pb-24 lg:pt-40 lg:pb-32">
+        {/* Background glow */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-teal-500/10 blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-emerald-500/10 blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-teal-600/5 blur-3xl" />
+        </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/signup">
-                <Button size="lg" className="bg-teal-600 hover:bg-teal-700 h-14 px-8 text-lg">
-                  Start Your Free Trial
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button size="lg" variant="outline" className="h-14 px-8 text-lg">
-                  See Demo
-                </Button>
-              </Link>
-            </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-500/10 border border-teal-500/20 mb-8">
+            <Zap className="w-4 h-4 text-teal-400" />
+            <span className="text-sm font-medium text-teal-300">14-day free trial &middot; No credit card required</span>
+          </div>
 
-            <p className="mt-6 text-sm text-gray-400">
-              Demo: username <span className="font-mono bg-gray-100 px-2 py-0.5 rounded">admin</span> / password <span className="font-mono bg-gray-100 px-2 py-0.5 rounded">Admin@123</span>
-            </p>
-          </motion.div>
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white tracking-tight mb-6 max-w-5xl mx-auto leading-[1.1]">
+            Everything your salon needs.{" "}
+            <span className="bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">
+              One platform.
+            </span>
+          </h1>
+
+          <p className="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+            The all-in-one management system for Caribbean salons, barbershops, and nail studios.
+            Appointments, clients, inventory, and finances — finally organised.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+            <Link href="/signup">
+              <Button size="lg" className="bg-teal-500 hover:bg-teal-600 text-white h-14 px-8 text-lg shadow-xl shadow-teal-500/25 w-full sm:w-auto">
+                Start Free Trial
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white w-full sm:w-auto">
+                Sign In
+              </Button>
+            </Link>
+          </div>
+
+          <p className="text-sm text-slate-500">
+            Trusted by salon owners across the Caribbean
+          </p>
         </div>
       </section>
 
-      {/* Pain Points */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-center"
-          >
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              Still managing your salon with paper, WhatsApp, and spreadsheets?
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Missed appointments. Lost client info. No idea which services actually make you money. 
-              There's a better way.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8">
+      {/* ══════════════ FEATURES GRID ══════════════ */}
+      <section id="features" className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Everything you need. Nothing you don't.
+          <FadeIn className="text-center mb-16">
+            <p className="text-sm font-semibold text-teal-600 uppercase tracking-wider mb-3">Core Features</p>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Everything your practice needs
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Built specifically for salons and barbershops. No bloat, no complexity, no learning curve.
             </p>
-          </motion.div>
+          </FadeIn>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="h-full border-0 shadow-sm hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center mb-4">
-                      <feature.icon className="w-6 h-6 text-teal-600" />
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                    <p className="text-sm text-gray-600">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((f, i) => (
+              <FadeIn key={f.title} delay={i * 100}>
+                <div className="group relative p-8 rounded-2xl border border-gray-100 bg-white hover:shadow-xl hover:shadow-gray-100/50 hover:-translate-y-1 transition-all duration-300">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-100 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                    <f.icon className="w-7 h-7 text-teal-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{f.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{f.description}</p>
+                </div>
+              </FadeIn>
             ))}
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-20 bg-gray-50 px-4 sm:px-6 lg:px-8">
+      {/* ══════════════ ADVANCED FEATURES ══════════════ */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-teal-50/30">
         <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+          <FadeIn className="text-center mb-16">
+            <p className="text-sm font-semibold text-teal-600 uppercase tracking-wider mb-3">And More</p>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Built for the way you work
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Advanced features that set SalonixPro apart from generic booking tools.
+            </p>
+          </FadeIn>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {advancedFeatures.map((f, i) => (
+              <FadeIn key={f.title} delay={i * 100}>
+                <div className="relative p-8 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300">
+                  <div className="w-12 h-12 rounded-xl bg-teal-600 flex items-center justify-center mb-5">
+                    <f.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{f.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{f.description}</p>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════ HOW IT WORKS ══════════════ */}
+      <section id="how-it-works" className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <FadeIn className="text-center mb-20">
+            <p className="text-sm font-semibold text-teal-600 uppercase tracking-wider mb-3">Getting Started</p>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               Up and running in minutes
             </h2>
-            <p className="text-lg text-gray-600">
-              No complicated setup. No training required.
-            </p>
-          </motion.div>
+            <p className="text-lg text-gray-600">No complicated setup. No training required.</p>
+          </FadeIn>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {steps.map((step, index) => (
-              <motion.div
-                key={step.number}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.2 }}
-                className="text-center"
-              >
-                <div className="text-6xl font-bold text-teal-100 mb-4">{step.number}</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-gray-600">{step.description}</p>
-              </motion.div>
+          <div className="relative">
+            {/* Connecting line (desktop) */}
+            <div className="hidden md:block absolute top-10 left-[16.67%] right-[16.67%] h-0.5 bg-gradient-to-r from-teal-200 via-teal-300 to-teal-200" />
+
+            <div className="grid md:grid-cols-3 gap-12 md:gap-8">
+              {steps.map((s, i) => (
+                <FadeIn key={s.number} delay={i * 200} className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 text-white text-2xl font-bold mb-6 shadow-xl shadow-teal-500/25">
+                    {s.number}
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">{s.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{s.description}</p>
+                </FadeIn>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════ WHY US ══════════════ */}
+      <section id="why-us" className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-950 to-slate-900">
+        <div className="max-w-7xl mx-auto">
+          <FadeIn className="text-center mb-16">
+            <p className="text-sm font-semibold text-teal-400 uppercase tracking-wider mb-3">Why SalonixPro</p>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
+              Why Caribbean salons choose us
+            </h2>
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+              Purpose-built for the way beauty businesses operate in the Caribbean.
+            </p>
+          </FadeIn>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {whyCards.map((c, i) => (
+              <FadeIn key={c.title} delay={i * 100}>
+                <div className="group p-8 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 transition-all duration-300 h-full">
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${c.color} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform shadow-lg`}>
+                    <c.icon className="w-7 h-7 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">{c.title}</h3>
+                  <p className="text-slate-400 leading-relaxed">{c.description}</p>
+                </div>
+              </FadeIn>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8">
+      {/* ══════════════ EVERYTHING INCLUDED ══════════════ */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <FadeIn className="text-center mb-16">
+            <p className="text-sm font-semibold text-teal-600 uppercase tracking-wider mb-3">All-Inclusive</p>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Everything included. One price.
+            </h2>
+            <p className="text-lg text-gray-600">
+              No hidden fees, no feature tiers, no per-user charges.
+            </p>
+          </FadeIn>
+
+          <FadeIn>
+            <div className="grid sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+              {included.map((item) => (
+                <div key={item} className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100">
+                  <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-4 h-4 text-teal-600" />
+                  </div>
+                  <span className="text-gray-800 font-medium">{item}</span>
+                </div>
+              ))}
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* ══════════════ PRICING ══════════════ */}
+      <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-950 to-teal-950">
         <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+          <FadeIn className="text-center mb-16">
+            <p className="text-sm font-semibold text-teal-400 uppercase tracking-wider mb-3">Pricing</p>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
               Simple, transparent pricing
             </h2>
-            <p className="text-lg text-gray-600">
-              One plan. All features. No surprises.
-            </p>
-          </motion.div>
+            <p className="text-lg text-slate-400">One plan. All features. No surprises.</p>
+          </FadeIn>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-lg mx-auto"
-          >
-            <Card className="border-2 border-teal-600 shadow-xl">
-              <CardContent className="p-8">
-                <div className="text-center mb-8">
-                  <Badge className="mb-4 bg-amber-100 text-amber-700">
-                    <Zap className="w-3 h-3 mr-1" />
-                    Special Introductory Price
-                  </Badge>
-                  <div className="flex items-baseline justify-center gap-2 mb-2">
-                    <span className="text-5xl font-bold text-gray-900">$12</span>
-                    <span className="text-gray-600">USD/month</span>
-                  </div>
-                  <p className="text-sm text-gray-500">
-                    Or <span className="font-semibold text-teal-600">$100/year</span> (save $44)
-                  </p>
+          <FadeIn className="max-w-lg mx-auto">
+            <div className="relative p-10 rounded-3xl bg-white shadow-2xl">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold shadow-lg">
+                  <Zap className="w-3.5 h-3.5" />
+                  Introductory Price
+                </span>
+              </div>
+
+              <div className="text-center mb-8 pt-4">
+                <div className="flex items-baseline justify-center gap-1 mb-2">
+                  <span className="text-6xl font-bold text-gray-900">$12</span>
+                  <span className="text-xl text-gray-500">USD/mo</span>
                 </div>
-
-                <ul className="space-y-4 mb-8">
-                  {[
-                    "Unlimited appointments",
-                    "Unlimited clients",
-                    "Unlimited staff accounts",
-                    "Online booking page",
-                    "Point of sale & inventory",
-                    "Reports & analytics",
-                    "Email support",
-                  ].map((feature) => (
-                    <li key={feature} className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center">
-                        <Check className="w-3 h-3 text-teal-600" />
-                      </div>
-                      <span className="text-gray-700">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Link href="/signup">
-                  <Button className="w-full h-12 bg-teal-600 hover:bg-teal-700 text-lg">
-                    Start 14-Day Free Trial
-                  </Button>
-                </Link>
-                
-                <p className="text-center text-sm text-gray-500 mt-4">
-                  No credit card required • Cancel anytime
+                <p className="text-sm text-gray-500">
+                  Or <span className="font-semibold text-teal-600">$100/year</span> (save $44)
                 </p>
-              </CardContent>
-            </Card>
-          </motion.div>
+              </div>
+
+              <ul className="space-y-4 mb-8">
+                {[
+                  "Unlimited appointments",
+                  "Unlimited clients & staff",
+                  "Online booking page",
+                  "Point of sale & inventory",
+                  "Reports & analytics",
+                  "Customer portal",
+                  "Email notifications",
+                ].map((f) => (
+                  <li key={f} className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-3 h-3 text-teal-600" />
+                    </div>
+                    <span className="text-gray-700">{f}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Link href="/signup" className="block">
+                <Button className="w-full h-14 bg-teal-600 hover:bg-teal-700 text-lg shadow-lg shadow-teal-600/25">
+                  Start 14-Day Free Trial
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+
+              <p className="text-center text-sm text-gray-500 mt-4">
+                No credit card required &middot; Cancel anytime
+              </p>
+            </div>
+          </FadeIn>
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 bg-gray-50 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Trusted by salon owners
-            </h2>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={testimonial.author}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="h-full border-0 shadow-sm">
-                  <CardContent className="p-6">
-                    <div className="flex gap-1 mb-4">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
-                    <p className="text-gray-700 mb-6">"{testimonial.quote}"</p>
-                    <div>
-                      <p className="font-semibold text-gray-900">{testimonial.author}</p>
-                      <p className="text-sm text-gray-500">{testimonial.role}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+      {/* ══════════════ TESTIMONIAL ══════════════ */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <FadeIn className="text-center">
+            <div className="flex justify-center gap-1 mb-8">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-6 h-6 fill-amber-400 text-amber-400" />
+              ))}
+            </div>
+            <blockquote className="text-2xl sm:text-3xl font-medium text-gray-900 leading-relaxed mb-8">
+              &ldquo;SalonixPro transformed how we run our salon. Scheduling, inventory, reports &mdash;
+              it&rsquo;s all in one place. My team picked it up in a day.&rdquo;
+            </blockquote>
+            <p className="text-gray-500 font-medium">&mdash; SalonixPro Beta User</p>
+          </FadeIn>
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section id="faq" className="py-20 px-4 sm:px-6 lg:px-8">
+      {/* ══════════════ FAQ ══════════════ */}
+      <section id="faq" className="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-3xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-teal-100 mb-4">
-              <HelpCircle className="w-6 h-6 text-teal-600" />
+          <FadeIn className="text-center mb-14">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-teal-100 mb-4">
+              <HelpCircle className="w-7 h-7 text-teal-600" />
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
               Frequently Asked Questions
             </h2>
-            <p className="text-lg text-gray-600">
-              Everything you need to know about SalonixPro
-            </p>
-          </motion.div>
+            <p className="text-lg text-gray-600">Everything you need to know about SalonixPro</p>
+          </FadeIn>
 
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <div
-                  className={`border rounded-xl overflow-hidden transition-all ${
-                    openFaq === index ? "border-teal-300 shadow-md" : "border-gray-200"
-                  }`}
-                >
+          <div className="space-y-3">
+            {faqs.map((faq, i) => (
+              <FadeIn key={i} delay={i * 50}>
+                <div className={`rounded-2xl border overflow-hidden transition-all duration-200 ${
+                  openFaq === i ? "border-teal-300 shadow-md shadow-teal-100/50 bg-white" : "border-gray-200 bg-white"
+                }`}>
                   <button
-                    onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                    className="w-full flex items-center justify-between p-5 text-left bg-white hover:bg-gray-50 transition-colors"
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50/50 transition-colors"
                   >
-                    <span className="font-medium text-gray-900">{faq.question}</span>
-                    <ChevronDown
-                      className={`w-5 h-5 text-gray-500 transition-transform ${
-                        openFaq === index ? "rotate-180" : ""
-                      }`}
-                    />
+                    <span className="font-medium text-gray-900 pr-4">{faq.q}</span>
+                    <ChevronDown className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-200 ${
+                      openFaq === i ? "rotate-180 text-teal-600" : ""
+                    }`} />
                   </button>
-                  {openFaq === index && (
-                    <div className="px-5 pb-5 bg-white">
-                      <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
+                  <div className={`overflow-hidden transition-all duration-200 ${
+                    openFaq === i ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+                  }`}>
+                    <div className="px-5 pb-5">
+                      <p className="text-gray-600 leading-relaxed">{faq.a}</p>
                     </div>
-                  )}
+                  </div>
                 </div>
-              </motion.div>
+              </FadeIn>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Final CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-gradient-to-r from-teal-600 to-teal-700 rounded-3xl p-12 text-center text-white"
-          >
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Ready to take control of your salon?
+      {/* ══════════════ FINAL CTA ══════════════ */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-950 to-slate-900 relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-20 -right-20 w-[400px] h-[400px] rounded-full bg-teal-500/10 blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 w-[300px] h-[300px] rounded-full bg-emerald-500/10 blur-3xl" />
+        </div>
+
+        <div className="relative max-w-4xl mx-auto text-center">
+          <FadeIn>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
+              Ready to modernize your salon?
             </h2>
-            <p className="text-teal-100 text-lg mb-8 max-w-2xl mx-auto">
-              Join salon owners who've simplified their business with SalonixPro.
-              Start your free trial today.
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-10">
+              Join salon owners across the Caribbean who&rsquo;ve simplified their business with SalonixPro.
+              Start your 14-day free trial today.
             </p>
-            <Link href="/signup">
-              <Button size="lg" className="bg-white text-teal-700 hover:bg-teal-50 h-14 px-8 text-lg">
-                Start Your Free Trial
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-          </motion.div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link href="/signup">
+                <Button size="lg" className="bg-teal-500 hover:bg-teal-600 text-white h-14 px-8 text-lg shadow-xl shadow-teal-500/25">
+                  Start Free Trial
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+              <Link href="/login">
+                <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white">
+                  Sign In
+                </Button>
+              </Link>
+            </div>
+          </FadeIn>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-12 px-4 sm:px-6 lg:px-8">
+      {/* ══════════════ FOOTER ══════════════ */}
+      <footer className="bg-slate-950 border-t border-slate-800 pt-16 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-            {/* Logo & Tagline */}
-            <div className="text-center md:text-left">
-              <div className="flex items-center gap-2 justify-center md:justify-start mb-2">
-                <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center">
-                  <Scissors className="w-4 h-4 text-white" />
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+            {/* Brand */}
+            <div className="col-span-2">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center">
+                  <Scissors className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-lg font-bold text-white">SalonixPro</span>
+                <span className="text-xl font-bold text-white">SalonixPro</span>
               </div>
-              <p className="text-sm">One system. One salon. Total control.</p>
+              <p className="text-slate-400 text-sm leading-relaxed max-w-xs mb-6">
+                Professional salon management software built for Caribbean beauty businesses.
+              </p>
+              <div className="flex items-center gap-3">
+                {[Twitter, Facebook, Instagram, Linkedin].map((Icon, i) => (
+                  <a
+                    key={i}
+                    href="#"
+                    className="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors"
+                  >
+                    <Icon className="w-4 h-4 text-slate-400" />
+                  </a>
+                ))}
+              </div>
             </div>
 
-            {/* Links */}
-            <div className="flex items-center gap-8 text-sm">
-              <a href="#features" className="hover:text-white transition">Features</a>
-              <a href="#pricing" className="hover:text-white transition">Pricing</a>
-              <Link href="/login" className="hover:text-white transition">Sign In</Link>
-              <Link href="/signup" className="hover:text-white transition">Sign Up</Link>
+            {/* Product */}
+            <div>
+              <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Product</h4>
+              <ul className="space-y-3 text-sm">
+                <li><a href="#features" className="text-slate-400 hover:text-white transition-colors">Features</a></li>
+                <li><a href="#pricing" className="text-slate-400 hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="#" className="text-slate-400 hover:text-white transition-colors">System Status</a></li>
+              </ul>
+            </div>
+
+            {/* Resources */}
+            <div>
+              <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Resources</h4>
+              <ul className="space-y-3 text-sm">
+                <li><a href="#faq" className="text-slate-400 hover:text-white transition-colors">FAQ</a></li>
+                <li><a href="mailto:support@salonixpro.com" className="text-slate-400 hover:text-white transition-colors">Contact</a></li>
+                <li><span className="text-slate-500">support@salonixpro.com</span></li>
+              </ul>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Legal</h4>
+              <ul className="space-y-3 text-sm">
+                <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Security</a></li>
+              </ul>
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
-            <p>© {new Date().getFullYear()} SalonixPro. All rights reserved.</p>
+          <div className="border-t border-slate-800 pt-8 text-center">
+            <p className="text-sm text-slate-500">
+              &copy; {new Date().getFullYear()} SalonixPro. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
