@@ -2,7 +2,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "SalonixPro — Professional Salon Management for the Caribbean",
+  title: {
+    absolute: "SalonixPro — Professional Salon Management for the Caribbean",
+  },
   description:
     "The all-in-one platform for Caribbean salons, barbershops, and nail studios. Appointments, clients, inventory, finances — everything in one place.",
   openGraph: {
