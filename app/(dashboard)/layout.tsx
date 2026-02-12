@@ -38,37 +38,49 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 
+// Role hierarchy levels for nav filtering
+const ROLE_LEVELS: Record<string, number> = {
+  OWNER: 4,
+  MANAGER: 3,
+  STYLIST: 2,
+  ASSISTANT: 1,
+};
+
+function hasMinRole(userRole: string, minRole: string): boolean {
+  return (ROLE_LEVELS[userRole] ?? 0) >= (ROLE_LEVELS[minRole] ?? 0);
+}
+
 const navigationGroups = [
   {
     label: "MAIN",
     items: [
-      { name: "Dashboard", href: "/", icon: LayoutDashboard },
-      { name: "Appointments", href: "/appointments", icon: Calendar, badge: 3 },
-      { name: "Clients", href: "/clients", icon: Users },
-      { name: "Services", href: "/services", icon: Sparkles },
-      { name: "Stylists", href: "/stylists", icon: UserCircle },
+      { name: "Dashboard", href: "/", icon: LayoutDashboard, minRole: "ASSISTANT" },
+      { name: "Appointments", href: "/appointments", icon: Calendar, badge: 3, minRole: "ASSISTANT" },
+      { name: "Clients", href: "/clients", icon: Users, minRole: "ASSISTANT" },
+      { name: "Services", href: "/services", icon: Sparkles, minRole: "ASSISTANT" },
+      { name: "Stylists", href: "/stylists", icon: UserCircle, minRole: "MANAGER" },
     ],
   },
   {
     label: "SALES",
     items: [
-      { name: "Shop", href: "/shop", icon: ShoppingBag },
-      { name: "Orders", href: "/orders", icon: Package, badge: 5 },
+      { name: "Shop", href: "/shop", icon: ShoppingBag, minRole: "MANAGER" },
+      { name: "Orders", href: "/orders", icon: Package, badge: 5, minRole: "STYLIST" },
     ],
   },
   {
     label: "FINANCE",
     items: [
-      { name: "Expenses", href: "/expenses", icon: Wallet },
-      { name: "Payroll", href: "/payroll", icon: DollarSign },
-      { name: "P&L Report", href: "/profit-loss", icon: TrendingUp },
-      { name: "Reports", href: "/reports", icon: BarChart3 },
+      { name: "Expenses", href: "/expenses", icon: Wallet, minRole: "MANAGER" },
+      { name: "Payroll", href: "/payroll", icon: DollarSign, minRole: "OWNER" },
+      { name: "P&L Report", href: "/profit-loss", icon: TrendingUp, minRole: "MANAGER" },
+      { name: "Reports", href: "/reports", icon: BarChart3, minRole: "MANAGER" },
     ],
   },
   {
     label: "SETTINGS",
     items: [
-      { name: "Settings", href: "/settings", icon: Settings },
+      { name: "Settings", href: "/settings", icon: Settings, minRole: "MANAGER" },
     ],
   },
 ];
@@ -136,13 +148,19 @@ export default function DashboardLayout({
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-4 space-y-4">
-            {navigationGroups.map((group) => (
+            {navigationGroups.map((group) => {
+              const userRole = user?.role || "ASSISTANT";
+              const visibleItems = group.items.filter((item) =>
+                hasMinRole(userRole, item.minRole)
+              );
+              if (visibleItems.length === 0) return null;
+              return (
               <div key={group.label}>
                 <p className="px-4 mb-1 text-[10px] font-semibold uppercase tracking-wider text-white/40">
                   {group.label}
                 </p>
                 <div className="space-y-1">
-                  {group.items.map((item) => {
+                  {visibleItems.map((item) => {
                     const isActive = pathname === item.href ||
                       (item.href !== "/" && pathname.startsWith(item.href));
 
@@ -176,7 +194,8 @@ export default function DashboardLayout({
                   })}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </nav>
 
         </div>

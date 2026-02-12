@@ -1,6 +1,6 @@
 // app/api/profit-loss/route.ts
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/rbac";
+import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { getDateRange } from "@/lib/date-ranges";
 
@@ -28,7 +28,7 @@ function pctChange(current: number, previous: number): number {
 
 export async function GET(request: Request) {
   try {
-    const { session, error } = await requireAuth();
+    const { session, error } = await requireRole("MANAGER");
     if (error) return error;
 
     const businessId = session.user.businessId;

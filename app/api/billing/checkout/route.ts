@@ -1,7 +1,6 @@
 // app/api/billing/checkout/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireRole } from "@/lib/rbac";
 import { createSubscription } from "@/lib/paypal";
 
 // Plan IDs - These need to be created in PayPal first
@@ -13,11 +12,8 @@ const PLAN_IDS = {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireRole("OWNER");
+    if (error) return error;
 
     const body = await request.json();
     const { plan } = body; // "monthly" or "yearly"

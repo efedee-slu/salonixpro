@@ -1,17 +1,13 @@
 // app/api/billing/cancel/route.ts
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { cancelSubscription } from "@/lib/paypal";
 
 export async function POST() {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireRole("OWNER");
+    if (error) return error;
 
     const business = await prisma.business.findUnique({
       where: { id: session.user.businessId },

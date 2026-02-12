@@ -1,6 +1,6 @@
 // app/api/expenses/[id]/route.ts
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/rbac";
+import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 
 // GET single expense
@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { session, error } = await requireAuth();
+    const { session, error } = await requireRole("MANAGER");
     if (error) return error;
 
     const expense = await prisma.expense.findFirst({
@@ -39,7 +39,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { session, error } = await requireAuth();
+    const { session, error } = await requireRole("MANAGER");
     if (error) return error;
 
     const existing = await prisma.expense.findFirst({
@@ -91,7 +91,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { session, error } = await requireAuth();
+    const { session, error } = await requireRole("MANAGER");
     if (error) return error;
 
     const existing = await prisma.expense.findFirst({

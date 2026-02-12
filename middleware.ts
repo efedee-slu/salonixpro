@@ -2,6 +2,14 @@
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
+// Role hierarchy levels
+const ROLE_LEVELS: Record<string, number> = {
+  OWNER: 4,
+  MANAGER: 3,
+  STYLIST: 2,
+  ASSISTANT: 1,
+};
+
 // Routes that require authentication
 const protectedPaths = [
   "/dashboard",
@@ -11,13 +19,31 @@ const protectedPaths = [
   "/stylists",
   "/shop",
   "/orders",
+  "/expenses",
+  "/payroll",
+  "/profit-loss",
   "/reports",
   "/settings",
   "/onboarding",
 ];
 
+// Minimum role required per route (routes not listed here are accessible to all authenticated users)
+const routeRoles: Record<string, string> = {
+  "/stylists": "MANAGER",
+  "/shop": "MANAGER",
+  "/expenses": "MANAGER",
+  "/profit-loss": "MANAGER",
+  "/reports": "MANAGER",
+  "/payroll": "OWNER",
+  "/settings": "MANAGER",
+};
+
 // Routes only for unauthenticated users
 const authPaths = ["/login", "/signup", "/forgot-password"];
+
+function hasMinRole(userRole: string, minRole: string): boolean {
+  return (ROLE_LEVELS[userRole] ?? 0) >= (ROLE_LEVELS[minRole] ?? 0);
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -59,6 +85,21 @@ export async function middleware(request: NextRequest) {
     const isOnboardingPath = pathname === "/onboarding" || pathname.startsWith("/onboarding/");
     if (!isOnboardingPath) {
       return NextResponse.redirect(new URL("/onboarding", request.url));
+    }
+  }
+
+  // Role-based page access control
+  if (isProtectedPath && token) {
+    const userRole = (token.role as string) || "ASSISTANT";
+    // Find the matching route role requirement
+    const matchedRoute = Object.keys(routeRoles).find(
+      (route) => pathname === route || pathname.startsWith(`${route}/`)
+    );
+    if (matchedRoute) {
+      const minRole = routeRoles[matchedRoute];
+      if (!hasMinRole(userRole, minRole)) {
+        return NextResponse.redirect(new URL("/access-denied", request.url));
+      }
     }
   }
 
