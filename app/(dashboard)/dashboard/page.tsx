@@ -1,7 +1,7 @@
 // app/(dashboard)/dashboard/page.tsx
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
@@ -24,7 +24,8 @@ import {
   Sparkles,
   MapPin,
   Zap,
-  TrendingUp,
+  XCircle,
+  RotateCcw,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -137,7 +138,6 @@ export default function DashboardPage() {
         if (response.ok) {
           const data = await response.json();
           setDashboardData(data);
-          // Small delay for counter animation to start after cards animate in
           setTimeout(() => setDataReady(true), 400);
         }
       } catch (error) {
@@ -247,18 +247,13 @@ export default function DashboardPage() {
 
         {/* Decorative animated shapes */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {/* Large glowing orbs */}
           <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-teal-400/15 blur-3xl animate-float" />
           <div className="absolute -bottom-32 -left-16 w-96 h-96 rounded-full bg-emerald-400/10 blur-3xl animate-float-delayed" />
           <div className="absolute top-1/2 right-1/4 w-48 h-48 rounded-full bg-cyan-400/10 blur-2xl animate-float-slow" />
-
-          {/* Floating geometric shapes */}
           <div className="absolute top-8 right-16 w-16 h-16 border border-white/[0.08] rounded-2xl rotate-12 animate-float" />
           <div className="absolute top-1/2 right-8 w-10 h-10 border border-white/[0.06] rounded-xl rotate-45 animate-float-delayed" />
           <div className="absolute bottom-8 right-1/3 w-20 h-20 border border-white/[0.05] rounded-full animate-float-slow" />
           <div className="absolute top-4 left-1/3 w-6 h-6 bg-white/[0.04] rounded-lg rotate-12 animate-float" />
-
-          {/* Dot grid pattern overlay */}
           <div className="absolute inset-0 opacity-[0.03]" style={{
             backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)",
             backgroundSize: "20px 20px",
@@ -306,11 +301,9 @@ export default function DashboardPage() {
               `stagger-${index + 2}`
             )}
           >
-            {/* Colored accent gradient at top */}
             <div className={cn("absolute top-0 left-0 right-0 h-24 bg-gradient-to-b pointer-events-none", stat.accentColor)} />
 
             <div className="relative">
-              {/* Header row: icon + trend */}
               <div className="flex items-center justify-between mb-4">
                 <div className={cn(
                   "w-11 h-11 rounded-xl flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110",
@@ -335,7 +328,6 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* Big number with counter animation */}
               {isLoading ? (
                 <div className="h-10 w-24 skeleton-shimmer" />
               ) : (
@@ -346,7 +338,6 @@ export default function DashboardPage() {
 
               <p className="text-[13px] text-gray-500 mt-2 font-semibold">{stat.name}</p>
 
-              {/* Progress bar */}
               <div className="mt-4">
                 <div className={cn("h-1.5 rounded-full overflow-hidden", stat.barBg)}>
                   <div
@@ -398,10 +389,10 @@ export default function DashboardPage() {
         <PendingConfirmations />
       </div>
 
-      {/* ═══════ TODAY'S APPOINTMENTS (TIMELINE) ═══════ */}
+      {/* ═══════ TODAY'S SCHEDULE ═══════ */}
       <div className="animate-in stagger-7">
-        <div className="glass-card overflow-hidden shadow-lg">
-          <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100/80">
+        <div className="bg-white rounded-2xl shadow-md ring-1 ring-black/5 overflow-hidden">
+          <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100">
             <div>
               <h3 className="text-lg font-black text-gray-900 tracking-tight">Today&apos;s Schedule</h3>
               <p className="text-sm text-gray-400 mt-0.5 font-medium">
@@ -431,16 +422,16 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : !dashboardData?.todayAppointments?.length ? (
-              <div className="text-center py-16 px-4">
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center mx-auto mb-4 ring-1 ring-gray-200/50">
-                  <Calendar className="w-9 h-9 text-gray-300" />
+              <div className="text-center py-20 px-4">
+                <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-teal-50 to-emerald-100 flex items-center justify-center mx-auto mb-5 ring-1 ring-teal-200/50 shadow-lg shadow-teal-500/10">
+                  <Calendar className="w-11 h-11 text-teal-500" />
                 </div>
-                <p className="text-gray-700 font-bold text-lg">No appointments today</p>
-                <p className="text-sm text-gray-400 mt-1 max-w-xs mx-auto">Your schedule is clear. Time to relax or catch up on admin tasks!</p>
-                <Link href="/appointments" className="inline-block mt-5">
-                  <Button size="sm" className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-lg shadow-teal-600/20">
+                <p className="text-gray-900 font-black text-xl tracking-tight">No appointments today</p>
+                <p className="text-sm text-gray-400 mt-2 max-w-xs mx-auto leading-relaxed">Enjoy the break! Your schedule is clear — perfect time to follow up with clients or plan ahead.</p>
+                <Link href="/appointments" className="inline-block mt-6">
+                  <Button className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold shadow-lg shadow-teal-600/20 h-11 px-6">
                     <CalendarPlus className="w-4 h-4 mr-2" />
-                    Schedule Appointment
+                    Schedule One
                   </Button>
                 </Link>
               </div>
@@ -466,10 +457,12 @@ export default function DashboardPage() {
                   return (
                     <div
                       key={appointment.id}
-                      className="flex items-stretch hover:bg-gray-50/40 transition-colors duration-150 group/row"
+                      className="flex items-stretch hover:bg-gray-50/60 transition-colors duration-150 group/row"
                     >
                       {/* Time column */}
-                      <div className="w-24 lg:w-28 shrink-0 flex flex-col items-center justify-center py-5 px-3 border-r border-gray-100/60">
+                      <div className="w-24 lg:w-28 shrink-0 flex flex-col items-center justify-center py-5 px-3 border-r border-gray-100/60 relative">
+                        {/* Timeline dot */}
+                        <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white ring-2 ring-teal-400 z-10" />
                         <p className="text-lg font-black text-gray-900 leading-none number-display">{formatTime(appointment.requestedDate)}</p>
                         <p className="text-[11px] text-gray-400 font-medium mt-1 flex items-center gap-0.5">
                           <Clock className="w-3 h-3" />
@@ -479,12 +472,10 @@ export default function DashboardPage() {
 
                       {/* Content */}
                       <div className="flex-1 flex items-center gap-4 py-4 px-5">
-                        {/* Avatar */}
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-md shadow-teal-500/15 shrink-0 group-hover/row:scale-105 transition-transform">
                           <span className="text-[11px] font-bold text-white">{initials}</span>
                         </div>
 
-                        {/* Details */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
                             <p className="font-semibold text-gray-900 text-sm truncate">{clientName}</p>
@@ -500,7 +491,6 @@ export default function DashboardPage() {
                           </p>
                         </div>
 
-                        {/* Price */}
                         <div className="text-right shrink-0">
                           <p className="text-lg font-black text-gray-900 number-display">
                             {formatCurrency(Number(appointment.totalPrice))}
@@ -520,12 +510,12 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-3 animate-in stagger-8">
         {/* Recent Activity */}
         <div className="lg:col-span-2">
-          <div className="glass-card overflow-hidden shadow-lg h-full">
-            <div className="p-6 pb-4 border-b border-gray-100/80">
+          <div className="bg-white rounded-2xl shadow-md ring-1 ring-black/5 overflow-hidden h-full">
+            <div className="p-6 pb-4 border-b border-gray-100">
               <h3 className="text-lg font-black text-gray-900 tracking-tight">Recent Activity</h3>
               <p className="text-sm text-gray-400 mt-0.5 font-medium">Latest actions across your salon</p>
             </div>
-            <div>
+            <div className="relative">
               {isLoading ? (
                 <div className="p-6 space-y-4">
                   {[...Array(4)].map((_, i) => (
@@ -543,49 +533,73 @@ export default function DashboardPage() {
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center mx-auto mb-3 ring-1 ring-gray-200/50">
                     <Sparkles className="w-7 h-7 text-gray-300" />
                   </div>
-                  <p className="text-gray-600 font-bold">No recent activity</p>
+                  <p className="text-gray-700 font-bold">No recent activity</p>
                   <p className="text-sm text-gray-400 mt-1">Activity will appear here as it happens</p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-100/50">
-                  {dashboardData.recentActivity.map((activity: any, i: number) => {
-                    const isNewClient = activity.type === "new_client";
-                    const isCompleted = activity.type === "appointment_completed";
-                    return (
-                      <div
-                        key={i}
-                        className="flex items-center gap-4 px-6 py-3.5 hover:bg-gray-50/40 transition-colors"
-                      >
-                        <div className={cn(
-                          "w-9 h-9 rounded-lg shrink-0 flex items-center justify-center ring-1",
-                          isNewClient ? "bg-emerald-50 ring-emerald-200/50" :
-                          isCompleted ? "bg-blue-50 ring-blue-200/50" :
-                          "bg-purple-50 ring-purple-200/50"
-                        )}>
-                          {isNewClient ? (
-                            <User className="w-4 h-4 text-emerald-600" />
-                          ) : isCompleted ? (
-                            <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                          ) : (
-                            <ShoppingBag className="w-4 h-4 text-purple-600" />
-                          )}
+                <>
+                  <div className="divide-y divide-gray-100/50">
+                    {dashboardData.recentActivity.map((activity: any, i: number) => {
+                      const isNewClient = activity.type === "new_client";
+                      const isCompleted = activity.type === "appointment_completed";
+                      const isCancelled = activity.type === "appointment_cancelled";
+                      const isOrder = activity.type === "new_order";
+
+                      // Colored accent dot
+                      const dotColor = isNewClient ? "bg-emerald-500" :
+                        isCancelled ? "bg-red-500" :
+                        isOrder ? "bg-violet-500" :
+                        isCompleted ? "bg-teal-500" :
+                        "bg-blue-500";
+
+                      const iconBg = isNewClient ? "bg-emerald-50 ring-emerald-200/50" :
+                        isCancelled ? "bg-red-50 ring-red-200/50" :
+                        isCompleted ? "bg-blue-50 ring-blue-200/50" :
+                        "bg-purple-50 ring-purple-200/50";
+
+                      return (
+                        <div
+                          key={i}
+                          className="flex items-center gap-4 px-6 py-3.5 hover:bg-gray-50/60 transition-colors relative group/activity"
+                        >
+                          {/* Colored left accent dot */}
+                          <div className={cn("absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full transition-all duration-200 opacity-0 group-hover/activity:opacity-100", dotColor)} />
+
+                          <div className={cn(
+                            "w-9 h-9 rounded-lg shrink-0 flex items-center justify-center ring-1",
+                            iconBg
+                          )}>
+                            {isNewClient ? (
+                              <User className="w-4 h-4 text-emerald-600" />
+                            ) : isCancelled ? (
+                              <XCircle className="w-4 h-4 text-red-600" />
+                            ) : isCompleted ? (
+                              <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                            ) : (
+                              <ShoppingBag className="w-4 h-4 text-purple-600" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-800 truncate">{activity.title}</p>
+                            <p className="text-xs text-gray-400 mt-0.5">{formatDate(activity.timestamp)}</p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-gray-800 truncate">{activity.title}</p>
-                          <p className="text-xs text-gray-400 mt-0.5">{formatDate(activity.timestamp)}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                  {/* Gradient fade at bottom */}
+                  {dashboardData.recentActivity.length >= 5 && (
+                    <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+                  )}
+                </>
               )}
             </div>
           </div>
         </div>
 
         {/* Recent Orders */}
-        <div className="glass-card overflow-hidden shadow-lg h-full flex flex-col">
-          <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100/80">
+        <div className="bg-white rounded-2xl shadow-md ring-1 ring-black/5 overflow-hidden h-full flex flex-col">
+          <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100">
             <div>
               <h3 className="text-lg font-black text-gray-900 tracking-tight">Recent Orders</h3>
               <p className="text-sm text-gray-400 mt-0.5 font-medium">Product orders & pickups</p>
@@ -614,7 +628,7 @@ export default function DashboardPage() {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center mx-auto mb-3 ring-1 ring-gray-200/50">
                   <ShoppingBag className="w-7 h-7 text-gray-300" />
                 </div>
-                <p className="text-gray-600 font-bold">No recent orders</p>
+                <p className="text-gray-700 font-bold">No recent orders</p>
                 <p className="text-sm text-gray-400 mt-1">Orders will show up here</p>
               </div>
             ) : (
@@ -624,25 +638,31 @@ export default function DashboardPage() {
                     ? `${order.client.firstName} ${order.client.lastName}`
                     : order.customerName || "Walk-in";
 
-                  const statusConfig: Record<string, { bg: string; text: string }> = {
-                    READY: { bg: "bg-purple-50", text: "text-purple-700" },
-                    CONFIRMED: { bg: "bg-blue-50", text: "text-blue-700" },
-                    COMPLETED: { bg: "bg-emerald-50", text: "text-emerald-700" },
+                  const statusConfig: Record<string, { bg: string; text: string; ring: string; pulse: boolean }> = {
+                    READY: { bg: "bg-violet-50", text: "text-violet-700", ring: "ring-violet-200/50", pulse: false },
+                    CONFIRMED: { bg: "bg-blue-50", text: "text-blue-700", ring: "ring-blue-200/50", pulse: false },
+                    COMPLETED: { bg: "bg-emerald-50", text: "text-emerald-700", ring: "ring-emerald-200/50", pulse: false },
+                    CANCELLED: { bg: "bg-red-50", text: "text-red-600", ring: "ring-red-200/50", pulse: false },
+                    PENDING: { bg: "bg-amber-50", text: "text-amber-700", ring: "ring-amber-200/50", pulse: true },
                   };
-                  const sc = statusConfig[order.status] || { bg: "bg-amber-50", text: "text-amber-700" };
+                  const sc = statusConfig[order.status] || { bg: "bg-gray-50", text: "text-gray-700", ring: "ring-gray-200/50", pulse: false };
 
                   return (
                     <Link key={order.id} href="/orders">
-                      <div className="flex items-center gap-3 px-6 py-3.5 hover:bg-gray-50/40 transition-colors cursor-pointer">
+                      <div className="flex items-center gap-3 px-6 py-3.5 hover:bg-gray-50/60 transition-colors cursor-pointer group/order">
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-800 text-sm truncate">{customerName}</p>
+                          <p className="font-semibold text-gray-800 text-sm truncate group-hover/order:text-gray-900 transition-colors">{customerName}</p>
                           <p className="text-xs text-gray-400 mt-0.5">
                             {order.orderNumber} &middot; {order.items?.length || 0} items
                           </p>
                         </div>
                         <div className="text-right shrink-0">
                           <p className="font-bold text-gray-900 text-sm number-display">{formatCurrency(Number(order.total))}</p>
-                          <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-md inline-block mt-0.5 ring-1 ring-current/10", sc.bg, sc.text)}>
+                          <span className={cn(
+                            "text-[10px] font-bold px-2.5 py-0.5 rounded-full inline-block mt-0.5 ring-1",
+                            sc.bg, sc.text, sc.ring,
+                            sc.pulse && "animate-badge-pulse"
+                          )}>
                             {order.status}
                           </span>
                         </div>
@@ -654,7 +674,7 @@ export default function DashboardPage() {
             )}
           </div>
 
-          <div className="p-4 border-t border-gray-100/80 mt-auto">
+          <div className="p-4 border-t border-gray-100 mt-auto">
             <Link href="/orders">
               <Button variant="outline" className="w-full rounded-xl border-gray-200 font-semibold text-gray-500 hover:text-gray-900 ring-1 ring-gray-200/50">
                 View All Orders
@@ -666,16 +686,16 @@ export default function DashboardPage() {
 
       {/* ═══════ LOW STOCK ALERT ═══════ */}
       {!isLoading && dashboardData?.lowStockProducts && dashboardData.lowStockProducts.length > 0 && (
-        <div className="glass-card shadow-lg overflow-hidden border-l-4 border-l-amber-400 animate-in stagger-8">
+        <div className="bg-white rounded-2xl shadow-md ring-1 ring-black/5 overflow-hidden border-l-4 border-l-transparent animate-in stagger-8" style={{ borderImage: "linear-gradient(to bottom, #f97316, #ef4444) 1" }}>
           <div className="p-6">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-gradient-to-br from-amber-100 to-orange-50 rounded-xl ring-1 ring-amber-200/50">
-                <AlertCircle className="w-6 h-6 text-amber-600" />
+              <div className="p-3 bg-gradient-to-br from-red-100 to-orange-100 rounded-xl ring-1 ring-red-200/50 shadow-sm">
+                <AlertCircle className="w-6 h-6 text-red-500" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-black text-gray-900 tracking-tight">Low Stock Alert</h3>
-                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-800 ring-1 ring-amber-200/50 animate-badge-pulse">
+                  <h3 className="font-black text-gray-900 tracking-tight text-lg">Low Stock Alert</h3>
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-red-100 text-red-700 ring-1 ring-red-200/50 animate-badge-pulse">
                     {dashboardData.lowStockProducts.length}
                   </span>
                 </div>
@@ -690,23 +710,31 @@ export default function DashboardPage() {
                     return (
                       <div
                         key={product.id}
-                        className="flex items-center justify-between p-3 rounded-xl bg-white/80 border border-gray-100 shadow-sm ring-1 ring-gray-100/50"
+                        className="flex items-center justify-between p-3 rounded-xl bg-gray-50/80 ring-1 ring-black/[0.03] hover:bg-gray-50 transition-colors group/stock"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           {isOutOfStock ? (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-100 text-red-700 ring-1 ring-red-200/50 shrink-0">OUT</span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-100 text-red-700 ring-1 ring-red-200/50 shrink-0 animate-badge-pulse">OUT</span>
                           ) : (
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 ring-1 ring-amber-200/50 shrink-0">LOW</span>
                           )}
                           <span className="text-sm font-semibold text-gray-800 truncate">{product.name}</span>
-                          <span className="text-xs text-gray-400 shrink-0">{product.sku}</span>
+                          <span className="text-xs text-gray-400 shrink-0 hidden sm:inline">{product.sku}</span>
                         </div>
-                        <span className={cn(
-                          "text-sm font-bold shrink-0 ml-2 number-display",
-                          isOutOfStock ? "text-red-600" : "text-amber-600"
-                        )}>
-                          {available} left
-                        </span>
+                        <div className="flex items-center gap-3 shrink-0 ml-2">
+                          <span className={cn(
+                            "text-sm font-bold number-display",
+                            isOutOfStock ? "text-red-600" : "text-amber-600"
+                          )}>
+                            {available} left
+                          </span>
+                          <Link href="/shop" onClick={(e) => e.stopPropagation()}>
+                            <Button size="sm" variant="outline" className="h-7 px-2.5 text-[11px] font-semibold rounded-lg ring-1 ring-gray-200/50 opacity-0 group-hover/stock:opacity-100 transition-opacity">
+                              <RotateCcw className="w-3 h-3 mr-1" />
+                              Restock
+                            </Button>
+                          </Link>
+                        </div>
                       </div>
                     );
                   })}
@@ -720,7 +748,7 @@ export default function DashboardPage() {
 
                 <div className="mt-4">
                   <Link href="/shop">
-                    <Button size="sm" variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-50 rounded-xl font-semibold ring-1 ring-amber-200/50">
+                    <Button size="sm" variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 rounded-xl font-semibold ring-1 ring-red-200/50">
                       <Package className="w-4 h-4 mr-1.5" />
                       Manage Inventory
                     </Button>
