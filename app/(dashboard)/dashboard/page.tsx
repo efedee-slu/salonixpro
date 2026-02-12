@@ -238,7 +238,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-8 max-w-[1400px]">
+    <div className="space-y-5 max-w-[1400px]">
 
       {/* ═══════ WELCOME BANNER ═══════ */}
       <div className="animate-in stagger-1 relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0c4a6e] via-[#0f766e] to-[#064e3b] p-8 lg:p-10 shadow-2xl shadow-teal-900/20 ring-1 ring-white/10">
@@ -391,7 +391,9 @@ export default function DashboardPage() {
 
       {/* ═══════ TODAY'S SCHEDULE ═══════ */}
       <div className="animate-in stagger-7">
-        <div className="bg-white rounded-2xl shadow-md ring-1 ring-black/5 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+          {/* Gradient header bar */}
+          <div className="h-[3px] bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-500" />
           <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100">
             <div>
               <h3 className="text-lg font-black text-gray-900 tracking-tight">Today&apos;s Schedule</h3>
@@ -422,18 +424,23 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : !dashboardData?.todayAppointments?.length ? (
-              <div className="text-center py-20 px-4">
-                <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-teal-50 to-emerald-100 flex items-center justify-center mx-auto mb-5 ring-1 ring-teal-200/50 shadow-lg shadow-teal-500/10">
-                  <Calendar className="w-11 h-11 text-teal-500" />
+              <div className="text-center py-16 px-4 m-6">
+                <div className="inline-flex flex-col items-center border-2 border-dashed border-teal-200/60 rounded-2xl px-12 py-10 bg-gradient-to-br from-teal-50/30 to-slate-50/50">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center mb-5 ring-1 ring-teal-200/50 shadow-lg shadow-teal-500/10">
+                    <svg className="w-10 h-10 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 15l1.5-1.5 1.5 1.5M12 13.5V18" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-900 font-black text-lg tracking-tight">Your schedule is clear today</p>
+                  <p className="text-sm text-gray-400 mt-1.5 max-w-xs mx-auto leading-relaxed">Perfect time to follow up with clients or plan ahead.</p>
+                  <Link href="/appointments" className="inline-block mt-5">
+                    <Button className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold shadow-lg shadow-teal-600/20 h-10 px-6 text-sm">
+                      <CalendarPlus className="w-4 h-4 mr-2" />
+                      Schedule One
+                    </Button>
+                  </Link>
                 </div>
-                <p className="text-gray-900 font-black text-xl tracking-tight">No appointments today</p>
-                <p className="text-sm text-gray-400 mt-2 max-w-xs mx-auto leading-relaxed">Enjoy the break! Your schedule is clear — perfect time to follow up with clients or plan ahead.</p>
-                <Link href="/appointments" className="inline-block mt-6">
-                  <Button className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold shadow-lg shadow-teal-600/20 h-11 px-6">
-                    <CalendarPlus className="w-4 h-4 mr-2" />
-                    Schedule One
-                  </Button>
-                </Link>
               </div>
             ) : (
               <div className="divide-y divide-gray-100/60">
@@ -507,10 +514,11 @@ export default function DashboardPage() {
       </div>
 
       {/* ═══════ RECENT ACTIVITY + RECENT ORDERS ═══════ */}
-      <div className="grid gap-6 lg:grid-cols-3 animate-in stagger-8">
+      <div className="grid gap-4 lg:grid-cols-3 animate-in stagger-8">
         {/* Recent Activity */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-2xl shadow-md ring-1 ring-black/5 overflow-hidden h-full">
+          <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden h-full">
+            <div className="h-[3px] bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
             <div className="p-6 pb-4 border-b border-gray-100">
               <h3 className="text-lg font-black text-gray-900 tracking-tight">Recent Activity</h3>
               <p className="text-sm text-gray-400 mt-0.5 font-medium">Latest actions across your salon</p>
@@ -560,7 +568,10 @@ export default function DashboardPage() {
                       return (
                         <div
                           key={i}
-                          className="flex items-center gap-4 px-6 py-3.5 hover:bg-gray-50/60 transition-colors relative group/activity"
+                          className={cn(
+                            "flex items-center gap-4 px-6 py-3.5 hover:bg-slate-100 transition-colors relative group/activity",
+                            i % 2 === 0 ? "bg-slate-50/50" : "bg-white"
+                          )}
                         >
                           {/* Colored left accent dot */}
                           <div className={cn("absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full transition-all duration-200 opacity-0 group-hover/activity:opacity-100", dotColor)} />
@@ -598,7 +609,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Orders */}
-        <div className="bg-white rounded-2xl shadow-md ring-1 ring-black/5 overflow-hidden h-full flex flex-col">
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden h-full flex flex-col">
+          <div className="h-[3px] bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
           <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100">
             <div>
               <h3 className="text-lg font-black text-gray-900 tracking-tight">Recent Orders</h3>
@@ -633,7 +645,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="divide-y divide-gray-100/50">
-                {dashboardData.recentOrders.map((order: any) => {
+                {dashboardData.recentOrders.map((order: any, orderIndex: number) => {
                   const customerName = order.client
                     ? `${order.client.firstName} ${order.client.lastName}`
                     : order.customerName || "Walk-in";
@@ -649,7 +661,10 @@ export default function DashboardPage() {
 
                   return (
                     <Link key={order.id} href="/orders">
-                      <div className="flex items-center gap-3 px-6 py-3.5 hover:bg-gray-50/60 transition-colors cursor-pointer group/order">
+                      <div className={cn(
+                        "flex items-center gap-3 px-6 py-3.5 hover:bg-slate-100 transition-colors cursor-pointer group/order",
+                        orderIndex % 2 === 0 ? "bg-slate-50/50" : "bg-white"
+                      )}>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-gray-800 text-sm truncate group-hover/order:text-gray-900 transition-colors">{customerName}</p>
                           <p className="text-xs text-gray-400 mt-0.5">
@@ -686,7 +701,8 @@ export default function DashboardPage() {
 
       {/* ═══════ LOW STOCK ALERT ═══════ */}
       {!isLoading && dashboardData?.lowStockProducts && dashboardData.lowStockProducts.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-md ring-1 ring-black/5 overflow-hidden border-l-4 border-l-transparent animate-in stagger-8" style={{ borderImage: "linear-gradient(to bottom, #f97316, #ef4444) 1" }}>
+        <div className="bg-gradient-to-br from-red-50/40 to-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden animate-in stagger-8">
+          <div className="h-[3px] bg-gradient-to-r from-orange-500 via-red-500 to-rose-500" />
           <div className="p-6">
             <div className="flex items-start gap-4">
               <div className="p-3 bg-gradient-to-br from-red-100 to-orange-100 rounded-xl ring-1 ring-red-200/50 shadow-sm">
@@ -710,7 +726,7 @@ export default function DashboardPage() {
                     return (
                       <div
                         key={product.id}
-                        className="flex items-center justify-between p-3 rounded-xl bg-gray-50/80 ring-1 ring-black/[0.03] hover:bg-gray-50 transition-colors group/stock"
+                        className="flex items-center justify-between p-3 rounded-xl bg-white ring-1 ring-black/[0.04] hover:ring-red-200/50 transition-all shadow-sm"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           {isOutOfStock ? (
@@ -729,9 +745,9 @@ export default function DashboardPage() {
                             {available} left
                           </span>
                           <Link href="/shop" onClick={(e) => e.stopPropagation()}>
-                            <Button size="sm" variant="outline" className="h-7 px-2.5 text-[11px] font-semibold rounded-lg ring-1 ring-gray-200/50 opacity-0 group-hover/stock:opacity-100 transition-opacity">
+                            <Button size="sm" className="h-7 px-3 text-[11px] font-bold rounded-lg bg-teal-600 hover:bg-teal-700 text-white shadow-sm shadow-teal-600/20">
                               <RotateCcw className="w-3 h-3 mr-1" />
-                              Restock
+                              Restock Now
                             </Button>
                           </Link>
                         </div>

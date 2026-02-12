@@ -141,7 +141,8 @@ export function PendingConfirmations() {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl shadow-md ring-1 ring-black/5 overflow-hidden">
+      <div className="bg-gradient-to-br from-amber-50/40 to-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+        <div className="h-[3px] bg-gradient-to-r from-amber-500 via-orange-500 to-red-400" />
         <div className="bg-gradient-to-r from-amber-50/60 to-orange-50/40 px-6 py-5 border-b border-amber-100/40">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 ring-1 ring-amber-200/50">
@@ -159,7 +160,8 @@ export function PendingConfirmations() {
 
   if (!data || data.counts.total === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-md ring-1 ring-black/5 overflow-hidden">
+      <div className="bg-gradient-to-br from-amber-50/40 to-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+        <div className="h-[3px] bg-gradient-to-r from-amber-500 via-orange-500 to-red-400" />
         <div className="bg-gradient-to-r from-amber-50/60 to-orange-50/40 px-6 py-5 border-b border-amber-100/40">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 ring-1 ring-amber-200/50">
@@ -194,13 +196,13 @@ export function PendingConfirmations() {
         key={deposit.id}
         className={cn(
           "rounded-xl overflow-hidden border-l-4 ring-1 ring-black/[0.03] shadow-sm transition-all duration-200 hover:shadow-md",
-          "bg-white/80 backdrop-blur-sm",
+          "bg-slate-50",
           borderColor
         )}
       >
         {/* Header */}
         <div
-          className="p-4 cursor-pointer hover:bg-gray-50/50 transition-colors"
+          className="p-4 cursor-pointer hover:bg-slate-100/60 transition-colors"
           onClick={() => setExpandedId(isExpanded ? null : deposit.id)}
         >
           <div className="flex items-start justify-between">
@@ -230,6 +232,42 @@ export function PendingConfirmations() {
               <p className="text-sm text-gray-500 mt-0.5">
                 {deposit.services.map(s => s.serviceName).join(", ")}
               </p>
+              {/* Inline Approve/Decline buttons */}
+              {type !== "expired" && (
+                <div className="flex items-center gap-2 mt-3">
+                  <Button
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAction(deposit.id, "confirm");
+                    }}
+                    disabled={isProcessing}
+                    className="h-7 px-3 text-[11px] font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/20"
+                  >
+                    {isProcessing ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <>
+                        <Check className="w-3 h-3 mr-1" />
+                        Approve
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAction(deposit.id, "reject");
+                    }}
+                    disabled={isProcessing}
+                    className="h-7 px-3 text-[11px] font-bold rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 ring-1 ring-red-200/50"
+                  >
+                    <X className="w-3 h-3 mr-1" />
+                    Decline
+                  </Button>
+                </div>
+              )}
             </div>
             <div className="text-right ml-4">
               <p className="font-black text-teal-600 text-lg number-display">
@@ -403,7 +441,9 @@ export function PendingConfirmations() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-md ring-1 ring-black/5 overflow-hidden">
+    <div className="bg-gradient-to-br from-amber-50/40 to-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+      {/* Gradient header bar */}
+      <div className="h-[3px] bg-gradient-to-r from-amber-500 via-orange-500 to-red-400" />
       {/* Header with amber gradient */}
       <div className="bg-gradient-to-r from-amber-50/60 to-orange-50/40 px-6 py-5 border-b border-amber-100/40">
         <div className="flex items-center justify-between">
