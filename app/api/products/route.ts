@@ -1,38 +1,54 @@
 // app/api/products/route.ts
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAuth, requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 
 // GET all products for the business
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireAuth();
+    if (error) return error;
 
-    const products = await prisma.product.findMany({
-      where: {
-        businessId: session.user.businessId,
-      },
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            icon: true,
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50")));
+    const skip = (page - 1) * limit;
+
+    const where = {
+      businessId: session.user.businessId,
+    };
+
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              icon: true,
+            },
           },
         },
-      },
-      orderBy: [
-        { category: { name: "asc" } },
-        { name: "asc" },
-      ],
-    });
+        orderBy: [
+          { category: { name: "asc" } },
+          { name: "asc" },
+        ],
+        skip,
+        take: limit,
+      }),
+      prisma.product.count({ where }),
+    ]);
 
-    return NextResponse.json(products);
+    return NextResponse.json({
+      data: products,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     console.error("Error fetching products:", error);
     return NextResponse.json(
@@ -45,11 +61,8 @@ export async function GET(request: Request) {
 // POST create new product
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireRole("MANAGER");
+    if (error) return error;
 
     const body = await request.json();
     const {

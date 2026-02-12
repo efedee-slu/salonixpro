@@ -1,7 +1,6 @@
 // app/api/stylists/[id]/route.ts
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAuth, requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 
 // GET single stylist
@@ -10,11 +9,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireAuth();
+    if (error) return error;
 
     const stylist = await prisma.stylist.findFirst({
       where: {
@@ -51,11 +47,8 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireRole("MANAGER");
+    if (error) return error;
 
     // Check if stylist exists and belongs to this business
     const existingStylist = await prisma.stylist.findFirst({
@@ -111,11 +104,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireRole("MANAGER");
+    if (error) return error;
 
     // Check if stylist exists and belongs to this business
     const existingStylist = await prisma.stylist.findFirst({
@@ -127,6 +117,21 @@ export async function DELETE(
 
     if (!existingStylist) {
       return NextResponse.json({ error: "Stylist not found" }, { status: 404 });
+    }
+
+    // Check if stylist has appointment history (soft delete to preserve data)
+    const appointmentCount = await prisma.appointment.count({
+      where: { stylistId: params.id },
+    });
+
+    if (appointmentCount > 0) {
+      await prisma.stylist.update({
+        where: { id: params.id },
+        data: { isActive: false },
+      });
+      return NextResponse.json({
+        message: "Stylist has appointment history and was deactivated instead of deleted",
+      });
     }
 
     // Delete schedules first, then stylist

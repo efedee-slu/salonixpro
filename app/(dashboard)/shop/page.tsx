@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
   Plus,
@@ -23,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
 import { AddProductDialog } from "./add-product-dialog";
 import { EditProductDialog } from "./edit-product-dialog";
 import { DeleteProductDialog } from "./delete-product-dialog";
@@ -65,7 +65,6 @@ interface Category {
 }
 
 export default function ShopPage() {
-  const { data: session } = useSession();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,6 +78,7 @@ export default function ShopPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const { toast } = useToast();
 
   // Fetch data
   const fetchData = async () => {
@@ -89,7 +89,8 @@ export default function ShopPage() {
       ]);
 
       if (productsRes.ok) {
-        const data = await productsRes.json();
+        const json = await productsRes.json();
+        const data = json.data ?? json;
         setProducts(data);
       }
       if (categoriesRes.ok) {
@@ -97,7 +98,11 @@ export default function ShopPage() {
         setCategories(data);
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load products",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

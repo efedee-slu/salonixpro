@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
   Plus,
@@ -13,7 +12,6 @@ import {
   Trash2,
   Sparkles,
   FolderOpen,
-  Filter,
   LayoutGrid,
   List,
 } from "lucide-react";
@@ -22,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDuration } from "@/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
 import { AddServiceDialog } from "./add-service-dialog";
 import { EditServiceDialog } from "./edit-service-dialog";
 import { DeleteServiceDialog } from "./delete-service-dialog";
@@ -46,7 +45,6 @@ interface Service {
 }
 
 export default function ServicesPage() {
-  const { data: session } = useSession();
   const [services, setServices] = useState<Service[]>([]);
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
@@ -61,6 +59,7 @@ export default function ServicesPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const { toast } = useToast();
 
   // Fetch data
   const fetchData = async () => {
@@ -71,7 +70,8 @@ export default function ServicesPage() {
       ]);
 
       if (servicesRes.ok) {
-        const data = await servicesRes.json();
+        const json = await servicesRes.json();
+        const data = json.data ?? json;
         setServices(data);
         setFilteredServices(data);
       }
@@ -81,7 +81,11 @@ export default function ServicesPage() {
         setCategories(data);
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load services",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

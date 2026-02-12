@@ -8,14 +8,13 @@ import { createNotification } from "@/lib/booking";
 
 export async function GET(request: Request) {
   try {
-    // Optional: Verify cron secret for security
+    // Verify cron secret for security
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get("secret");
-    
-    // In production, check against CRON_SECRET env variable
-    // if (secret !== process.env.CRON_SECRET) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
+
+    if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const now = new Date();
     const thirtyMinutesFromNow = new Date(now.getTime() + 30 * 60 * 1000);

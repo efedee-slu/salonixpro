@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
   Plus,
@@ -15,12 +14,12 @@ import {
   UserCircle,
   Clock,
   Users,
-  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
 import { AddStylistDialog } from "./add-stylist-dialog";
 import { EditStylistDialog } from "./edit-stylist-dialog";
 import { DeleteStylistDialog } from "./delete-stylist-dialog";
@@ -53,7 +52,6 @@ interface Stylist {
 const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function StylistsPage() {
-  const { data: session } = useSession();
   const [stylists, setStylists] = useState<Stylist[]>([]);
   const [filteredStylists, setFilteredStylists] = useState<Stylist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,18 +63,24 @@ export default function StylistsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [selectedStylist, setSelectedStylist] = useState<Stylist | null>(null);
+  const { toast } = useToast();
 
   // Fetch stylists
   const fetchStylists = async () => {
     try {
       const response = await fetch("/api/stylists");
       if (response.ok) {
-        const data = await response.json();
+        const json = await response.json();
+        const data = json.data ?? json;
         setStylists(data);
         setFilteredStylists(data);
       }
     } catch (error) {
-      console.error("Error fetching stylists:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load stylists",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

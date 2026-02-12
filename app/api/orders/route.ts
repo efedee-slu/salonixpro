@@ -1,8 +1,9 @@
 // app/api/orders/route.ts
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAuth } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
+
+const VALID_ORDER_STATUSES = ["CART", "PENDING", "CONFIRMED", "READY", "COMPLETED", "CANCELLED"];
 
 // Generate order number
 function generateOrderNumber() {
@@ -17,46 +18,65 @@ function generateOrderNumber() {
 // GET all orders for the business
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireAuth();
+    if (error) return error;
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50")));
+    const skip = (page - 1) * limit;
 
-    const orders = await prisma.order.findMany({
-      where: {
-        businessId: session.user.businessId,
-        status: status && status !== "all" ? status as any : undefined,
-      },
-      include: {
-        client: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phone: true,
+    const validStatus = status && status !== "all" && VALID_ORDER_STATUSES.includes(status)
+      ? (status as "CART" | "PENDING" | "CONFIRMED" | "READY" | "COMPLETED" | "CANCELLED")
+      : undefined;
+
+    const where = {
+      businessId: session.user.businessId,
+      status: validStatus,
+    };
+
+    const [orders, total] = await Promise.all([
+      prisma.order.findMany({
+        where,
+        include: {
+          client: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              phone: true,
+            },
           },
-        },
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
+          items: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                },
               },
             },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip,
+        take: limit,
+      }),
+      prisma.order.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      data: orders,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
     });
-
-    return NextResponse.json(orders);
   } catch (error) {
     console.error("Error fetching orders:", error);
     return NextResponse.json(
@@ -69,11 +89,8 @@ export async function GET(request: Request) {
 // POST create new order
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireAuth();
+    if (error) return error;
 
     const body = await request.json();
     const {
@@ -133,20 +150,20 @@ export async function POST(request: Request) {
     const discountAmount = discount || 0;
     const total = Math.max(0, subtotal - discountAmount);
 
-    // Generate unique order number
-    let orderNumber = generateOrderNumber();
-    let attempts = 0;
-    while (attempts < 5) {
-      const existing = await prisma.order.findUnique({
-        where: { orderNumber },
-      });
-      if (!existing) break;
-      orderNumber = generateOrderNumber();
-      attempts++;
-    }
-
-    // Create order with items in a transaction
+    // Create order with items in a transaction (order number generated inside to prevent race conditions)
     const order = await prisma.$transaction(async (tx) => {
+      // Generate unique order number inside transaction
+      let orderNumber = generateOrderNumber();
+      let attempts = 0;
+      while (attempts < 10) {
+        const existing = await tx.order.findUnique({
+          where: { orderNumber },
+        });
+        if (!existing) break;
+        orderNumber = generateOrderNumber();
+        attempts++;
+      }
+
       // Create the order
       const newOrder = await tx.order.create({
         data: {

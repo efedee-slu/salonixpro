@@ -2,19 +2,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
   Plus,
   Search,
-  MoreHorizontal,
   Phone,
   Mail,
-  Calendar,
   DollarSign,
   Edit,
   Trash2,
-  Eye,
   UserPlus,
   Users,
   Filter,
@@ -24,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
 import { AddClientDialog } from "./add-client-dialog";
 import { EditClientDialog } from "./edit-client-dialog";
 import { DeleteClientDialog } from "./delete-client-dialog";
@@ -43,7 +40,6 @@ interface Client {
 }
 
 export default function ClientsPage() {
-  const { data: session } = useSession();
   const [clients, setClients] = useState<Client[]>([]);
   const [filteredClients, setFilteredClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,18 +50,24 @@ export default function ClientsPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const { toast } = useToast();
 
   // Fetch clients
   const fetchClients = async () => {
     try {
       const response = await fetch("/api/clients");
       if (response.ok) {
-        const data = await response.json();
+        const json = await response.json();
+        const data = json.data ?? json;
         setClients(data);
         setFilteredClients(data);
       }
     } catch (error) {
-      console.error("Error fetching clients:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load clients",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

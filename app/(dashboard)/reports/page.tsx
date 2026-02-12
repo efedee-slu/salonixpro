@@ -24,6 +24,7 @@ import {
   ArrowRightLeft,
   Percent,
 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -156,6 +157,7 @@ export default function ReportsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [dateRange, setDateRange] = useState<DateRange>("month");
   const [activeTab, setActiveTab] = useState<TabType>("overview");
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchReportData();
@@ -170,7 +172,11 @@ export default function ReportsPage() {
         setData(reportData);
       }
     } catch (error) {
-      console.error("Error fetching reports:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load reports",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

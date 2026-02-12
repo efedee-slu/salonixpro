@@ -1,7 +1,6 @@
 // app/api/services/[id]/route.ts
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAuth, requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 
 // GET single service
@@ -10,11 +9,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireAuth();
+    if (error) return error;
 
     const service = await prisma.service.findFirst({
       where: {
@@ -46,11 +42,8 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireRole("MANAGER");
+    if (error) return error;
 
     // Check if service exists and belongs to this business
     const existingService = await prisma.service.findFirst({
@@ -75,13 +68,30 @@ export async function PUT(
       );
     }
 
+    const parsedDuration = parseInt(duration);
+    const parsedPrice = parseFloat(price);
+
+    if (isNaN(parsedDuration) || parsedDuration < 5) {
+      return NextResponse.json(
+        { error: "Duration must be at least 5 minutes" },
+        { status: 400 }
+      );
+    }
+
+    if (isNaN(parsedPrice) || parsedPrice < 0) {
+      return NextResponse.json(
+        { error: "Price must be a non-negative number" },
+        { status: 400 }
+      );
+    }
+
     const service = await prisma.service.update({
       where: { id: params.id },
       data: {
         name,
         description: description || null,
-        duration: parseInt(duration),
-        price: parseFloat(price),
+        duration: parsedDuration,
+        price: parsedPrice,
         categoryId: categoryId || null,
         isActive: isActive !== undefined ? isActive : true,
       },
@@ -106,11 +116,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireRole("MANAGER");
+    if (error) return error;
 
     // Check if service exists and belongs to this business
     const existingService = await prisma.service.findFirst({
@@ -122,6 +129,21 @@ export async function DELETE(
 
     if (!existingService) {
       return NextResponse.json({ error: "Service not found" }, { status: 404 });
+    }
+
+    // Check if service has appointment history (soft delete to preserve data)
+    const appointmentServiceCount = await prisma.appointmentService.count({
+      where: { serviceId: params.id },
+    });
+
+    if (appointmentServiceCount > 0) {
+      await prisma.service.update({
+        where: { id: params.id },
+        data: { isActive: false },
+      });
+      return NextResponse.json({
+        message: "Service has appointment history and was deactivated instead of deleted",
+      });
     }
 
     await prisma.service.delete({

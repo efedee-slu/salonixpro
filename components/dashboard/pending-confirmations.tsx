@@ -88,7 +88,11 @@ export function PendingConfirmations() {
         setData(result);
       }
     } catch (error) {
-      console.error("Error fetching pending deposits:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load notifications",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

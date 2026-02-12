@@ -86,11 +86,13 @@ export function NewOrderDialog({
       ]);
 
       if (productsRes.ok) {
-        const data = await productsRes.json();
+        const json = await productsRes.json();
+        const data = json.data ?? json;
         setProducts(data.filter((p: Product) => p.stockOnHand - p.stockReserved > 0));
       }
       if (clientsRes.ok) {
-        const data = await clientsRes.json();
+        const json = await clientsRes.json();
+        const data = json.data ?? json;
         setClients(data);
       }
     } catch (error) {

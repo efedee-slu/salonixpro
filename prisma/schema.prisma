@@ -149,7 +149,7 @@ model Service {
 
   // Relations
   business      Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  category      ServiceCategory? @relation(fields: [categoryId], references: [id])
+  category      ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   stylistServices StylistService[]
   appointmentServices AppointmentService[]
 
@@ -177,7 +177,7 @@ model Stylist {
 
   // Relations
   business      Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  user          User?     @relation(fields: [userId], references: [id])
+  user          User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   services      StylistService[]
   schedules     StylistSchedule[]
   timeOff       StylistTimeOff[]
@@ -258,7 +258,9 @@ model Client {
   orders        Order[]
 
   @@unique([businessId, phone])
+  @@unique([businessId, email])
   @@index([businessId])
+  @@index([lastVisitAt])
 }
 
 // ============================================
@@ -292,8 +294,8 @@ model Appointment {
 
   // Relations
   business      Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  client        Client    @relation(fields: [clientId], references: [id])
-  stylist       Stylist?  @relation(fields: [stylistId], references: [id])
+  client        Client    @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  stylist       Stylist?  @relation(fields: [stylistId], references: [id], onDelete: SetNull)
   services      AppointmentService[]
   order         Order?
 
@@ -316,7 +318,9 @@ model AppointmentService {
 
   // Relations
   appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  service       Service     @relation(fields: [serviceId], references: [id])
+  service       Service     @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  @@unique([appointmentId, serviceId])
 }
 
 enum AppointmentStatus {
@@ -399,12 +403,13 @@ model Product {
 
   // Relations
   business      Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  category      ProductCategory? @relation(fields: [categoryId], references: [id])
+  category      ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   orderItems    OrderItem[]
 
   @@unique([businessId, sku])
   @@index([businessId])
   @@index([categoryId])
+  @@index([isFeatured])
 }
 
 // ============================================
@@ -448,12 +453,13 @@ model Order {
 
   // Relations
   business      Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  client        Client?      @relation(fields: [clientId], references: [id])
-  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  client        Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
   items         OrderItem[]
 
   @@index([businessId])
   @@index([clientId])
+  @@index([appointmentId])
   @@index([status])
 }
 
@@ -474,7 +480,7 @@ model OrderItem {
 
   // Relations
   order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product       Product @relation(fields: [productId], references: [id])
+  product       Product @relation(fields: [productId], references: [id], onDelete: Restrict)
 }
 
 enum OrderStatus {
@@ -517,6 +523,7 @@ model Notification {
   business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@index([businessId])
+  @@index([businessId, isRead])
   @@index([isRead])
   @@index([createdAt])
 }

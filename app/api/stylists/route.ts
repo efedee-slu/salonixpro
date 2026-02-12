@@ -1,36 +1,52 @@
 // app/api/stylists/route.ts
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAuth, requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 
 // GET all stylists for the business
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireAuth();
+    if (error) return error;
 
-    const stylists = await prisma.stylist.findMany({
-      where: {
-        businessId: session.user.businessId,
-      },
-      include: {
-        schedules: {
-          orderBy: { dayOfWeek: "asc" },
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50")));
+    const skip = (page - 1) * limit;
+
+    const where = {
+      businessId: session.user.businessId,
+    };
+
+    const [stylists, total] = await Promise.all([
+      prisma.stylist.findMany({
+        where,
+        include: {
+          schedules: {
+            orderBy: { dayOfWeek: "asc" },
+          },
+          _count: {
+            select: { appointments: true },
+          },
         },
-        _count: {
-          select: { appointments: true },
+        orderBy: {
+          firstName: "asc",
         },
-      },
-      orderBy: {
-        firstName: "asc",
+        skip,
+        take: limit,
+      }),
+      prisma.stylist.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      data: stylists,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
     });
-
-    return NextResponse.json(stylists);
   } catch (error) {
     console.error("Error fetching stylists:", error);
     return NextResponse.json(
@@ -43,11 +59,8 @@ export async function GET() {
 // POST create new stylist
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireRole("MANAGER");
+    if (error) return error;
 
     const body = await request.json();
     const { firstName, lastName, email, phone, bio, isActive } = body;

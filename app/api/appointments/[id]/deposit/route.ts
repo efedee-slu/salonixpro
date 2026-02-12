@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/booking";
 
@@ -112,41 +113,49 @@ export async function POST(
     const { bookingReference, action } = body;
 
     if (action === "submit_payment") {
-      // Customer says they've made payment
-      const appointment = await prisma.appointment.findFirst({
-        where: {
-          id: appointmentId,
-          bookingReference,
-          depositStatus: "PENDING",
-        },
-        include: {
-          client: true,
-          services: true,
-        },
+      // Use transaction to prevent duplicate submissions
+      const result = await prisma.$transaction(async (tx) => {
+        const appointment = await tx.appointment.findFirst({
+          where: {
+            id: appointmentId,
+            bookingReference,
+            depositStatus: "PENDING",
+          },
+          include: {
+            client: true,
+            services: true,
+          },
+        });
+
+        if (!appointment) {
+          return null;
+        }
+
+        // Update deposit status atomically
+        await tx.appointment.update({
+          where: { id: appointmentId },
+          data: {
+            depositStatus: "SUBMITTED",
+            paymentSubmittedAt: new Date(),
+          },
+        });
+
+        return appointment;
       });
 
-      if (!appointment) {
+      if (!result) {
         return NextResponse.json(
           { error: "Appointment not found or payment already submitted" },
           { status: 404 }
         );
       }
 
-      // Update deposit status
-      await prisma.appointment.update({
-        where: { id: appointmentId },
-        data: {
-          depositStatus: "SUBMITTED",
-          paymentSubmittedAt: new Date(),
-        },
-      });
-
-      // Notify salon
+      // Notify salon (outside transaction - non-critical)
       await createNotification(
-        appointment.businessId,
+        result.businessId,
         "PAYMENT_SUBMITTED",
         "Payment Submitted",
-        `${appointment.client.firstName} ${appointment.client.lastName} has submitted payment for booking ${bookingReference}. Please verify and confirm.`,
+        `${result.client.firstName} ${result.client.lastName} has submitted payment for booking ${bookingReference}. Please verify and confirm.`,
         { appointmentId, bookingReference },
         true // Mark as urgent
       );
@@ -170,11 +179,8 @@ export async function PUT(
   context: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireRole("MANAGER");
+    if (error) return error;
 
     const appointmentId = context.params.id;
     const body = await request.json();

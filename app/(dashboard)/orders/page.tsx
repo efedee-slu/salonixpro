@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
   Plus,
@@ -24,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
 import { NewOrderDialog } from "./new-order-dialog";
 import { OrderDetailsDialog } from "./order-details-dialog";
 
@@ -81,7 +81,6 @@ const paymentMethodIcons: Record<string, any> = {
 };
 
 export default function OrdersPage() {
-  const { data: session } = useSession();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -91,17 +90,23 @@ export default function OrdersPage() {
   const [newOrderOpen, setNewOrderOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const { toast } = useToast();
 
   // Fetch orders
   const fetchOrders = async () => {
     try {
       const response = await fetch("/api/orders");
       if (response.ok) {
-        const data = await response.json();
+        const json = await response.json();
+        const data = json.data ?? json;
         setOrders(data);
       }
     } catch (error) {
-      console.error("Error fetching orders:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load orders",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

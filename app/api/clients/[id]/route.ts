@@ -1,7 +1,6 @@
 // app/api/clients/[id]/route.ts
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAuth, requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 
 // GET single client
@@ -10,11 +9,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireAuth();
+    if (error) return error;
 
     const client = await prisma.client.findFirst({
       where: {
@@ -43,11 +39,8 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireAuth();
+    if (error) return error;
 
     // Check if client exists and belongs to this business
     const existingClient = await prisma.client.findFirst({
@@ -118,11 +111,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requireRole("MANAGER");
+    if (error) return error;
 
     // Check if client exists and belongs to this business
     const existingClient = await prisma.client.findFirst({
@@ -134,6 +124,21 @@ export async function DELETE(
 
     if (!existingClient) {
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
+    }
+
+    // Check if client has appointments (use soft delete to preserve history)
+    const appointmentCount = await prisma.appointment.count({
+      where: { clientId: params.id },
+    });
+
+    if (appointmentCount > 0) {
+      await prisma.client.update({
+        where: { id: params.id },
+        data: { isActive: false },
+      });
+      return NextResponse.json({
+        message: "Client has appointment history and was deactivated instead of deleted",
+      });
     }
 
     await prisma.client.delete({

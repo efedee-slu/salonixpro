@@ -5,26 +5,14 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
-  Settings,
   Building2,
   Clock,
   Users,
   CreditCard,
   Save,
-  Upload,
-  Trash2,
-  Plus,
-  X,
   Loader2,
   Check,
-  AlertCircle,
   Zap,
-  Calendar,
-  ExternalLink,
-  MapPin,
-  MessageSquare,
-  DollarSign,
-  Bell,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -134,7 +122,11 @@ function SettingsContent() {
           setBillingStatus(data);
         }
       } catch (error) {
-        console.error("Error loading settings:", error);
+        toast({
+          title: "Error",
+          description: "Failed to save settings",
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }

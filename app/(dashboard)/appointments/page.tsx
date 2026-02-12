@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
   Plus,
@@ -10,9 +9,7 @@ import {
   ChevronRight,
   Calendar as CalendarIcon,
   Clock,
-  User,
   Sparkles,
-  MoreHorizontal,
   Edit,
   Trash2,
   Check,
@@ -23,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDuration, getStatusColor } from "@/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
 import { AddAppointmentDialog } from "./add-appointment-dialog";
 import { EditAppointmentDialog } from "./edit-appointment-dialog";
 import { DeleteAppointmentDialog } from "./delete-appointment-dialog";
@@ -86,7 +84,6 @@ const statusOptions = [
 ];
 
 export default function AppointmentsPage() {
-  const { data: session } = useSession();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [stylists, setStylists] = useState<Stylist[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -100,6 +97,7 @@ export default function AppointmentsPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const { toast } = useToast();
 
   // Fetch data
   const fetchData = async () => {
@@ -117,11 +115,24 @@ export default function AppointmentsPage() {
         const data = await apptRes.json();
         setAppointments(data);
       }
-      if (stylistRes.ok) setStylists(await stylistRes.json());
-      if (clientRes.ok) setClients(await clientRes.json());
-      if (serviceRes.ok) setServices(await serviceRes.json());
+      if (stylistRes.ok) {
+        const json = await stylistRes.json();
+        setStylists(json.data ?? json);
+      }
+      if (clientRes.ok) {
+        const json = await clientRes.json();
+        setClients(json.data ?? json);
+      }
+      if (serviceRes.ok) {
+        const json = await serviceRes.json();
+        setServices(json.data ?? json);
+      }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load appointments",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -177,7 +188,11 @@ export default function AppointmentsPage() {
         fetchData();
       }
     } catch (error) {
-      console.error("Error updating status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update appointment status",
+        variant: "destructive",
+      });
     }
   };
 
