@@ -261,7 +261,7 @@ export default function DashboardLayout({
         </header>
 
         {/* Page Content */}
-        <main className="p-4 lg:p-8">
+        <main className="p-4 lg:p-8 bg-gray-50/50 min-h-[calc(100vh-4rem)]" style={{ backgroundImage: "radial-gradient(circle, #e5e7eb 0.8px, transparent 0.8px)", backgroundSize: "20px 20px" }}>
           <Breadcrumbs />
           {children}
         </main>
