@@ -171,7 +171,7 @@ export default function ServicesPage() {
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+        <Card className="border-l-4 border-l-teal-500 hover:shadow-md hover:-translate-y-0.5">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-teal-50">
@@ -184,7 +184,7 @@ export default function ServicesPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-emerald-500 hover:shadow-md hover:-translate-y-0.5">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-emerald-50">
@@ -197,7 +197,7 @@ export default function ServicesPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-purple-500 hover:shadow-md hover:-translate-y-0.5">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-purple-50">
@@ -210,7 +210,7 @@ export default function ServicesPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-cyan-500 hover:shadow-md hover:-translate-y-0.5">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-cyan-50">

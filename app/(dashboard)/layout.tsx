@@ -33,6 +33,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -83,25 +84,25 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 bg-card border-r transform transition-transform duration-200 ease-in-out lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-teal-900 via-teal-950 to-slate-950 text-white transform transition-transform duration-200 ease-in-out lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between h-16 px-6 border-b">
+          <div className="flex items-center justify-between h-16 px-6 border-b border-white/10">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center">
-                <Scissors className="w-5 h-5 text-teal-600" />
+              <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center">
+                <Scissors className="w-5 h-5 text-teal-300" />
               </div>
               <div>
-                <span className="font-bold text-lg">SalonixPro</span>
-                <p className="text-xs text-muted-foreground">{user?.businessName || "Salon"}</p>
+                <span className="font-bold text-lg text-white">SalonixPro</span>
+                <p className="text-xs text-white/50">{user?.businessName || "Salon"}</p>
               </div>
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-2 rounded-lg hover:bg-accent"
+              className="lg:hidden p-2 rounded-lg hover:bg-white/10"
             >
               <X className="w-5 h-5" />
             </button>
@@ -120,19 +121,19 @@ export default function DashboardLayout({
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
                     isActive
-                      ? "bg-teal-600 text-white shadow-lg shadow-teal-600/25"
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                      ? "bg-white/15 text-white"
+                      : "text-white/60 hover:text-white hover:bg-white/10"
                   )}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <item.icon className="w-5 h-5" />
+                  <item.icon className={cn("w-5 h-5", isActive && "text-teal-300")} />
                   <span className="flex-1">{item.name}</span>
                   {item.badge && (
-                    <Badge 
+                    <Badge
                       variant={isActive ? "secondary" : "default"}
                       className={cn(
                         "ml-auto",
-                        isActive ? "bg-white/20 text-white" : "bg-teal-100 text-teal-700"
+                        isActive ? "bg-teal-400/20 text-teal-200" : "bg-white/10 text-white/70"
                       )}
                     >
                       {item.badge}
@@ -207,6 +208,7 @@ export default function DashboardLayout({
 
         {/* Page Content */}
         <main className="p-4 lg:p-8">
+          <Breadcrumbs />
           {children}
         </main>
       </div>

@@ -1,6 +1,7 @@
 // app/(dashboard)/page.tsx
 "use client";
 
+import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -20,6 +21,15 @@ import {
   CalendarPlus,
   ShoppingCart,
 } from "lucide-react";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -65,6 +75,42 @@ const stats = [
     bgColor: "bg-amber-50",
   },
 ];
+
+const statBorderColors = [
+  "border-l-teal-500",
+  "border-l-cyan-500",
+  "border-l-emerald-500",
+  "border-l-amber-500",
+];
+
+const revenueData = {
+  daily: [
+    { name: "9AM", revenue: 120 },
+    { name: "10AM", revenue: 280 },
+    { name: "11AM", revenue: 350 },
+    { name: "12PM", revenue: 200 },
+    { name: "1PM", revenue: 420 },
+    { name: "2PM", revenue: 380 },
+    { name: "3PM", revenue: 510 },
+    { name: "4PM", revenue: 450 },
+    { name: "5PM", revenue: 320 },
+  ],
+  weekly: [
+    { name: "Mon", revenue: 1200 },
+    { name: "Tue", revenue: 1800 },
+    { name: "Wed", revenue: 2200 },
+    { name: "Thu", revenue: 1950 },
+    { name: "Fri", revenue: 2800 },
+    { name: "Sat", revenue: 3200 },
+    { name: "Sun", revenue: 800 },
+  ],
+  monthly: [
+    { name: "Week 1", revenue: 8500 },
+    { name: "Week 2", revenue: 9200 },
+    { name: "Week 3", revenue: 11000 },
+    { name: "Week 4", revenue: 10500 },
+  ],
+};
 
 const todayAppointments = [
   {
@@ -174,7 +220,8 @@ const item = {
 
 export default function DashboardPage() {
   const { data: session } = useSession();
-  
+  const [chartPeriod, setChartPeriod] = useState<"daily" | "weekly" | "monthly">("weekly");
+
   // Get greeting based on time of day
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -203,7 +250,7 @@ export default function DashboardPage() {
       {/* Stats Grid */}
       <motion.div variants={item} className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat, index) => (
-          <Card key={stat.name} className="overflow-hidden">
+          <Card key={stat.name} className={cn("overflow-hidden border-l-4 hover:shadow-md hover:-translate-y-0.5", statBorderColors[index])}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className={cn("p-3 rounded-xl", stat.bgColor)}>
@@ -231,6 +278,79 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         ))}
+      </motion.div>
+
+      {/* Revenue Chart */}
+      <motion.div variants={item}>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle className="text-lg">Revenue Overview</CardTitle>
+              <p className="text-sm text-muted-foreground">Track your salon earnings</p>
+            </div>
+            <div className="flex gap-1 bg-muted rounded-lg p-1">
+              {(["daily", "weekly", "monthly"] as const).map((period) => (
+                <button
+                  key={period}
+                  onClick={() => setChartPeriod(period)}
+                  className={cn(
+                    "px-3 py-1.5 text-xs font-medium rounded-md transition-all capitalize",
+                    chartPeriod === period
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {period}
+                </button>
+              ))}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={280}>
+              <AreaChart data={revenueData[chartPeriod]}>
+                <defs>
+                  <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(166, 76%, 32%)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(166, 76%, 32%)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis
+                  dataKey="name"
+                  className="text-xs"
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  className="text-xs"
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(value) => `$${value}`}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "0.75rem",
+                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                  }}
+                  labelStyle={{ color: "hsl(var(--foreground))" }}
+                  itemStyle={{ color: "hsl(166, 76%, 32%)" }}
+                  formatter={(value: number) => [`$${value}`, "Revenue"]}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="hsl(166, 76%, 32%)"
+                  strokeWidth={2}
+                  fill="url(#revenueGradient)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </motion.div>
 
       {/* Quick Actions */}
@@ -281,10 +401,13 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {todayAppointments.map((appointment) => (
+                {todayAppointments.map((appointment, i) => (
                   <div
                     key={appointment.id}
-                    className="flex items-center gap-4 p-4 rounded-xl bg-accent/50 hover:bg-accent transition-colors"
+                    className={cn(
+                      "flex items-center gap-4 p-4 rounded-xl hover:bg-accent transition-colors",
+                      i % 2 === 0 ? "bg-accent/30" : "bg-accent/50"
+                    )}
                   >
                     <div className="flex-shrink-0">
                       <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">

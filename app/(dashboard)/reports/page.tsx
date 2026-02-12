@@ -270,7 +270,7 @@ export default function ReportsPage() {
         >
           {/* Key Metrics */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
+            <Card className="border-l-4 border-l-teal-500 hover:shadow-md hover:-translate-y-0.5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -295,7 +295,7 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-l-4 border-l-blue-500 hover:shadow-md hover:-translate-y-0.5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -312,7 +312,7 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-l-4 border-l-purple-500 hover:shadow-md hover:-translate-y-0.5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -329,7 +329,7 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-l-4 border-l-orange-500 hover:shadow-md hover:-translate-y-0.5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -556,7 +556,7 @@ export default function ReportsPage() {
         >
           {/* Sales Summary */}
           <div className="grid gap-4 md:grid-cols-3">
-            <Card>
+            <Card className="border-l-4 border-l-blue-500 hover:shadow-md hover:-translate-y-0.5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -569,7 +569,7 @@ export default function ReportsPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-l-4 border-l-purple-500 hover:shadow-md hover:-translate-y-0.5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -582,7 +582,7 @@ export default function ReportsPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-l-4 border-l-teal-500 hover:shadow-md hover:-translate-y-0.5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -725,7 +725,7 @@ export default function ReportsPage() {
         >
           {/* Inventory Summary */}
           <div className="grid gap-4 md:grid-cols-4">
-            <Card>
+            <Card className="border-l-4 border-l-blue-500 hover:shadow-md hover:-translate-y-0.5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -738,7 +738,7 @@ export default function ReportsPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-l-4 border-l-teal-500 hover:shadow-md hover:-translate-y-0.5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -751,7 +751,7 @@ export default function ReportsPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-l-4 border-l-purple-500 hover:shadow-md hover:-translate-y-0.5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -764,7 +764,7 @@ export default function ReportsPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-l-4 border-l-green-500 hover:shadow-md hover:-translate-y-0.5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -824,23 +824,23 @@ export default function ReportsPage() {
                 <p className="text-sm text-muted-foreground text-center py-8">No products yet</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="data-table">
                     <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-3 px-2">Product</th>
-                        <th className="text-left py-3 px-2">SKU</th>
-                        <th className="text-right py-3 px-2">In Stock</th>
-                        <th className="text-right py-3 px-2">Reserved</th>
-                        <th className="text-right py-3 px-2">Available</th>
-                        <th className="text-right py-3 px-2">Cost</th>
-                        <th className="text-right py-3 px-2">Retail</th>
-                        <th className="text-right py-3 px-2">Value</th>
-                        <th className="text-center py-3 px-2">Status</th>
+                      <tr>
+                        <th className="text-left">Product</th>
+                        <th className="text-left">SKU</th>
+                        <th className="text-right">In Stock</th>
+                        <th className="text-right">Reserved</th>
+                        <th className="text-right">Available</th>
+                        <th className="text-right">Cost</th>
+                        <th className="text-right">Retail</th>
+                        <th className="text-right">Value</th>
+                        <th className="text-center">Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.inventory.products.map((product) => (
-                        <tr key={product.id} className="border-b hover:bg-accent/30">
+                        <tr key={product.id}>
                           <td className="py-3 px-2 font-medium">{product.name}</td>
                           <td className="py-3 px-2 text-muted-foreground">{product.sku}</td>
                           <td className="py-3 px-2 text-right">{product.stockOnHand}</td>
@@ -880,19 +880,19 @@ export default function ReportsPage() {
                 <p className="text-sm text-muted-foreground text-center py-8">No sales data yet</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="data-table">
                     <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-3 px-2">Product</th>
-                        <th className="text-right py-3 px-2">Units Sold</th>
-                        <th className="text-right py-3 px-2">Revenue</th>
-                        <th className="text-right py-3 px-2">Profit</th>
-                        <th className="text-right py-3 px-2">Margin</th>
+                      <tr>
+                        <th className="text-left">Product</th>
+                        <th className="text-right">Units Sold</th>
+                        <th className="text-right">Revenue</th>
+                        <th className="text-right">Profit</th>
+                        <th className="text-right">Margin</th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.inventory.movements.map((movement, index) => (
-                        <tr key={index} className="border-b hover:bg-accent/30">
+                        <tr key={index}>
                           <td className="py-3 px-2 font-medium">{movement.product}</td>
                           <td className="py-3 px-2 text-right">{movement.sold}</td>
                           <td className="py-3 px-2 text-right">{formatCurrency(movement.revenue)}</td>
