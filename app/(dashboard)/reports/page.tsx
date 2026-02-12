@@ -23,12 +23,28 @@ import {
   Banknote,
   ArrowRightLeft,
   Percent,
+  Download,
 } from "lucide-react";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  Legend,
+} from "recharts";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 
 interface ReportData {
   // Overview
@@ -151,12 +167,67 @@ interface ReportData {
 
 type DateRange = "today" | "week" | "month" | "year";
 type TabType = "overview" | "sales" | "inventory" | "stylists";
+type ChartPeriod = "daily" | "weekly" | "monthly" | "yearly";
+
+const PIE_COLORS = ["#0d9488", "#06b6d4", "#8b5cf6", "#f59e0b", "#ec4899", "#10b981", "#6366f1", "#f97316"];
+
+const CHART_TOOLTIP_STYLE = {
+  backgroundColor: "hsl(var(--card))",
+  border: "1px solid hsl(var(--border))",
+  borderRadius: "0.75rem",
+  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+};
+
+// Mock time-series revenue data — replace with API data
+const revenueTimeSeries: Record<ChartPeriod, Array<{ name: string; revenue: number }>> = {
+  daily: [
+    { name: "9AM", revenue: 120 },
+    { name: "10AM", revenue: 280 },
+    { name: "11AM", revenue: 350 },
+    { name: "12PM", revenue: 200 },
+    { name: "1PM", revenue: 420 },
+    { name: "2PM", revenue: 380 },
+    { name: "3PM", revenue: 510 },
+    { name: "4PM", revenue: 450 },
+    { name: "5PM", revenue: 320 },
+  ],
+  weekly: [
+    { name: "Mon", revenue: 1200 },
+    { name: "Tue", revenue: 1800 },
+    { name: "Wed", revenue: 2200 },
+    { name: "Thu", revenue: 1950 },
+    { name: "Fri", revenue: 2800 },
+    { name: "Sat", revenue: 3200 },
+    { name: "Sun", revenue: 800 },
+  ],
+  monthly: [
+    { name: "Week 1", revenue: 8500 },
+    { name: "Week 2", revenue: 9200 },
+    { name: "Week 3", revenue: 11000 },
+    { name: "Week 4", revenue: 10500 },
+  ],
+  yearly: [
+    { name: "Jan", revenue: 28000 },
+    { name: "Feb", revenue: 32000 },
+    { name: "Mar", revenue: 35000 },
+    { name: "Apr", revenue: 31000 },
+    { name: "May", revenue: 38000 },
+    { name: "Jun", revenue: 42000 },
+    { name: "Jul", revenue: 39000 },
+    { name: "Aug", revenue: 41000 },
+    { name: "Sep", revenue: 37000 },
+    { name: "Oct", revenue: 44000 },
+    { name: "Nov", revenue: 46000 },
+    { name: "Dec", revenue: 50000 },
+  ],
+};
 
 export default function ReportsPage() {
   const [data, setData] = useState<ReportData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [dateRange, setDateRange] = useState<DateRange>("month");
   const [activeTab, setActiveTab] = useState<TabType>("overview");
+  const [chartPeriod, setChartPeriod] = useState<ChartPeriod>("weekly");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -194,6 +265,43 @@ export default function ReportsPage() {
     { id: "stylists", label: "Stylist Performance", icon: UserCircle },
   ];
 
+  const handleExportCSV = () => {
+    if (!data) return;
+    const rows = [
+      ["Metric", "Value"],
+      ["Total Revenue", data.revenue.thisMonth.toString()],
+      ["Last Month Revenue", data.revenue.lastMonth.toString()],
+      ["Appointments This Week", data.appointments.thisWeek.toString()],
+      ["Completed Appointments", data.appointments.completed.toString()],
+      ["Cancelled Appointments", data.appointments.cancelled.toString()],
+      ["No Shows", data.appointments.noShow.toString()],
+      ["Total Clients", data.clients.total.toString()],
+      ["New Clients This Month", data.clients.newThisMonth.toString()],
+      ["Product Sales Revenue", data.orders.totalRevenue.toString()],
+      ["Orders This Week", data.orders.thisWeek.toString()],
+      [""],
+      ["Top Services", "Bookings", "Revenue"],
+      ...data.topServices.map((s) => [s.name, s.count.toString(), s.revenue.toString()]),
+      [""],
+      ["Top Products", "Sold", "Revenue"],
+      ...data.topProducts.map((p) => [p.name, p.sold.toString(), p.revenue.toString()]),
+      [""],
+      ["Stylist", "Appointments", "Completed", "Revenue", "Avg Ticket", "Completion Rate"],
+      ...data.stylists.map((s) => [
+        s.name, s.appointments.toString(), s.completed.toString(),
+        s.revenue.toString(), s.averageTicket.toString(), `${s.completionRate.toFixed(1)}%`,
+      ]),
+    ];
+    const csv = rows.map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `salonixpro-report-${dateRange}-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (isLoading || !data) {
     return (
       <div className="space-y-6">
@@ -227,7 +335,7 @@ export default function ReportsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
           <p className="text-muted-foreground">Business analytics and insights</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {(["today", "week", "month", "year"] as DateRange[]).map((range) => (
             <Button
               key={range}
@@ -239,6 +347,10 @@ export default function ReportsPage() {
               {range.charAt(0).toUpperCase() + range.slice(1)}
             </Button>
           ))}
+          <Button variant="outline" size="sm" onClick={handleExportCSV}>
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
         </div>
       </div>
 
@@ -346,6 +458,73 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Revenue Chart */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-teal-600" />
+                  Revenue Overview
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">Track your salon earnings over time</p>
+              </div>
+              <div className="flex gap-1 bg-muted rounded-lg p-1">
+                {(["daily", "weekly", "monthly", "yearly"] as const).map((period) => (
+                  <button
+                    key={period}
+                    onClick={() => setChartPeriod(period)}
+                    className={cn(
+                      "px-3 py-1.5 text-xs font-medium rounded-md transition-all capitalize",
+                      chartPeriod === period
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {period}
+                  </button>
+                ))}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={320}>
+                <AreaChart data={revenueTimeSeries[chartPeriod]}>
+                  <defs>
+                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(166, 76%, 32%)" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(166, 76%, 32%)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(value) => `$${value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}`}
+                  />
+                  <Tooltip
+                    contentStyle={CHART_TOOLTIP_STYLE}
+                    labelStyle={{ color: "hsl(var(--foreground))" }}
+                    itemStyle={{ color: "hsl(166, 76%, 32%)" }}
+                    formatter={(value: number) => [formatCurrency(value), "Revenue"]}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="hsl(166, 76%, 32%)"
+                    strokeWidth={2}
+                    fill="url(#revenueGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
 
           {/* Charts Row */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -633,7 +812,7 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
 
-            {/* Revenue by Category */}
+            {/* Revenue by Category — Pie Chart */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -645,30 +824,42 @@ export default function ReportsPage() {
                 {data.sales.byCategory.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">No category data yet</p>
                 ) : (
-                  <div className="space-y-3">
-                    {data.sales.byCategory.map((cat, index) => {
-                      const total = data.sales.byCategory.reduce((s, c) => s + c.revenue, 0);
-                      const percentage = total > 0 ? (cat.revenue / total) * 100 : 0;
-                      return (
-                        <div key={index}>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="font-medium">{cat.category}</span>
-                            <span className="text-muted-foreground">{cat.count} services</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1 bg-gray-100 rounded-full h-3">
-                              <div
-                                className="bg-teal-500 h-3 rounded-full"
-                                style={{ width: `${percentage}%` }}
-                              />
-                            </div>
-                            <span className="font-semibold text-sm w-24 text-right">
-                              {formatCurrency(cat.revenue)}
-                            </span>
-                          </div>
+                  <div className="flex flex-col items-center">
+                    <ResponsiveContainer width="100%" height={240}>
+                      <PieChart>
+                        <Pie
+                          data={data.sales.byCategory}
+                          dataKey="revenue"
+                          nameKey="category"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={90}
+                          innerRadius={50}
+                          strokeWidth={2}
+                          stroke="hsl(var(--card))"
+                        >
+                          {data.sales.byCategory.map((_, index) => (
+                            <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={CHART_TOOLTIP_STYLE}
+                          formatter={(value: number) => [formatCurrency(value), "Revenue"]}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="flex flex-wrap justify-center gap-3 mt-2">
+                      {data.sales.byCategory.map((cat, index) => (
+                        <div key={index} className="flex items-center gap-1.5 text-xs">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
+                          />
+                          <span className="text-muted-foreground">{cat.category}</span>
+                          <span className="font-medium">{formatCurrency(cat.revenue)}</span>
                         </div>
-                      );
-                    })}
+                      ))}
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -934,6 +1125,48 @@ export default function ReportsPage() {
             </Card>
           ) : (
             <div className="grid gap-6">
+              {/* Revenue by Stylist — Bar Chart */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-teal-600" />
+                    Revenue by Stylist
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={Math.max(200, data.stylists.length * 50)}>
+                    <BarChart
+                      data={data.stylists.map((s) => ({ name: s.name, revenue: s.revenue }))}
+                      layout="vertical"
+                      margin={{ left: 20, right: 20, top: 5, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" horizontal={false} />
+                      <XAxis
+                        type="number"
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                        axisLine={false}
+                        tickLine={false}
+                        tickFormatter={(value) => `$${value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}`}
+                      />
+                      <YAxis
+                        type="category"
+                        dataKey="name"
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                        axisLine={false}
+                        tickLine={false}
+                        width={100}
+                      />
+                      <Tooltip
+                        contentStyle={CHART_TOOLTIP_STYLE}
+                        labelStyle={{ color: "hsl(var(--foreground))" }}
+                        formatter={(value: number) => [formatCurrency(value), "Revenue"]}
+                      />
+                      <Bar dataKey="revenue" fill="hsl(166, 76%, 32%)" radius={[0, 6, 6, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
               {data.stylists.map((stylist) => (
                 <Card key={stylist.id}>
                   <CardHeader className="pb-2">

@@ -1,7 +1,6 @@
 // app/(dashboard)/page.tsx
 "use client";
 
-import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -10,26 +9,20 @@ import {
   Users,
   DollarSign,
   Package,
-  TrendingUp,
   Clock,
   ArrowRight,
   ArrowUpRight,
   MoreHorizontal,
-  CheckCircle2,
   AlertCircle,
   UserPlus,
   CalendarPlus,
   ShoppingCart,
+  BookOpen,
+  ShoppingBag,
+  CheckCircle2,
+  XCircle,
+  UserCheck,
 } from "lucide-react";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -82,35 +75,6 @@ const statBorderColors = [
   "border-l-emerald-500",
   "border-l-amber-500",
 ];
-
-const revenueData = {
-  daily: [
-    { name: "9AM", revenue: 120 },
-    { name: "10AM", revenue: 280 },
-    { name: "11AM", revenue: 350 },
-    { name: "12PM", revenue: 200 },
-    { name: "1PM", revenue: 420 },
-    { name: "2PM", revenue: 380 },
-    { name: "3PM", revenue: 510 },
-    { name: "4PM", revenue: 450 },
-    { name: "5PM", revenue: 320 },
-  ],
-  weekly: [
-    { name: "Mon", revenue: 1200 },
-    { name: "Tue", revenue: 1800 },
-    { name: "Wed", revenue: 2200 },
-    { name: "Thu", revenue: 1950 },
-    { name: "Fri", revenue: 2800 },
-    { name: "Sat", revenue: 3200 },
-    { name: "Sun", revenue: 800 },
-  ],
-  monthly: [
-    { name: "Week 1", revenue: 8500 },
-    { name: "Week 2", revenue: 9200 },
-    { name: "Week 3", revenue: 11000 },
-    { name: "Week 4", revenue: 10500 },
-  ],
-};
 
 const todayAppointments = [
   {
@@ -201,6 +165,76 @@ const quickActions = [
     bgColor: "bg-emerald-50",
     href: "/orders",
   },
+  {
+    name: "Browse Catalog",
+    icon: BookOpen,
+    color: "text-purple-600",
+    bgColor: "bg-purple-50",
+    href: "/services",
+  },
+];
+
+const recentActivity = [
+  {
+    id: 1,
+    type: "appointment",
+    icon: Calendar,
+    iconBg: "bg-blue-100",
+    iconColor: "text-blue-600",
+    description: "New booking: Maria Johnson - Full Color + Cut",
+    time: "10 min ago",
+    amount: 280,
+  },
+  {
+    id: 2,
+    type: "order",
+    icon: ShoppingBag,
+    iconBg: "bg-purple-100",
+    iconColor: "text-purple-600",
+    description: "Order #A1B2 completed - Samantha Lee",
+    time: "25 min ago",
+    amount: 245,
+  },
+  {
+    id: 3,
+    type: "client",
+    icon: UserCheck,
+    iconBg: "bg-green-100",
+    iconColor: "text-green-600",
+    description: "New client registered: Tanya Richards",
+    time: "1h ago",
+    amount: 0,
+  },
+  {
+    id: 4,
+    type: "appointment",
+    icon: CheckCircle2,
+    iconBg: "bg-emerald-100",
+    iconColor: "text-emerald-600",
+    description: "Completed: Ashley Brown - Brazilian Blowout",
+    time: "1h 30m ago",
+    amount: 350,
+  },
+  {
+    id: 5,
+    type: "order",
+    icon: ShoppingBag,
+    iconBg: "bg-purple-100",
+    iconColor: "text-purple-600",
+    description: "New order #C3D4 - Nicole Brown",
+    time: "2h ago",
+    amount: 89,
+  },
+  {
+    id: 6,
+    type: "appointment",
+    icon: XCircle,
+    iconBg: "bg-red-100",
+    iconColor: "text-red-600",
+    description: "Cancelled: Rachel Kim - Keratin Treatment",
+    time: "3h ago",
+    amount: 0,
+  },
 ];
 
 const container = {
@@ -220,7 +254,6 @@ const item = {
 
 export default function DashboardPage() {
   const { data: session } = useSession();
-  const [chartPeriod, setChartPeriod] = useState<"daily" | "weekly" | "monthly">("weekly");
 
   // Get greeting based on time of day
   const getGreeting = () => {
@@ -280,83 +313,10 @@ export default function DashboardPage() {
         ))}
       </motion.div>
 
-      {/* Revenue Chart */}
-      <motion.div variants={item}>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div>
-              <CardTitle className="text-lg">Revenue Overview</CardTitle>
-              <p className="text-sm text-muted-foreground">Track your salon earnings</p>
-            </div>
-            <div className="flex gap-1 bg-muted rounded-lg p-1">
-              {(["daily", "weekly", "monthly"] as const).map((period) => (
-                <button
-                  key={period}
-                  onClick={() => setChartPeriod(period)}
-                  className={cn(
-                    "px-3 py-1.5 text-xs font-medium rounded-md transition-all capitalize",
-                    chartPeriod === period
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {period}
-                </button>
-              ))}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
-              <AreaChart data={revenueData[chartPeriod]}>
-                <defs>
-                  <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(166, 76%, 32%)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(166, 76%, 32%)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis
-                  dataKey="name"
-                  className="text-xs"
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  className="text-xs"
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(value) => `$${value}`}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "0.75rem",
-                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                  }}
-                  labelStyle={{ color: "hsl(var(--foreground))" }}
-                  itemStyle={{ color: "hsl(166, 76%, 32%)" }}
-                  formatter={(value: number) => [`$${value}`, "Revenue"]}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="hsl(166, 76%, 32%)"
-                  strokeWidth={2}
-                  fill="url(#revenueGradient)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </motion.div>
-
       {/* Quick Actions */}
       <motion.div variants={item}>
         <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {quickActions.map((action) => (
             <Link key={action.name} href={action.href}>
               <Card
@@ -382,70 +342,112 @@ export default function DashboardPage() {
         <PendingConfirmations />
       </motion.div>
 
-      {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Today's Appointments */}
-        <motion.div variants={item} className="lg:col-span-2">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">Today's Appointments</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {todayAppointments.length} appointments scheduled
-                </p>
-              </div>
+      {/* Today's Appointments */}
+      <motion.div variants={item}>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-lg">Today's Appointments</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {todayAppointments.length} appointments scheduled
+              </p>
+            </div>
+            <Link href="/appointments">
               <Button variant="outline" size="sm">
                 View All
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {todayAppointments.map((appointment, i) => (
+                <div
+                  key={appointment.id}
+                  className={cn(
+                    "flex items-center gap-4 p-4 rounded-xl hover:bg-accent transition-colors",
+                    i % 2 === 0 ? "bg-accent/30" : "bg-accent/50"
+                  )}
+                >
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
+                      <span className="text-sm font-semibold text-teal-700">
+                        {appointment.client.split(" ").map(n => n[0]).join("")}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold truncate">{appointment.client}</p>
+                      <Badge
+                        variant={
+                          appointment.status === "confirmed" ? "info" :
+                          appointment.status === "in_progress" ? "warning" :
+                          "secondary"
+                        }
+                        className="capitalize"
+                      >
+                        {appointment.status.replace("_", " ")}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {appointment.service} with {appointment.stylist}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold">{appointment.time}</p>
+                    <p className="text-sm text-muted-foreground flex items-center gap-1 justify-end">
+                      <Clock className="w-3 h-3" />
+                      {appointment.duration}
+                    </p>
+                  </div>
+                  <div className="text-right pl-4 border-l">
+                    <p className="font-bold text-teal-600">
+                      {formatCurrency(appointment.price)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Recent Activity + Recent Orders */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Recent Activity */}
+        <motion.div variants={item} className="lg:col-span-2">
+          <Card className="h-full">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Recent Activity</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Latest actions across your salon
+                </p>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {todayAppointments.map((appointment, i) => (
+                {recentActivity.map((activity, i) => (
                   <div
-                    key={appointment.id}
+                    key={activity.id}
                     className={cn(
-                      "flex items-center gap-4 p-4 rounded-xl hover:bg-accent transition-colors",
-                      i % 2 === 0 ? "bg-accent/30" : "bg-accent/50"
+                      "flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-accent",
+                      i % 2 === 0 ? "bg-accent/30" : "bg-transparent"
                     )}
                   >
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
-                        <span className="text-sm font-semibold text-teal-700">
-                          {appointment.client.split(" ").map(n => n[0]).join("")}
-                        </span>
-                      </div>
+                    <div className={cn("p-2 rounded-lg shrink-0", activity.iconBg)}>
+                      <activity.icon className={cn("w-4 h-4", activity.iconColor)} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold truncate">{appointment.client}</p>
-                        <Badge
-                          variant={
-                            appointment.status === "confirmed" ? "info" :
-                            appointment.status === "in_progress" ? "warning" :
-                            "secondary"
-                          }
-                          className="capitalize"
-                        >
-                          {appointment.status.replace("_", " ")}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {appointment.service} with {appointment.stylist}
-                      </p>
+                      <p className="text-sm font-medium truncate">{activity.description}</p>
+                      <p className="text-xs text-muted-foreground">{activity.time}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold">{appointment.time}</p>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1 justify-end">
-                        <Clock className="w-3 h-3" />
-                        {appointment.duration}
+                    {activity.amount > 0 && (
+                      <p className="font-semibold text-teal-600 shrink-0">
+                        {formatCurrency(activity.amount)}
                       </p>
-                    </div>
-                    <div className="text-right pl-4 border-l">
-                      <p className="font-bold text-teal-600">
-                        {formatCurrency(appointment.price)}
-                      </p>
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -463,9 +465,11 @@ export default function DashboardPage() {
                   Product orders & pickups
                 </p>
               </div>
-              <Button variant="ghost" size="sm">
-                View All
-              </Button>
+              <Link href="/orders">
+                <Button variant="ghost" size="sm">
+                  View All
+                </Button>
+              </Link>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -497,9 +501,11 @@ export default function DashboardPage() {
                 ))}
               </div>
 
-              <Button variant="outline" className="w-full mt-4">
-                View All Orders
-              </Button>
+              <Link href="/orders">
+                <Button variant="outline" className="w-full mt-4">
+                  View All Orders
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </motion.div>
@@ -519,9 +525,11 @@ export default function DashboardPage() {
                   5 products are running low on stock and need to be reordered soon.
                 </p>
                 <div className="flex gap-2 mt-4">
-                  <Button size="sm" variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-100">
-                    View Products
-                  </Button>
+                  <Link href="/shop">
+                    <Button size="sm" variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-100">
+                      View Products
+                    </Button>
+                  </Link>
                   <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
                     Reorder Now
                   </Button>
