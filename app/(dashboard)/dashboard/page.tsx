@@ -1,7 +1,7 @@
 // app/(dashboard)/dashboard/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
@@ -23,6 +23,8 @@ import {
   User,
   Sparkles,
   MapPin,
+  Zap,
+  TrendingUp,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,17 +47,88 @@ interface DashboardData {
   recentActivity: any[];
 }
 
+// ═══════ ANIMATED COUNTER HOOK ═══════
+function useAnimatedCounter(end: number, duration = 1200, startAnimation = false) {
+  const [count, setCount] = useState(0);
+  const frameRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!startAnimation || end === 0) {
+      setCount(end);
+      return;
+    }
+
+    const startTime = performance.now();
+    const startValue = 0;
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(startValue + (end - startValue) * eased);
+      setCount(current);
+
+      if (progress < 1) {
+        frameRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    frameRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frameRef.current);
+  }, [end, duration, startAnimation]);
+
+  return count;
+}
+
 const quickActions = [
-  { name: "New Appointment", icon: CalendarPlus, color: "text-teal-600", bg: "bg-teal-50", border: "border-teal-200", hoverBg: "hover:bg-teal-50", href: "/appointments" },
-  { name: "Add Client", icon: UserPlus, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200", hoverBg: "hover:bg-blue-50", href: "/clients" },
-  { name: "New Order", icon: ShoppingCart, color: "text-violet-600", bg: "bg-violet-50", border: "border-violet-200", hoverBg: "hover:bg-violet-50", href: "/orders" },
-  { name: "Add Expense", icon: Wallet, color: "text-orange-600", bg: "bg-orange-50", border: "border-orange-200", hoverBg: "hover:bg-orange-50", href: "/expenses" },
+  {
+    name: "New Appointment",
+    description: "Schedule a booking",
+    icon: CalendarPlus,
+    color: "text-teal-600",
+    bg: "bg-gradient-to-br from-teal-50 to-emerald-50",
+    iconBg: "bg-gradient-to-br from-teal-500 to-emerald-600",
+    shadow: "shadow-teal-500/10 hover:shadow-teal-500/20",
+    href: "/appointments",
+  },
+  {
+    name: "Add Client",
+    description: "Register new client",
+    icon: UserPlus,
+    color: "text-blue-600",
+    bg: "bg-gradient-to-br from-blue-50 to-indigo-50",
+    iconBg: "bg-gradient-to-br from-blue-500 to-indigo-600",
+    shadow: "shadow-blue-500/10 hover:shadow-blue-500/20",
+    href: "/clients",
+  },
+  {
+    name: "New Order",
+    description: "Create product order",
+    icon: ShoppingCart,
+    color: "text-violet-600",
+    bg: "bg-gradient-to-br from-violet-50 to-purple-50",
+    iconBg: "bg-gradient-to-br from-violet-500 to-purple-600",
+    shadow: "shadow-violet-500/10 hover:shadow-violet-500/20",
+    href: "/orders",
+  },
+  {
+    name: "Add Expense",
+    description: "Log an expense",
+    icon: Wallet,
+    color: "text-orange-600",
+    bg: "bg-gradient-to-br from-orange-50 to-amber-50",
+    iconBg: "bg-gradient-to-br from-orange-500 to-amber-600",
+    shadow: "shadow-orange-500/10 hover:shadow-orange-500/20",
+    href: "/expenses",
+  },
 ];
 
 export default function DashboardPage() {
   const { data: session } = useSession();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [dataReady, setDataReady] = useState(false);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -64,6 +137,8 @@ export default function DashboardPage() {
         if (response.ok) {
           const data = await response.json();
           setDashboardData(data);
+          // Small delay for counter animation to start after cards animate in
+          setTimeout(() => setDataReady(true), 400);
         }
       } catch (error) {
         console.error("Error fetching dashboard:", error);
@@ -94,61 +169,70 @@ export default function DashboardPage() {
     ? stats.todayAppointments - stats.yesterdayAppointments
     : 0;
 
+  // Animated counters
+  const animAppointments = useAnimatedCounter(stats?.todayAppointments ?? 0, 1200, dataReady);
+  const animClients = useAnimatedCounter(stats?.activeClients ?? 0, 1400, dataReady);
+  const animOrders = useAnimatedCounter(stats?.pendingOrders ?? 0, 1000, dataReady);
+
   const statCards = [
     {
       name: "Today's Appointments",
-      value: stats?.todayAppointments ?? 0,
+      value: animAppointments,
+      displayValue: animAppointments.toLocaleString(),
       change: appointmentChange,
       changeLabel: "vs yesterday",
       icon: Calendar,
-      iconColor: "text-blue-600",
-      iconBg: "bg-blue-100",
-      cardBg: "bg-gradient-to-br from-blue-50 to-blue-100/80",
-      borderColor: "border-blue-200/60",
-      barColor: "bg-blue-500",
-      barBg: "bg-blue-200/50",
+      iconColor: "text-white",
+      iconBg: "bg-gradient-to-br from-blue-500 to-blue-600",
+      glowColor: "shadow-blue-500/20 hover:shadow-blue-500/30",
+      accentColor: "from-blue-500/10 via-transparent to-transparent",
+      barColor: "bg-gradient-to-r from-blue-500 to-blue-400",
+      barBg: "bg-blue-100",
       barPercent: stats ? Math.min((stats.todayAppointments / 10) * 100, 100) : 0,
     },
     {
       name: "Active Clients",
-      value: stats?.activeClients ?? 0,
+      value: animClients,
+      displayValue: animClients.toLocaleString(),
       change: stats?.newClientsThisMonth ?? 0,
       changeLabel: "new this month",
       icon: Users,
-      iconColor: "text-emerald-600",
-      iconBg: "bg-emerald-100",
-      cardBg: "bg-gradient-to-br from-emerald-50 to-emerald-100/80",
-      borderColor: "border-emerald-200/60",
-      barColor: "bg-emerald-500",
-      barBg: "bg-emerald-200/50",
+      iconColor: "text-white",
+      iconBg: "bg-gradient-to-br from-emerald-500 to-emerald-600",
+      glowColor: "shadow-emerald-500/20 hover:shadow-emerald-500/30",
+      accentColor: "from-emerald-500/10 via-transparent to-transparent",
+      barColor: "bg-gradient-to-r from-emerald-500 to-emerald-400",
+      barBg: "bg-emerald-100",
       barPercent: stats ? Math.min((stats.activeClients / 50) * 100, 100) : 0,
     },
     {
       name: "Today's Revenue",
-      value: stats ? formatCurrency(stats.todayRevenue) : "$0.00",
+      value: stats?.todayRevenue ?? 0,
+      displayValue: formatCurrency(stats?.todayRevenue ?? 0),
       change: null,
       changeLabel: "from completed",
       icon: DollarSign,
-      iconColor: "text-violet-600",
-      iconBg: "bg-violet-100",
-      cardBg: "bg-gradient-to-br from-violet-50 to-violet-100/80",
-      borderColor: "border-violet-200/60",
-      barColor: "bg-violet-500",
-      barBg: "bg-violet-200/50",
+      iconColor: "text-white",
+      iconBg: "bg-gradient-to-br from-violet-500 to-violet-600",
+      glowColor: "shadow-violet-500/20 hover:shadow-violet-500/30",
+      accentColor: "from-violet-500/10 via-transparent to-transparent",
+      barColor: "bg-gradient-to-r from-violet-500 to-violet-400",
+      barBg: "bg-violet-100",
       barPercent: stats ? Math.min((stats.todayRevenue / 500) * 100, 100) : 0,
     },
     {
       name: "Pending Orders",
-      value: stats?.pendingOrders ?? 0,
+      value: animOrders,
+      displayValue: animOrders.toLocaleString(),
       change: stats?.readyOrders ?? 0,
       changeLabel: "ready for pickup",
       icon: Package,
-      iconColor: "text-amber-600",
-      iconBg: "bg-amber-100",
-      cardBg: "bg-gradient-to-br from-amber-50 to-amber-100/80",
-      borderColor: "border-amber-200/60",
-      barColor: "bg-amber-500",
-      barBg: "bg-amber-200/50",
+      iconColor: "text-white",
+      iconBg: "bg-gradient-to-br from-amber-500 to-orange-500",
+      glowColor: "shadow-amber-500/20 hover:shadow-amber-500/30",
+      accentColor: "from-amber-500/10 via-transparent to-transparent",
+      barColor: "bg-gradient-to-r from-amber-500 to-amber-400",
+      barBg: "bg-amber-100",
       barPercent: stats ? Math.min((stats.pendingOrders / 10) * 100, 100) : 0,
     },
   ];
@@ -157,39 +241,44 @@ export default function DashboardPage() {
     <div className="space-y-8 max-w-[1400px]">
 
       {/* ═══════ WELCOME BANNER ═══════ */}
-      <div className="animate-in stagger-1 relative overflow-hidden rounded-2xl bg-gradient-to-r from-teal-600 via-teal-700 to-slate-800 p-8 lg:p-10 shadow-lg shadow-teal-900/10">
-        {/* Decorative shapes */}
+      <div className="animate-in stagger-1 relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0c4a6e] via-[#0f766e] to-[#064e3b] p-8 lg:p-10 shadow-2xl shadow-teal-900/20 ring-1 ring-white/10">
+        {/* Shimmer overlay */}
+        <div className="absolute inset-0 shimmer pointer-events-none" />
+
+        {/* Decorative animated shapes */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {/* Large blurred circles */}
-          <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-teal-400/20 blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-slate-600/20 blur-3xl" />
-          <div className="absolute top-0 right-1/3 w-48 h-48 rounded-full bg-emerald-400/10 blur-2xl" />
-          {/* Abstract diagonal lines */}
-          <svg className="absolute inset-0 w-full h-full opacity-[0.06]" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="diag" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
-                <line x1="0" y1="0" x2="0" y2="40" stroke="white" strokeWidth="1" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#diag)" />
-          </svg>
-          {/* Floating abstract shapes */}
-          <div className="absolute top-6 right-12 w-20 h-20 border border-white/[0.08] rounded-2xl rotate-12" />
-          <div className="absolute bottom-4 right-1/4 w-14 h-14 border border-white/[0.06] rounded-full" />
-          <div className="absolute top-1/2 right-8 w-8 h-8 bg-white/[0.04] rounded-lg rotate-45" />
+          {/* Large glowing orbs */}
+          <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-teal-400/15 blur-3xl animate-float" />
+          <div className="absolute -bottom-32 -left-16 w-96 h-96 rounded-full bg-emerald-400/10 blur-3xl animate-float-delayed" />
+          <div className="absolute top-1/2 right-1/4 w-48 h-48 rounded-full bg-cyan-400/10 blur-2xl animate-float-slow" />
+
+          {/* Floating geometric shapes */}
+          <div className="absolute top-8 right-16 w-16 h-16 border border-white/[0.08] rounded-2xl rotate-12 animate-float" />
+          <div className="absolute top-1/2 right-8 w-10 h-10 border border-white/[0.06] rounded-xl rotate-45 animate-float-delayed" />
+          <div className="absolute bottom-8 right-1/3 w-20 h-20 border border-white/[0.05] rounded-full animate-float-slow" />
+          <div className="absolute top-4 left-1/3 w-6 h-6 bg-white/[0.04] rounded-lg rotate-12 animate-float" />
+
+          {/* Dot grid pattern overlay */}
+          <div className="absolute inset-0 opacity-[0.03]" style={{
+            backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)",
+            backgroundSize: "20px 20px",
+          }} />
         </div>
 
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
-            <p className="text-teal-200/70 text-sm font-medium tracking-wide uppercase">{todayStr}</p>
-            <h1 className="text-3xl lg:text-4xl font-bold text-white tracking-tight mt-1">
-              {getGreeting()}, {userName}!
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <p className="text-teal-200/60 text-xs font-semibold tracking-widest uppercase">{todayStr}</p>
+            </div>
+            <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight text-glow leading-[1.1]">
+              {getGreeting()}, {userName}
             </h1>
             {!isLoading && stats && (
-              <p className="text-teal-100/80 mt-3 text-[15px] leading-relaxed">
+              <p className="text-teal-100/60 mt-3 text-[15px] leading-relaxed max-w-lg">
                 You have <span className="text-white font-semibold">{stats.todayAppointments} appointment{stats.todayAppointments !== 1 ? "s" : ""}</span> scheduled today
                 {stats.pendingOrders > 0 && (
-                  <> and <span className="text-amber-300 font-semibold">{stats.pendingOrders} order{stats.pendingOrders !== 1 ? "s" : ""}</span> pending</>
+                  <> and <span className="text-amber-300/90 font-semibold">{stats.pendingOrders} order{stats.pendingOrders !== 1 ? "s" : ""}</span> pending</>
                 )}
               </p>
             )}
@@ -197,7 +286,7 @@ export default function DashboardPage() {
           <Link href="/appointments" className="shrink-0">
             <Button
               size="lg"
-              className="bg-white text-teal-700 hover:bg-teal-50 font-bold shadow-xl shadow-black/15 h-12 px-7 text-[15px] rounded-xl"
+              className="glow-button bg-white text-teal-700 hover:bg-white/95 font-bold shadow-2xl shadow-black/20 h-12 px-8 text-[15px] rounded-xl border-0"
             >
               <CalendarPlus className="w-5 h-5 mr-2" />
               New Appointment
@@ -206,61 +295,66 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ═══════ STAT CARDS ═══════ */}
+      {/* ═══════ STAT CARDS — GLASS MORPHISM ═══════ */}
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat, index) => (
           <div
             key={stat.name}
             className={cn(
-              "animate-in group relative overflow-hidden rounded-2xl border shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-default",
-              stat.cardBg,
-              stat.borderColor,
+              "animate-in glass-card tilt-card glow-border group cursor-default p-6",
+              stat.glowColor,
               `stagger-${index + 2}`
             )}
           >
-            <div className="p-6">
+            {/* Colored accent gradient at top */}
+            <div className={cn("absolute top-0 left-0 right-0 h-24 bg-gradient-to-b pointer-events-none", stat.accentColor)} />
+
+            <div className="relative">
               {/* Header row: icon + trend */}
               <div className="flex items-center justify-between mb-4">
-                <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center", stat.iconBg)}>
+                <div className={cn(
+                  "w-11 h-11 rounded-xl flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110",
+                  stat.iconBg
+                )}>
                   <stat.icon className={cn("w-5 h-5", stat.iconColor)} />
                 </div>
                 {stat.change !== null && stat.change !== 0 && (
                   <div className={cn(
-                    "flex items-center gap-0.5 text-xs font-bold px-2 py-1 rounded-lg",
+                    "flex items-center gap-0.5 text-[11px] font-bold px-2.5 py-1 rounded-lg ring-1",
                     stat.change > 0
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-red-100 text-red-700"
+                      ? "bg-emerald-50 text-emerald-700 ring-emerald-200/50"
+                      : "bg-red-50 text-red-700 ring-red-200/50"
                   )}>
                     {stat.change > 0 ? (
-                      <ArrowUpRight className="w-3.5 h-3.5" />
+                      <ArrowUpRight className="w-3 h-3" />
                     ) : (
-                      <ArrowDownRight className="w-3.5 h-3.5" />
+                      <ArrowDownRight className="w-3 h-3" />
                     )}
                     {stat.change > 0 ? "+" : ""}{stat.change}
                   </div>
                 )}
               </div>
 
-              {/* Big number */}
+              {/* Big number with counter animation */}
               {isLoading ? (
-                <div className="h-10 w-20 bg-white/60 animate-pulse rounded-lg" />
+                <div className="h-10 w-24 skeleton-shimmer" />
               ) : (
-                <p className="text-4xl font-bold text-gray-900 tracking-tight leading-none animate-scale-in">
-                  {typeof stat.value === "number" ? stat.value.toLocaleString() : stat.value}
+                <p className="text-4xl font-black text-gray-900 tracking-tight leading-none number-display">
+                  {stat.displayValue}
                 </p>
               )}
 
-              <p className="text-[13px] text-gray-600 mt-2 font-semibold">{stat.name}</p>
+              <p className="text-[13px] text-gray-500 mt-2 font-semibold">{stat.name}</p>
 
               {/* Progress bar */}
               <div className="mt-4">
                 <div className={cn("h-1.5 rounded-full overflow-hidden", stat.barBg)}>
                   <div
-                    className={cn("h-full rounded-full transition-all duration-1000 ease-out", stat.barColor)}
+                    className={cn("h-full rounded-full animate-progress", stat.barColor)}
                     style={{ width: isLoading ? "0%" : `${stat.barPercent}%` }}
                   />
                 </div>
-                <p className="text-[11px] text-gray-500 mt-1.5 font-medium">{isLoading ? "" : stat.changeLabel}</p>
+                <p className="text-[11px] text-gray-400 mt-1.5 font-medium">{isLoading ? "" : stat.changeLabel}</p>
               </div>
             </div>
           </div>
@@ -269,22 +363,29 @@ export default function DashboardPage() {
 
       {/* ═══════ QUICK ACTIONS ═══════ */}
       <div className="animate-in stagger-6">
-        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-[0.15em] mb-4">Quick Actions</h2>
+        <div className="flex items-center gap-2 mb-4">
+          <Zap className="w-4 h-4 text-gray-400" />
+          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-[0.15em]">Quick Actions</h2>
+        </div>
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
           {quickActions.map((action) => (
             <Link key={action.name} href={action.href}>
               <div className={cn(
-                "group relative overflow-hidden rounded-2xl bg-white border p-5 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer border-t-[3px]",
-                action.border
+                "group ripple glass-card p-5 cursor-pointer transition-all duration-300 hover:scale-[1.03]",
+                action.shadow,
+                "shadow-lg"
               )}>
-                <div className="flex flex-col items-center text-center gap-3">
+                <div className="relative flex flex-col items-center text-center gap-3">
                   <div className={cn(
-                    "w-14 h-14 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300",
-                    action.bg
+                    "w-12 h-12 rounded-xl flex items-center justify-center shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl",
+                    action.iconBg
                   )}>
-                    <action.icon className={cn("w-6 h-6", action.color)} />
+                    <action.icon className="w-5 h-5 text-white" />
                   </div>
-                  <span className="font-bold text-gray-800 text-sm">{action.name}</span>
+                  <div>
+                    <span className="font-bold text-gray-800 text-sm block">{action.name}</span>
+                    <span className="text-[11px] text-gray-400 font-medium">{action.description}</span>
+                  </div>
                 </div>
               </div>
             </Link>
@@ -297,55 +398,55 @@ export default function DashboardPage() {
         <PendingConfirmations />
       </div>
 
-      {/* ═══════ TODAY'S APPOINTMENTS (TIMELINE STYLE) ═══════ */}
+      {/* ═══════ TODAY'S APPOINTMENTS (TIMELINE) ═══════ */}
       <div className="animate-in stagger-7">
-        <Card className="border border-gray-200/80 shadow-md rounded-2xl overflow-hidden bg-white">
-          <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-gray-100">
+        <div className="glass-card overflow-hidden shadow-lg">
+          <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100/80">
             <div>
-              <CardTitle className="text-lg font-bold text-gray-900">Today&apos;s Schedule</CardTitle>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <h3 className="text-lg font-black text-gray-900 tracking-tight">Today&apos;s Schedule</h3>
+              <p className="text-sm text-gray-400 mt-0.5 font-medium">
                 {isLoading
                   ? "Loading..."
                   : `${dashboardData?.todayAppointments?.length || 0} appointment${(dashboardData?.todayAppointments?.length || 0) !== 1 ? "s" : ""} scheduled`}
               </p>
             </div>
             <Link href="/appointments">
-              <Button variant="outline" size="sm" className="rounded-xl border-gray-200 font-semibold text-gray-600 hover:text-gray-900">
+              <Button variant="outline" size="sm" className="rounded-xl border-gray-200 font-semibold text-gray-500 hover:text-gray-900 ring-1 ring-gray-200/50">
                 View All
                 <ArrowRight className="ml-1.5 w-4 h-4" />
               </Button>
             </Link>
-          </CardHeader>
-          <CardContent className="p-0">
+          </div>
+          <div>
             {isLoading ? (
               <div className="p-6 space-y-4">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="flex gap-4 animate-pulse">
-                    <div className="w-16 h-8 bg-gray-100 rounded-lg" />
+                  <div key={i} className="flex gap-4">
+                    <div className="w-16 h-10 skeleton-shimmer" />
                     <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-gray-100 rounded w-1/3" />
-                      <div className="h-3 bg-gray-100 rounded w-1/2" />
+                      <div className="h-4 skeleton-shimmer w-1/3" />
+                      <div className="h-3 skeleton-shimmer w-1/2" />
                     </div>
                   </div>
                 ))}
               </div>
             ) : !dashboardData?.todayAppointments?.length ? (
               <div className="text-center py-16 px-4">
-                <div className="w-20 h-20 rounded-3xl bg-gray-50 flex items-center justify-center mx-auto mb-4">
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center mx-auto mb-4 ring-1 ring-gray-200/50">
                   <Calendar className="w-9 h-9 text-gray-300" />
                 </div>
-                <p className="text-gray-600 font-bold text-lg">No appointments today</p>
+                <p className="text-gray-700 font-bold text-lg">No appointments today</p>
                 <p className="text-sm text-gray-400 mt-1 max-w-xs mx-auto">Your schedule is clear. Time to relax or catch up on admin tasks!</p>
                 <Link href="/appointments" className="inline-block mt-5">
-                  <Button size="sm" className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold">
+                  <Button size="sm" className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-lg shadow-teal-600/20">
                     <CalendarPlus className="w-4 h-4 mr-2" />
                     Schedule Appointment
                   </Button>
                 </Link>
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
-                {dashboardData.todayAppointments.map((appointment: any, i: number) => {
+              <div className="divide-y divide-gray-100/60">
+                {dashboardData.todayAppointments.map((appointment: any) => {
                   const clientName = `${appointment.client.firstName} ${appointment.client.lastName}`;
                   const initials = clientName.split(" ").map((n: string) => n[0]).join("");
                   const serviceNames = appointment.services.map((s: any) => s.serviceName).join(", ");
@@ -365,11 +466,11 @@ export default function DashboardPage() {
                   return (
                     <div
                       key={appointment.id}
-                      className="flex items-stretch hover:bg-gray-50/60 transition-colors duration-150"
+                      className="flex items-stretch hover:bg-gray-50/40 transition-colors duration-150 group/row"
                     >
                       {/* Time column */}
-                      <div className="w-24 lg:w-28 shrink-0 flex flex-col items-center justify-center py-5 px-3 border-r border-gray-100">
-                        <p className="text-lg font-bold text-gray-900 leading-none">{formatTime(appointment.requestedDate)}</p>
+                      <div className="w-24 lg:w-28 shrink-0 flex flex-col items-center justify-center py-5 px-3 border-r border-gray-100/60">
+                        <p className="text-lg font-black text-gray-900 leading-none number-display">{formatTime(appointment.requestedDate)}</p>
                         <p className="text-[11px] text-gray-400 font-medium mt-1 flex items-center gap-0.5">
                           <Clock className="w-3 h-3" />
                           {appointment.duration}min
@@ -379,29 +480,29 @@ export default function DashboardPage() {
                       {/* Content */}
                       <div className="flex-1 flex items-center gap-4 py-4 px-5">
                         {/* Avatar */}
-                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-sm shrink-0">
-                          <span className="text-xs font-bold text-white">{initials}</span>
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-md shadow-teal-500/15 shrink-0 group-hover/row:scale-105 transition-transform">
+                          <span className="text-[11px] font-bold text-white">{initials}</span>
                         </div>
 
                         {/* Details */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
                             <p className="font-semibold text-gray-900 text-sm truncate">{clientName}</p>
-                            <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md", sc.bg, sc.text)}>
+                            <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ring-1 ring-current/10", sc.bg, sc.text)}>
                               <span className={cn("w-1.5 h-1.5 rounded-full", sc.dot)} />
                               {sc.label}
                             </span>
                           </div>
                           <p className="text-xs text-gray-500 truncate">{serviceNames}</p>
-                          <p className="text-xs text-gray-400 truncate mt-0.5">
-                            <MapPin className="w-3 h-3 inline mr-0.5 -mt-0.5" />
+                          <p className="text-xs text-gray-400 truncate mt-0.5 flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
                             {stylistName}
                           </p>
                         </div>
 
                         {/* Price */}
                         <div className="text-right shrink-0">
-                          <p className="text-lg font-bold text-gray-900">
+                          <p className="text-lg font-black text-gray-900 number-display">
                             {formatCurrency(Number(appointment.totalPrice))}
                           </p>
                         </div>
@@ -411,55 +512,55 @@ export default function DashboardPage() {
                 })}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* ═══════ RECENT ACTIVITY + RECENT ORDERS ═══════ */}
-      <div className="grid gap-6 lg:grid-cols-3 animate-in stagger-7">
+      <div className="grid gap-6 lg:grid-cols-3 animate-in stagger-8">
         {/* Recent Activity */}
         <div className="lg:col-span-2">
-          <Card className="border border-gray-200/80 shadow-md rounded-2xl overflow-hidden bg-white h-full">
-            <CardHeader className="pb-3 border-b border-gray-100">
-              <CardTitle className="text-lg font-bold text-gray-900">Recent Activity</CardTitle>
-              <p className="text-sm text-gray-500">Latest actions across your salon</p>
-            </CardHeader>
-            <CardContent className="p-0">
+          <div className="glass-card overflow-hidden shadow-lg h-full">
+            <div className="p-6 pb-4 border-b border-gray-100/80">
+              <h3 className="text-lg font-black text-gray-900 tracking-tight">Recent Activity</h3>
+              <p className="text-sm text-gray-400 mt-0.5 font-medium">Latest actions across your salon</p>
+            </div>
+            <div>
               {isLoading ? (
                 <div className="p-6 space-y-4">
                   {[...Array(4)].map((_, i) => (
-                    <div key={i} className="flex items-center gap-3 animate-pulse">
-                      <div className="w-10 h-10 rounded-xl bg-gray-100" />
+                    <div key={i} className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl skeleton-shimmer" />
                       <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gray-100 rounded w-2/3" />
-                        <div className="h-3 bg-gray-100 rounded w-1/4" />
+                        <div className="h-4 skeleton-shimmer w-2/3" />
+                        <div className="h-3 skeleton-shimmer w-1/4" />
                       </div>
                     </div>
                   ))}
                 </div>
               ) : !dashboardData?.recentActivity?.length ? (
                 <div className="text-center py-16">
-                  <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
-                    <Sparkles className="w-8 h-8 text-gray-300" />
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center mx-auto mb-3 ring-1 ring-gray-200/50">
+                    <Sparkles className="w-7 h-7 text-gray-300" />
                   </div>
-                  <p className="text-gray-600 font-semibold">No recent activity</p>
+                  <p className="text-gray-600 font-bold">No recent activity</p>
                   <p className="text-sm text-gray-400 mt-1">Activity will appear here as it happens</p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-50">
+                <div className="divide-y divide-gray-100/50">
                   {dashboardData.recentActivity.map((activity: any, i: number) => {
                     const isNewClient = activity.type === "new_client";
                     const isCompleted = activity.type === "appointment_completed";
                     return (
                       <div
                         key={i}
-                        className="flex items-center gap-4 px-6 py-3.5 hover:bg-gray-50/60 transition-colors"
+                        className="flex items-center gap-4 px-6 py-3.5 hover:bg-gray-50/40 transition-colors"
                       >
                         <div className={cn(
-                          "w-9 h-9 rounded-lg shrink-0 flex items-center justify-center",
-                          isNewClient ? "bg-emerald-100" :
-                          isCompleted ? "bg-blue-100" :
-                          "bg-purple-100"
+                          "w-9 h-9 rounded-lg shrink-0 flex items-center justify-center ring-1",
+                          isNewClient ? "bg-emerald-50 ring-emerald-200/50" :
+                          isCompleted ? "bg-blue-50 ring-blue-200/50" :
+                          "bg-purple-50 ring-purple-200/50"
                         )}>
                           {isNewClient ? (
                             <User className="w-4 h-4 text-emerald-600" />
@@ -478,61 +579,61 @@ export default function DashboardPage() {
                   })}
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Recent Orders */}
-        <Card className="border border-gray-200/80 shadow-md rounded-2xl overflow-hidden bg-white h-full">
-          <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-gray-100">
+        <div className="glass-card overflow-hidden shadow-lg h-full flex flex-col">
+          <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100/80">
             <div>
-              <CardTitle className="text-lg font-bold text-gray-900">Recent Orders</CardTitle>
-              <p className="text-sm text-gray-500">Product orders & pickups</p>
+              <h3 className="text-lg font-black text-gray-900 tracking-tight">Recent Orders</h3>
+              <p className="text-sm text-gray-400 mt-0.5 font-medium">Product orders & pickups</p>
             </div>
             <Link href="/orders">
               <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-900 rounded-lg font-semibold text-xs">
                 View All
               </Button>
             </Link>
-          </CardHeader>
-          <CardContent className="p-0">
+          </div>
+          <div className="flex-1">
             {isLoading ? (
               <div className="p-6 space-y-4">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="flex items-center gap-3 animate-pulse">
+                  <div key={i} className="flex items-center gap-3">
                     <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-gray-100 rounded w-2/3" />
-                      <div className="h-3 bg-gray-100 rounded w-1/2" />
+                      <div className="h-4 skeleton-shimmer w-2/3" />
+                      <div className="h-3 skeleton-shimmer w-1/2" />
                     </div>
-                    <div className="h-5 bg-gray-100 rounded w-16" />
+                    <div className="h-5 skeleton-shimmer w-16" />
                   </div>
                 ))}
               </div>
             ) : !dashboardData?.recentOrders?.length ? (
               <div className="text-center py-16">
-                <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
-                  <ShoppingBag className="w-8 h-8 text-gray-300" />
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center mx-auto mb-3 ring-1 ring-gray-200/50">
+                  <ShoppingBag className="w-7 h-7 text-gray-300" />
                 </div>
-                <p className="text-gray-600 font-semibold">No recent orders</p>
+                <p className="text-gray-600 font-bold">No recent orders</p>
                 <p className="text-sm text-gray-400 mt-1">Orders will show up here</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-50">
+              <div className="divide-y divide-gray-100/50">
                 {dashboardData.recentOrders.map((order: any) => {
                   const customerName = order.client
                     ? `${order.client.firstName} ${order.client.lastName}`
                     : order.customerName || "Walk-in";
 
                   const statusConfig: Record<string, { bg: string; text: string }> = {
-                    READY: { bg: "bg-purple-100", text: "text-purple-700" },
-                    CONFIRMED: { bg: "bg-blue-100", text: "text-blue-700" },
-                    COMPLETED: { bg: "bg-emerald-100", text: "text-emerald-700" },
+                    READY: { bg: "bg-purple-50", text: "text-purple-700" },
+                    CONFIRMED: { bg: "bg-blue-50", text: "text-blue-700" },
+                    COMPLETED: { bg: "bg-emerald-50", text: "text-emerald-700" },
                   };
-                  const sc = statusConfig[order.status] || { bg: "bg-amber-100", text: "text-amber-700" };
+                  const sc = statusConfig[order.status] || { bg: "bg-amber-50", text: "text-amber-700" };
 
                   return (
                     <Link key={order.id} href="/orders">
-                      <div className="flex items-center gap-3 px-6 py-3.5 hover:bg-gray-50/60 transition-colors cursor-pointer">
+                      <div className="flex items-center gap-3 px-6 py-3.5 hover:bg-gray-50/40 transition-colors cursor-pointer">
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-gray-800 text-sm truncate">{customerName}</p>
                           <p className="text-xs text-gray-400 mt-0.5">
@@ -540,8 +641,8 @@ export default function DashboardPage() {
                           </p>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="font-bold text-gray-900 text-sm">{formatCurrency(Number(order.total))}</p>
-                          <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-md inline-block mt-0.5", sc.bg, sc.text)}>
+                          <p className="font-bold text-gray-900 text-sm number-display">{formatCurrency(Number(order.total))}</p>
+                          <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-md inline-block mt-0.5 ring-1 ring-current/10", sc.bg, sc.text)}>
                             {order.status}
                           </span>
                         </div>
@@ -551,34 +652,34 @@ export default function DashboardPage() {
                 })}
               </div>
             )}
+          </div>
 
-            <div className="p-4 border-t border-gray-100">
-              <Link href="/orders">
-                <Button variant="outline" className="w-full rounded-xl border-gray-200 font-semibold text-gray-600 hover:text-gray-900">
-                  View All Orders
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+          <div className="p-4 border-t border-gray-100/80 mt-auto">
+            <Link href="/orders">
+              <Button variant="outline" className="w-full rounded-xl border-gray-200 font-semibold text-gray-500 hover:text-gray-900 ring-1 ring-gray-200/50">
+                View All Orders
+              </Button>
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* ═══════ LOW STOCK ALERT ═══════ */}
       {!isLoading && dashboardData?.lowStockProducts && dashboardData.lowStockProducts.length > 0 && (
-        <Card className="shadow-md rounded-2xl overflow-hidden border-l-4 border-l-amber-400 border border-amber-200/50 bg-gradient-to-r from-amber-50 via-amber-50/50 to-white animate-in stagger-7">
-          <CardContent className="p-6">
+        <div className="glass-card shadow-lg overflow-hidden border-l-4 border-l-amber-400 animate-in stagger-8">
+          <div className="p-6">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-amber-100 rounded-xl">
+              <div className="p-3 bg-gradient-to-br from-amber-100 to-orange-50 rounded-xl ring-1 ring-amber-200/50">
                 <AlertCircle className="w-6 h-6 text-amber-600" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-gray-900">Low Stock Alert</h3>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-200 text-amber-800">
+                  <h3 className="font-black text-gray-900 tracking-tight">Low Stock Alert</h3>
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-800 ring-1 ring-amber-200/50 animate-badge-pulse">
                     {dashboardData.lowStockProducts.length}
                   </span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 mt-1 font-medium">
                   {dashboardData.lowStockProducts.length} product{dashboardData.lowStockProducts.length !== 1 ? "s" : ""} need{dashboardData.lowStockProducts.length === 1 ? "s" : ""} restocking
                 </p>
 
@@ -589,19 +690,19 @@ export default function DashboardPage() {
                     return (
                       <div
                         key={product.id}
-                        className="flex items-center justify-between p-3 rounded-xl bg-white border border-gray-100 shadow-sm"
+                        className="flex items-center justify-between p-3 rounded-xl bg-white/80 border border-gray-100 shadow-sm ring-1 ring-gray-100/50"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           {isOutOfStock ? (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-100 text-red-700 shrink-0">OUT</span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-100 text-red-700 ring-1 ring-red-200/50 shrink-0">OUT</span>
                           ) : (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 shrink-0">LOW</span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 ring-1 ring-amber-200/50 shrink-0">LOW</span>
                           )}
                           <span className="text-sm font-semibold text-gray-800 truncate">{product.name}</span>
                           <span className="text-xs text-gray-400 shrink-0">{product.sku}</span>
                         </div>
                         <span className={cn(
-                          "text-sm font-bold shrink-0 ml-2",
+                          "text-sm font-bold shrink-0 ml-2 number-display",
                           isOutOfStock ? "text-red-600" : "text-amber-600"
                         )}>
                           {available} left
@@ -619,7 +720,7 @@ export default function DashboardPage() {
 
                 <div className="mt-4">
                   <Link href="/shop">
-                    <Button size="sm" variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-50 rounded-xl font-semibold">
+                    <Button size="sm" variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-50 rounded-xl font-semibold ring-1 ring-amber-200/50">
                       <Package className="w-4 h-4 mr-1.5" />
                       Manage Inventory
                     </Button>
@@ -627,8 +728,8 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );
