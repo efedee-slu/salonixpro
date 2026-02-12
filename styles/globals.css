@@ -271,17 +271,42 @@
 
   /* Animations */
   .animate-in {
-    animation: animate-in 0.3s ease-out;
+    animation: animate-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
-  
+
   @keyframes animate-in {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(16px);
     }
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  /* Staggered fade-in for dashboard cards */
+  .stagger-1 { animation-delay: 60ms; }
+  .stagger-2 { animation-delay: 120ms; }
+  .stagger-3 { animation-delay: 180ms; }
+  .stagger-4 { animation-delay: 240ms; }
+  .stagger-5 { animation-delay: 300ms; }
+  .stagger-6 { animation-delay: 360ms; }
+  .stagger-7 { animation-delay: 420ms; }
+
+  /* Scale-in for stat numbers */
+  .animate-scale-in {
+    animation: scale-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
     }
   }
 }

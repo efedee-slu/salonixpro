@@ -258,7 +258,7 @@ export default function DashboardLayout({
         </header>
 
         {/* Page Content */}
-        <main className="p-4 lg:p-8 min-h-[calc(100vh-4rem)] bg-[#f8f9fb]">
+        <main className="p-4 lg:p-8 min-h-[calc(100vh-4rem)] bg-slate-50">
           <Breadcrumbs />
           {children}
         </main>
