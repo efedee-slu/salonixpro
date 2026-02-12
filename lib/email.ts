@@ -535,3 +535,27 @@ export async function sendPasswordReset(params: {
 
   return resend.emails.send({ from: FROM_EMAIL, to, subject: "Your temporary password - SalonixPro", html });
 }
+
+// 13. Portal Verification Code (to client)
+export async function sendPortalVerificationCode(params: {
+  to: string;
+  code: string;
+  clientName: string;
+}) {
+  const { to, code, clientName } = params;
+
+  const html = baseTemplate(
+    `${heading("Your Verification Code")}
+    ${paragraph(`Hi ${clientName},`, true)}
+    ${paragraph("Use the code below to access your SalonixPro client portal.", true)}
+    <div style="background: #f0fdfa; border: 2px dashed #0d9488; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
+      <p style="color: #666; font-size: 14px; margin: 0 0 8px;">Your verification code:</p>
+      <p style="font-size: 40px; font-weight: bold; color: #0d9488; margin: 0; letter-spacing: 8px; font-family: monospace;">${code}</p>
+    </div>
+    ${warningBox("This code expires in 10 minutes.")}
+    ${footer("If you didn't request this code, you can safely ignore this email.")}`,
+    `Your SalonixPro verification code is ${code}.`
+  );
+
+  return resend.emails.send({ from: FROM_EMAIL, to, subject: `${code} - Your SalonixPro Verification Code`, html });
+}
