@@ -13,6 +13,7 @@ import {
   Loader2,
   Check,
   Zap,
+  Coins,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,8 @@ function SettingsContent() {
     address: "",
     description: "",
     logo: "",
+    currency: "XCD",
+    currencySymbol: "EC$",
   });
 
   // Business hours state
@@ -102,6 +105,8 @@ function SettingsContent() {
             address: data.address || "",
             description: data.description || "",
             logo: data.logo || "",
+            currency: data.currency || "XCD",
+            currencySymbol: data.currencySymbol || "EC$",
           });
           if (data.businessHours) {
             setBusinessHours(data.businessHours);
@@ -314,6 +319,37 @@ function SettingsContent() {
                   placeholder="Tell customers about your salon..."
                   rows={3}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="currency">
+                  <span className="flex items-center gap-1">
+                    <Coins className="w-4 h-4" />
+                    Currency
+                  </span>
+                </Label>
+                <select
+                  id="currency"
+                  value={formData.currency}
+                  onChange={(e) => {
+                    const currencies: Record<string, string> = {
+                      XCD: "EC$", USD: "$", BBD: "Bds$",
+                      TTD: "TT$", JMD: "J$", GYD: "G$",
+                    };
+                    setFormData({
+                      ...formData,
+                      currency: e.target.value,
+                      currencySymbol: currencies[e.target.value] || "$",
+                    });
+                  }}
+                  className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="XCD">EC$ - Eastern Caribbean Dollar</option>
+                  <option value="USD">$ - US Dollar</option>
+                  <option value="BBD">Bds$ - Barbadian Dollar</option>
+                  <option value="TTD">TT$ - Trinidad & Tobago Dollar</option>
+                  <option value="JMD">J$ - Jamaican Dollar</option>
+                  <option value="GYD">G$ - Guyanese Dollar</option>
+                </select>
               </div>
               <div className="flex justify-end">
                 <Button onClick={handleSaveGeneral} disabled={isSaving}>

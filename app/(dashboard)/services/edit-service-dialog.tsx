@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,6 +30,7 @@ interface Service {
   price: number;
   isActive: boolean;
   categoryId: string | null;
+  masterServiceId?: string | null;
 }
 
 interface EditServiceDialogProps {
@@ -115,6 +116,14 @@ export function EditServiceDialog({ open, onOpenChange, service, categories, onS
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {service.masterServiceId && (
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-teal-50 border border-teal-200 text-sm">
+              <BookOpen className="w-4 h-4 text-teal-600 flex-shrink-0" />
+              <span className="text-teal-700">
+                From catalog — customise the price and duration below
+              </span>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="edit-name">Service Name *</Label>
             <Input

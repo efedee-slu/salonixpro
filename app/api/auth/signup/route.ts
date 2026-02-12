@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { getCurrencyForCountry } from "@/lib/currencies";
 
 // Default business hours
 const defaultBusinessHours = [
@@ -98,6 +99,10 @@ export async function POST(request: Request) {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 12);
 
+    // Auto-set currency from country
+    const selectedCountry = country || "Saint Lucia";
+    const currencyInfo = getCurrencyForCountry(selectedCountry);
+
     // Create business first
     const business = await prisma.business.create({
       data: {
@@ -106,7 +111,9 @@ export async function POST(request: Request) {
         email: email.toLowerCase(),
         phone: phone || null,
         city: city || null,
-        country: country || "Saint Lucia",
+        country: selectedCountry,
+        currency: currencyInfo.code,
+        currencySymbol: currencyInfo.symbol,
         businessHours: defaultBusinessHours,
         subscriptionStatus: "TRIAL",
         trialEndsAt,

@@ -9,6 +9,36 @@ datasource db {
 }
 
 // ============================================
+// MASTER SERVICE CATALOG
+// ============================================
+
+model MasterService {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  name            String
+  category        String   // "HAIR_SALON", "BARBERSHOP", "NAIL_SALON"
+  subcategory     String   // "Natural Hair", "Braids", "Cuts", etc.
+  defaultDuration Int      // minutes
+  description     String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  services        Service[]
+
+  @@index([category])
+  @@index([category, subcategory])
+}
+
+enum BusinessType {
+  HAIR_SALON
+  BARBERSHOP
+  NAIL_SALON
+  MULTI_SERVICE
+}
+
+// ============================================
 // BUSINESS & AUTHENTICATION
 // ============================================
 
@@ -50,6 +80,10 @@ model Business {
   paypalSubscriptionId String?
   subscriptionStartDate DateTime?
   subscriptionEndDate DateTime?
+
+  // Business Type & Onboarding
+  businessType       BusinessType @default(MULTI_SERVICE)
+  onboardingComplete Boolean      @default(false)
 
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
@@ -135,26 +169,29 @@ model ServiceCategory {
 }
 
 model Service {
-  id            String   @id @default(cuid())
-  businessId    String
-  categoryId    String?
-  name          String
-  description   String?
-  duration      Int      // minutes
-  price         Decimal  @db.Decimal(10, 2)
-  isActive      Boolean  @default(true)
-  isCustom      Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String   @id @default(cuid())
+  businessId      String
+  categoryId      String?
+  masterServiceId String?
+  name            String
+  description     String?
+  duration        Int      // minutes
+  price           Decimal  @db.Decimal(10, 2)
+  isActive        Boolean  @default(true)
+  isCustom        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   // Relations
-  business      Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  category      ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  business        Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  category        ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  masterService   MasterService?   @relation(fields: [masterServiceId], references: [id], onDelete: SetNull)
   stylistServices StylistService[]
   appointmentServices AppointmentService[]
 
   @@index([businessId])
   @@index([categoryId])
+  @@index([masterServiceId])
 }
 
 // ============================================

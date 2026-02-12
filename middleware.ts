@@ -13,6 +13,7 @@ const protectedPaths = [
   "/orders",
   "/reports",
   "/settings",
+  "/onboarding",
 ];
 
 // Routes only for unauthenticated users
@@ -45,7 +46,20 @@ export async function middleware(request: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if (isAuthPath && token) {
+    // If onboarding not complete, redirect to onboarding instead of dashboard
+    if (token.onboardingComplete === false) {
+      return NextResponse.redirect(new URL("/onboarding", request.url));
+    }
     return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  // For authenticated users on protected paths (except /onboarding):
+  // redirect to /onboarding if onboarding is not complete
+  if (isProtectedPath && token && token.onboardingComplete === false) {
+    const isOnboardingPath = pathname === "/onboarding" || pathname.startsWith("/onboarding/");
+    if (!isOnboardingPath) {
+      return NextResponse.redirect(new URL("/onboarding", request.url));
+    }
   }
 
   return NextResponse.next();

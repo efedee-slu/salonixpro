@@ -11,6 +11,7 @@ declare module "next-auth" {
       businessId: string;
       businessName: string;
       businessSlug: string;
+      onboardingComplete: boolean;
     } & DefaultSession["user"];
   }
 
@@ -20,6 +21,7 @@ declare module "next-auth" {
     businessId: string;
     businessName: string;
     businessSlug: string;
+    onboardingComplete: boolean;
   }
 }
 
@@ -31,5 +33,6 @@ declare module "next-auth/jwt" {
     businessId: string;
     businessName: string;
     businessSlug: string;
+    onboardingComplete: boolean;
   }
 }

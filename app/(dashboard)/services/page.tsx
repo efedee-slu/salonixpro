@@ -14,6 +14,7 @@ import {
   FolderOpen,
   LayoutGrid,
   List,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ import { AddServiceDialog } from "./add-service-dialog";
 import { EditServiceDialog } from "./edit-service-dialog";
 import { DeleteServiceDialog } from "./delete-service-dialog";
 import { AddCategoryDialog } from "./add-category-dialog";
+import { BrowseCatalogDialog } from "./browse-catalog-dialog";
 
 interface ServiceCategory {
   id: string;
@@ -41,6 +43,7 @@ interface Service {
   price: number;
   isActive: boolean;
   categoryId: string | null;
+  masterServiceId: string | null;
   category: ServiceCategory | null;
 }
 
@@ -56,6 +59,7 @@ export default function ServicesPage() {
   // Dialog states
   const [addServiceOpen, setAddServiceOpen] = useState(false);
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
+  const [browseCatalogOpen, setBrowseCatalogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -150,6 +154,10 @@ export default function ServicesPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setBrowseCatalogOpen(true)}>
+            <BookOpen className="w-4 h-4 mr-2" />
+            Browse Catalog
+          </Button>
           <Button variant="outline" onClick={() => setAddCategoryOpen(true)}>
             <FolderOpen className="w-4 h-4 mr-2" />
             Add Category
@@ -330,6 +338,12 @@ export default function ServicesPage() {
                           {service.category.icon} {service.category.name}
                         </Badge>
                       )}
+                      {service.masterServiceId && (
+                        <Badge variant="outline" className="text-xs bg-teal-50 text-teal-700 border-teal-200">
+                          <BookOpen className="w-3 h-3 mr-1" />
+                          Catalog
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex gap-1">
                       <Button
@@ -445,6 +459,12 @@ export default function ServicesPage() {
       <AddCategoryDialog
         open={addCategoryOpen}
         onOpenChange={setAddCategoryOpen}
+        onSuccess={handleSuccess}
+      />
+
+      <BrowseCatalogDialog
+        open={browseCatalogOpen}
+        onOpenChange={setBrowseCatalogOpen}
         onSuccess={handleSuccess}
       />
 

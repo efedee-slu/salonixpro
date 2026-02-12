@@ -11,6 +11,7 @@ import {
   Clock,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
   Check,
   MapPin,
   Phone,
@@ -125,6 +126,7 @@ export default function PublicBookingPage() {
     notes: "",
   });
 
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
   const [bookingReference, setBookingReference] = useState<string | null>(null);
@@ -172,6 +174,10 @@ export default function PublicBookingPage() {
       setBusiness(data.business);
       setCategories(data.categories);
       setStylists(data.stylists);
+      // Expand the first category by default
+      if (data.categories.length > 0) {
+        setExpandedCategories(new Set([data.categories[0].id]));
+      }
     } catch (err) {
       setError("Failed to load booking page");
     } finally {
@@ -730,56 +736,96 @@ export default function PublicBookingPage() {
                   </CardContent>
                 </Card>
               ) : (
-                categories.map((category) => (
-                  <div key={category.id} className="space-y-3">
-                    <h3 className="font-semibold text-lg">{category.name}</h3>
-                    <div className="grid gap-3">
-                      {category.services.map((service) => {
-                        const isSelected = selectedServices.some(
-                          (s) => s.id === service.id
-                        );
-                        return (
-                          <Card
-                            key={service.id}
-                            className={`cursor-pointer transition-all ${
-                              isSelected
-                                ? "ring-2 ring-teal-600 bg-teal-50/50"
-                                : "hover:border-teal-300"
+                categories.map((category) => {
+                  const isExpanded = expandedCategories.has(category.id);
+                  const selectedInCategory = category.services.filter((s) =>
+                    selectedServices.some((sel) => sel.id === s.id)
+                  ).length;
+
+                  return (
+                    <Card key={category.id}>
+                      <div
+                        className="flex items-center justify-between p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+                        onClick={() => {
+                          setExpandedCategories((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(category.id)) {
+                              next.delete(category.id);
+                            } else {
+                              next.add(category.id);
+                            }
+                            return next;
+                          });
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <ChevronDown
+                            className={`w-5 h-5 text-muted-foreground transition-transform ${
+                              isExpanded ? "" : "-rotate-90"
                             }`}
-                            onClick={() => toggleService(service)}
-                          >
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <h4 className="font-medium">{service.name}</h4>
-                                    {isSelected && (
-                                      <Check className="w-4 h-4 text-teal-600" />
+                          />
+                          <h3 className="font-semibold text-lg">{category.name}</h3>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {selectedInCategory > 0 && (
+                            <Badge className="bg-teal-100 text-teal-700">
+                              {selectedInCategory} selected
+                            </Badge>
+                          )}
+                          <Badge variant="secondary">
+                            {category.services.length} service{category.services.length !== 1 ? "s" : ""}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      {isExpanded && (
+                        <CardContent className="pt-0 pb-4 px-4">
+                          <div className="grid gap-3">
+                            {category.services.map((service) => {
+                              const isSelected = selectedServices.some(
+                                (s) => s.id === service.id
+                              );
+                              return (
+                                <div
+                                  key={service.id}
+                                  className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-all ${
+                                    isSelected
+                                      ? "ring-2 ring-teal-600 bg-teal-50/50"
+                                      : "border hover:border-teal-300"
+                                  }`}
+                                  onClick={() => toggleService(service)}
+                                >
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <h4 className="font-medium">{service.name}</h4>
+                                      {isSelected && (
+                                        <Check className="w-4 h-4 text-teal-600" />
+                                      )}
+                                    </div>
+                                    {service.description && (
+                                      <p className="text-sm text-muted-foreground mt-1">
+                                        {service.description}
+                                      </p>
                                     )}
-                                  </div>
-                                  {service.description && (
                                     <p className="text-sm text-muted-foreground mt-1">
-                                      {service.description}
+                                      <Clock className="w-3 h-3 inline mr-1" />
+                                      {service.duration} min
                                     </p>
-                                  )}
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    <Clock className="w-3 h-3 inline mr-1" />
-                                    {service.duration} min
-                                  </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-bold text-teal-600">
+                                      {formatCurrency(service.price)}
+                                    </p>
+                                  </div>
                                 </div>
-                                <div className="text-right">
-                                  <p className="font-bold text-teal-600">
-                                    {formatCurrency(service.price)}
-                                  </p>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))
+                              );
+                            })}
+                          </div>
+                        </CardContent>
+                      )}
+                    </Card>
+                  );
+                })
               )}
             </motion.div>
           )}

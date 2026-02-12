@@ -54,6 +54,7 @@ export const authOptions: NextAuthOptions = {
           businessId: user.businessId,
           businessName: user.business.name,
           businessSlug: user.business.slug,
+          onboardingComplete: user.business.onboardingComplete,
         };
       },
     }),
@@ -67,6 +68,7 @@ export const authOptions: NextAuthOptions = {
         token.businessId = user.businessId;
         token.businessName = user.businessName;
         token.businessSlug = user.businessSlug;
+        token.onboardingComplete = user.onboardingComplete;
       }
       return token;
     },
@@ -78,6 +80,8 @@ export const authOptions: NextAuthOptions = {
         session.user.businessId = token.businessId as string;
         session.user.businessName = token.businessName as string;
         session.user.businessSlug = token.businessSlug as string;
+        // Treat undefined as true for backward compat with existing sessions
+        session.user.onboardingComplete = token.onboardingComplete ?? true;
       }
       return session;
     },
