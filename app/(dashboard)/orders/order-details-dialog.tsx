@@ -361,7 +361,7 @@ export function OrderDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[650px]">
+      <DialogContent className="w-full max-w-[calc(100vw-2rem)] sm:max-w-[650px]">
         <DialogHeader>
           <div className="flex items-center justify-between pr-6">
             <DialogTitle className="flex items-center gap-2">
@@ -424,7 +424,7 @@ export function OrderDetailsDialog({
                       SKU: {item.productSku} • Qty: {item.quantity}
                     </p>
                   </div>
-                  <div className="text-right shrink-0 min-w-[90px]">
+                  <div className="text-right shrink-0 min-w-[110px]">
                     <p className="font-semibold">
                       {formatCurrency(Number(item.lineTotal))}
                     </p>
