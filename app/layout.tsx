@@ -5,6 +5,7 @@ import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
+import NextTopLoader from "nextjs-toploader";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -66,6 +67,7 @@ export default function RootLayout({
         <meta name="msapplication-tap-highlight" content="no" />
       </head>
       <body className={`${inter.variable} ${outfit.variable} font-sans`}>
+        <NextTopLoader color="#0d9488" showSpinner={false} />
         <SessionProvider>
           <ThemeProvider
             attribute="class"
