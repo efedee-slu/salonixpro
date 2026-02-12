@@ -1,9 +1,10 @@
-// app/(dashboard)/page.tsx
+// app/(dashboard)/dashboard/page.tsx
 "use client";
 
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { motion } from "framer-motion";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   Calendar,
   Users,
@@ -12,136 +13,37 @@ import {
   Clock,
   ArrowRight,
   ArrowUpRight,
-  MoreHorizontal,
+  CheckCircle2,
   AlertCircle,
   UserPlus,
   CalendarPlus,
   ShoppingCart,
-  BookOpen,
+  Wallet,
   ShoppingBag,
-  CheckCircle2,
-  XCircle,
-  UserCheck,
+  User,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { cn, formatCurrency } from "@/lib/utils";
+import { HelpTooltip } from "@/components/ui/help-tooltip";
+import { cn, formatCurrency, formatTime, formatDate } from "@/lib/utils";
 import { PendingConfirmations } from "@/components/dashboard/pending-confirmations";
 
-// Mock data - will be replaced with real data
-const stats = [
-  {
-    name: "Today's Appointments",
-    value: "12",
-    change: "+2 from yesterday",
-    changeType: "positive",
-    icon: Calendar,
-    color: "text-teal-600",
-    bgColor: "bg-teal-50",
-  },
-  {
-    name: "Active Clients",
-    value: "248",
-    change: "+18 this month",
-    changeType: "positive",
-    icon: Users,
-    color: "text-cyan-600",
-    bgColor: "bg-cyan-50",
-  },
-  {
-    name: "Today's Revenue",
-    value: "EC$ 2,450",
-    change: "+12% vs avg",
-    changeType: "positive",
-    icon: DollarSign,
-    color: "text-emerald-600",
-    bgColor: "bg-emerald-50",
-  },
-  {
-    name: "Pending Orders",
-    value: "5",
-    change: "3 ready for pickup",
-    changeType: "neutral",
-    icon: Package,
-    color: "text-amber-600",
-    bgColor: "bg-amber-50",
-  },
-];
-
-const statBorderColors = [
-  "border-l-teal-500",
-  "border-l-cyan-500",
-  "border-l-emerald-500",
-  "border-l-amber-500",
-];
-
-const todayAppointments = [
-  {
-    id: 1,
-    client: "Maria Johnson",
-    service: "Full Color + Cut",
-    time: "9:00 AM",
-    duration: "2h 30m",
-    stylist: "Sarah",
-    status: "confirmed",
-    price: 280,
-  },
-  {
-    id: 2,
-    client: "Ashley Brown",
-    service: "Brazilian Blowout",
-    time: "10:30 AM",
-    duration: "3h",
-    stylist: "Jessica",
-    status: "in_progress",
-    price: 350,
-  },
-  {
-    id: 3,
-    client: "Jennifer Davis",
-    service: "Balayage",
-    time: "1:00 PM",
-    duration: "3h",
-    stylist: "Sarah",
-    status: "pending",
-    price: 320,
-  },
-  {
-    id: 4,
-    client: "Lisa Wilson",
-    service: "Haircut & Style",
-    time: "2:30 PM",
-    duration: "1h",
-    stylist: "Michelle",
-    status: "confirmed",
-    price: 85,
-  },
-];
-
-const recentOrders = [
-  {
-    id: "ORD-240111-A1B2",
-    customer: "Samantha Lee",
-    items: 3,
-    total: 245,
-    status: "ready",
-  },
-  {
-    id: "ORD-240111-C3D4",
-    customer: "Nicole Brown",
-    items: 1,
-    total: 89,
-    status: "pending",
-  },
-  {
-    id: "ORD-240110-E5F6",
-    customer: "Rachel Green",
-    items: 2,
-    total: 156,
-    status: "confirmed",
-  },
-];
+interface DashboardData {
+  stats: {
+    todayAppointments: number;
+    yesterdayAppointments: number;
+    activeClients: number;
+    newClientsThisMonth: number;
+    todayRevenue: number;
+    pendingOrders: number;
+    readyOrders: number;
+  };
+  todayAppointments: any[];
+  recentOrders: any[];
+  lowStockProducts: any[];
+  recentActivity: any[];
+}
 
 const quickActions = [
   {
@@ -166,75 +68,19 @@ const quickActions = [
     href: "/orders",
   },
   {
-    name: "Browse Catalog",
-    icon: BookOpen,
+    name: "Add Expense",
+    icon: Wallet,
     color: "text-purple-600",
     bgColor: "bg-purple-50",
-    href: "/services",
+    href: "/expenses",
   },
 ];
 
-const recentActivity = [
-  {
-    id: 1,
-    type: "appointment",
-    icon: Calendar,
-    iconBg: "bg-blue-100",
-    iconColor: "text-blue-600",
-    description: "New booking: Maria Johnson - Full Color + Cut",
-    time: "10 min ago",
-    amount: 280,
-  },
-  {
-    id: 2,
-    type: "order",
-    icon: ShoppingBag,
-    iconBg: "bg-purple-100",
-    iconColor: "text-purple-600",
-    description: "Order #A1B2 completed - Samantha Lee",
-    time: "25 min ago",
-    amount: 245,
-  },
-  {
-    id: 3,
-    type: "client",
-    icon: UserCheck,
-    iconBg: "bg-green-100",
-    iconColor: "text-green-600",
-    description: "New client registered: Tanya Richards",
-    time: "1h ago",
-    amount: 0,
-  },
-  {
-    id: 4,
-    type: "appointment",
-    icon: CheckCircle2,
-    iconBg: "bg-emerald-100",
-    iconColor: "text-emerald-600",
-    description: "Completed: Ashley Brown - Brazilian Blowout",
-    time: "1h 30m ago",
-    amount: 350,
-  },
-  {
-    id: 5,
-    type: "order",
-    icon: ShoppingBag,
-    iconBg: "bg-purple-100",
-    iconColor: "text-purple-600",
-    description: "New order #C3D4 - Nicole Brown",
-    time: "2h ago",
-    amount: 89,
-  },
-  {
-    id: 6,
-    type: "appointment",
-    icon: XCircle,
-    iconBg: "bg-red-100",
-    iconColor: "text-red-600",
-    description: "Cancelled: Rachel Kim - Keratin Treatment",
-    time: "3h ago",
-    amount: 0,
-  },
+const statBorderColors = [
+  "border-l-teal-500",
+  "border-l-cyan-500",
+  "border-l-emerald-500",
+  "border-l-amber-500",
 ];
 
 const container = {
@@ -254,8 +100,27 @@ const item = {
 
 export default function DashboardPage() {
   const { data: session } = useSession();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Get greeting based on time of day
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const response = await fetch("/api/dashboard");
+        if (response.ok) {
+          const data = await response.json();
+          setDashboardData(data);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, []);
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -264,6 +129,56 @@ export default function DashboardPage() {
   };
 
   const userName = session?.user?.name?.split(" ")[0] || "there";
+
+  const stats = dashboardData?.stats;
+  const appointmentChange = stats
+    ? stats.todayAppointments - stats.yesterdayAppointments
+    : 0;
+
+  const statCards = [
+    {
+      name: "Today's Appointments",
+      value: stats ? String(stats.todayAppointments) : "...",
+      change: stats
+        ? `${appointmentChange >= 0 ? "+" : ""}${appointmentChange} from yesterday`
+        : "",
+      changeType: appointmentChange >= 0 ? "positive" : "neutral",
+      icon: Calendar,
+      color: "text-teal-600",
+      bgColor: "bg-teal-50",
+      tooltip: "Total appointments scheduled for today across all stylists",
+    },
+    {
+      name: "Active Clients",
+      value: stats ? String(stats.activeClients) : "...",
+      change: stats ? `+${stats.newClientsThisMonth} this month` : "",
+      changeType: "positive",
+      icon: Users,
+      color: "text-cyan-600",
+      bgColor: "bg-cyan-50",
+      tooltip: "Clients who have visited your salon at least once",
+    },
+    {
+      name: "Today's Revenue",
+      value: stats ? formatCurrency(stats.todayRevenue) : "...",
+      change: stats ? "Completed appointments & orders" : "",
+      changeType: "positive",
+      icon: DollarSign,
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50",
+      tooltip: "Revenue from completed appointments and paid orders today",
+    },
+    {
+      name: "Pending Orders",
+      value: stats ? String(stats.pendingOrders) : "...",
+      change: stats ? `${stats.readyOrders} ready for pickup` : "",
+      changeType: "neutral",
+      icon: Package,
+      color: "text-amber-600",
+      bgColor: "bg-amber-50",
+      tooltip: "Product orders awaiting confirmation or pickup",
+    },
+  ];
 
   return (
     <motion.div
@@ -276,36 +191,38 @@ export default function DashboardPage() {
       <motion.div variants={item} className="flex flex-col gap-1">
         <h1 className="text-3xl font-bold tracking-tight">{getGreeting()}, {userName}!</h1>
         <p className="text-muted-foreground">
-          Here's what's happening at your salon today.
+          Here&apos;s what&apos;s happening at your salon today.
         </p>
       </motion.div>
 
       {/* Stats Grid */}
       <motion.div variants={item} className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, index) => (
+        {statCards.map((stat, index) => (
           <Card key={stat.name} className={cn("overflow-hidden border-l-4 hover:shadow-md hover:-translate-y-0.5", statBorderColors[index])}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className={cn("p-3 rounded-xl", stat.bgColor)}>
                   <stat.icon className={cn("w-6 h-6", stat.color)} />
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
+                <HelpTooltip text={stat.tooltip} />
               </div>
               <div className="mt-4">
-                <p className="text-3xl font-bold">{stat.value}</p>
+                {isLoading ? (
+                  <div className="h-9 w-24 bg-muted animate-pulse rounded" />
+                ) : (
+                  <p className="text-3xl font-bold">{stat.value}</p>
+                )}
                 <p className="text-sm text-muted-foreground mt-1">{stat.name}</p>
               </div>
               <div className="mt-3 flex items-center gap-2">
-                {stat.changeType === "positive" && (
+                {stat.changeType === "positive" && stat.change && (
                   <ArrowUpRight className="w-4 h-4 text-emerald-600" />
                 )}
                 <span className={cn(
                   "text-sm",
                   stat.changeType === "positive" ? "text-emerald-600" : "text-muted-foreground"
                 )}>
-                  {stat.change}
+                  {isLoading ? "" : stat.change}
                 </span>
               </div>
             </CardContent>
@@ -347,9 +264,11 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-lg">Today's Appointments</CardTitle>
+              <CardTitle className="text-lg">Today&apos;s Appointments</CardTitle>
               <p className="text-sm text-muted-foreground">
-                {todayAppointments.length} appointments scheduled
+                {isLoading
+                  ? "Loading..."
+                  : `${dashboardData?.todayAppointments?.length || 0} appointments scheduled`}
               </p>
             </div>
             <Link href="/appointments">
@@ -360,55 +279,90 @@ export default function DashboardPage() {
             </Link>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {todayAppointments.map((appointment, i) => (
-                <div
-                  key={appointment.id}
-                  className={cn(
-                    "flex items-center gap-4 p-4 rounded-xl hover:bg-accent transition-colors",
-                    i % 2 === 0 ? "bg-accent/30" : "bg-accent/50"
-                  )}
-                >
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
-                      <span className="text-sm font-semibold text-teal-700">
-                        {appointment.client.split(" ").map(n => n[0]).join("")}
-                      </span>
+            {isLoading ? (
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-accent/50 animate-pulse">
+                    <div className="w-12 h-12 rounded-full bg-muted" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-muted rounded w-1/3" />
+                      <div className="h-3 bg-muted rounded w-1/2" />
                     </div>
+                    <div className="h-4 bg-muted rounded w-16" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold truncate">{appointment.client}</p>
-                      <Badge
-                        variant={
-                          appointment.status === "confirmed" ? "info" :
-                          appointment.status === "in_progress" ? "warning" :
-                          "secondary"
-                        }
-                        className="capitalize"
-                      >
-                        {appointment.status.replace("_", " ")}
-                      </Badge>
+                ))}
+              </div>
+            ) : !dashboardData?.todayAppointments?.length ? (
+              <div className="text-center py-8">
+                <Calendar className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground">No appointments scheduled for today.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {dashboardData.todayAppointments.map((appointment: any, i: number) => {
+                  const clientName = `${appointment.client.firstName} ${appointment.client.lastName}`;
+                  const initials = clientName
+                    .split(" ")
+                    .map((n: string) => n[0])
+                    .join("");
+                  const serviceNames = appointment.services
+                    .map((s: any) => s.serviceName)
+                    .join(", ");
+                  const stylistName = appointment.stylist
+                    ? `${appointment.stylist.firstName} ${appointment.stylist.lastName}`
+                    : "Unassigned";
+
+                  return (
+                    <div
+                      key={appointment.id}
+                      className={cn(
+                        "flex items-center gap-4 p-4 rounded-xl hover:bg-accent transition-colors",
+                        i % 2 === 0 ? "bg-accent/30" : "bg-accent/50"
+                      )}
+                    >
+                      <div className="flex-shrink-0">
+                        <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
+                          <span className="text-sm font-semibold text-teal-700">
+                            {initials}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold truncate">{clientName}</p>
+                          <Badge
+                            variant={
+                              appointment.status === "CONFIRMED" ? "info" :
+                              appointment.status === "IN_PROGRESS" ? "warning" :
+                              appointment.status === "COMPLETED" ? "success" :
+                              "secondary"
+                            }
+                            className="capitalize"
+                          >
+                            {appointment.status.replace(/_/g, " ").toLowerCase()}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {serviceNames} with {stylistName}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold">{formatTime(appointment.requestedDate)}</p>
+                        <p className="text-sm text-muted-foreground flex items-center gap-1 justify-end">
+                          <Clock className="w-3 h-3" />
+                          {appointment.duration}m
+                        </p>
+                      </div>
+                      <div className="text-right pl-4 border-l">
+                        <p className="font-bold text-teal-600">
+                          {formatCurrency(Number(appointment.totalPrice))}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {appointment.service} with {appointment.stylist}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">{appointment.time}</p>
-                    <p className="text-sm text-muted-foreground flex items-center gap-1 justify-end">
-                      <Clock className="w-3 h-3" />
-                      {appointment.duration}
-                    </p>
-                  </div>
-                  <div className="text-right pl-4 border-l">
-                    <p className="font-bold text-teal-600">
-                      {formatCurrency(appointment.price)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>
@@ -427,30 +381,57 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {recentActivity.map((activity, i) => (
-                  <div
-                    key={activity.id}
-                    className={cn(
-                      "flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-accent",
-                      i % 2 === 0 ? "bg-accent/30" : "bg-transparent"
-                    )}
-                  >
-                    <div className={cn("p-2 rounded-lg shrink-0", activity.iconBg)}>
-                      <activity.icon className={cn("w-4 h-4", activity.iconColor)} />
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 p-3 rounded-lg animate-pulse">
+                      <div className="w-8 h-8 rounded-full bg-muted" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-muted rounded w-2/3" />
+                        <div className="h-3 bg-muted rounded w-1/4" />
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{activity.description}</p>
-                      <p className="text-xs text-muted-foreground">{activity.time}</p>
+                  ))}
+                </div>
+              ) : !dashboardData?.recentActivity?.length ? (
+                <div className="text-center py-8">
+                  <CheckCircle2 className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">No recent activity yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {dashboardData.recentActivity.map((activity: any, i: number) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        "flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-accent",
+                        i % 2 === 0 ? "bg-accent/30" : "bg-transparent"
+                      )}
+                    >
+                      <div className={cn(
+                        "p-2 rounded-lg shrink-0",
+                        activity.type === "new_client" ? "bg-green-100" :
+                        activity.type === "appointment_completed" ? "bg-emerald-100" :
+                        "bg-purple-100"
+                      )}>
+                        {activity.type === "new_client" ? (
+                          <User className="w-4 h-4 text-green-600" />
+                        ) : activity.type === "appointment_completed" ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        ) : (
+                          <ShoppingBag className="w-4 h-4 text-purple-600" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{activity.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDate(activity.timestamp)}
+                        </p>
+                      </div>
                     </div>
-                    {activity.amount > 0 && (
-                      <p className="font-semibold text-teal-600 shrink-0">
-                        {formatCurrency(activity.amount)}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -472,34 +453,59 @@ export default function DashboardPage() {
               </Link>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {recentOrders.map((order) => (
-                  <div
-                    key={order.id}
-                    className="flex items-center gap-4 p-3 rounded-lg border hover:bg-accent/50 transition-colors cursor-pointer"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{order.customer}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {order.id} · {order.items} items
-                      </p>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 p-3 rounded-lg border animate-pulse">
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-muted rounded w-2/3" />
+                        <div className="h-3 bg-muted rounded w-1/2" />
+                      </div>
+                      <div className="h-5 bg-muted rounded w-16" />
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold">{formatCurrency(order.total)}</p>
-                      <Badge
-                        variant={
-                          order.status === "ready" ? "purple" :
-                          order.status === "confirmed" ? "info" :
-                          "warning"
-                        }
-                        className="capitalize mt-1"
+                  ))}
+                </div>
+              ) : !dashboardData?.recentOrders?.length ? (
+                <div className="text-center py-8">
+                  <ShoppingBag className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">No recent orders.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {dashboardData.recentOrders.map((order: any) => {
+                    const customerName = order.client
+                      ? `${order.client.firstName} ${order.client.lastName}`
+                      : order.customerName || "Walk-in";
+                    return (
+                      <div
+                        key={order.id}
+                        className="flex items-center gap-4 p-3 rounded-lg border hover:bg-accent/50 transition-colors cursor-pointer"
                       >
-                        {order.status}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{customerName}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {order.orderNumber} · {order.items?.length || 0} items
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold">{formatCurrency(Number(order.total))}</p>
+                          <Badge
+                            variant={
+                              order.status === "READY" ? "purple" :
+                              order.status === "CONFIRMED" ? "info" :
+                              order.status === "COMPLETED" ? "success" :
+                              "warning"
+                            }
+                            className="capitalize mt-1"
+                          >
+                            {order.status.toLowerCase()}
+                          </Badge>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               <Link href="/orders">
                 <Button variant="outline" className="w-full mt-4">
@@ -512,33 +518,32 @@ export default function DashboardPage() {
       </div>
 
       {/* Low Stock Alert */}
-      <motion.div variants={item}>
-        <Card className="border-amber-200 bg-amber-50/50">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-amber-100 rounded-xl">
-                <AlertCircle className="w-6 h-6 text-amber-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-amber-900">Low Stock Alert</h3>
-                <p className="text-sm text-amber-700 mt-1">
-                  5 products are running low on stock and need to be reordered soon.
-                </p>
-                <div className="flex gap-2 mt-4">
-                  <Link href="/shop">
-                    <Button size="sm" variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-100">
-                      View Products
-                    </Button>
-                  </Link>
-                  <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
-                    Reorder Now
-                  </Button>
+      {!isLoading && dashboardData?.lowStockProducts && dashboardData.lowStockProducts.length > 0 && (
+        <motion.div variants={item}>
+          <Card className="border-amber-200 bg-amber-50/50">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-amber-100 rounded-xl">
+                  <AlertCircle className="w-6 h-6 text-amber-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-amber-900">Low Stock Alert</h3>
+                  <p className="text-sm text-amber-700 mt-1">
+                    {dashboardData.lowStockProducts.length} product{dashboardData.lowStockProducts.length !== 1 ? "s are" : " is"} running low on stock and need{dashboardData.lowStockProducts.length === 1 ? "s" : ""} to be reordered soon.
+                  </p>
+                  <div className="flex gap-2 mt-4">
+                    <Link href="/shop">
+                      <Button size="sm" variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-100">
+                        View Products
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

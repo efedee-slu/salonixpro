@@ -100,6 +100,7 @@ model Business {
   productCategories ProductCategory[]
   orders        Order[]
   notifications Notification[]
+  expenses      Expense[]
 
   @@index([slug])
 }
@@ -573,4 +574,42 @@ enum NotificationType {
   BOOKING_CONFIRMED
   BOOKING_CANCELLED
   GENERAL
+}
+
+// ============================================
+// EXPENSES
+// ============================================
+
+enum ExpenseCategory {
+  RENT
+  ELECTRICITY
+  WATER
+  INTERNET
+  WAGES
+  COMMISSIONS
+  CLEANING
+  MAINTENANCE
+  MARKETING
+  LOAN_PAYMENTS
+  SOFTWARE
+  OTHER
+}
+
+model Expense {
+  id          String          @id @default(cuid())
+  businessId  String
+  date        DateTime
+  category    ExpenseCategory
+  description String
+  amount      Decimal         @db.Decimal(10, 2)
+  currency    String          @default("XCD")
+  notes       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@index([category])
+  @@index([date])
 }
