@@ -1,7 +1,7 @@
 // app/(dashboard)/shop/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   Plus,
@@ -16,6 +16,10 @@ import {
   Trash2,
   Star,
   ShoppingBag,
+  ChevronLeft,
+  ChevronRight,
+  History,
+  PackagePlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +31,10 @@ import { AddProductDialog } from "./add-product-dialog";
 import { EditProductDialog } from "./edit-product-dialog";
 import { DeleteProductDialog } from "./delete-product-dialog";
 import { AddCategoryDialog } from "./add-category-dialog";
+import { EditCategoryDialog } from "./edit-category-dialog";
+import { DeleteCategoryDialog } from "./delete-category-dialog";
+import { AdjustStockDialog } from "./adjust-stock-dialog";
+import { StockHistoryDialog } from "./stock-history-dialog";
 
 interface Product {
   id: string;
@@ -69,48 +77,82 @@ export default function ShopPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, totalPages: 1 });
 
   // Dialog states
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [editCategoryDialogOpen, setEditCategoryDialogOpen] = useState(false);
+  const [deleteCategoryDialogOpen, setDeleteCategoryDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [adjustStockDialogOpen, setAdjustStockDialogOpen] = useState(false);
+  const [stockHistoryDialogOpen, setStockHistoryDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  // Fetch data
-  const fetchData = async () => {
-    try {
-      const [productsRes, categoriesRes] = await Promise.all([
-        fetch("/api/products"),
-        fetch("/api/products/categories"),
-      ]);
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-      if (productsRes.ok) {
-        const json = await productsRes.json();
-        const data = json.data ?? json;
-        setProducts(data);
-      }
-      if (categoriesRes.ok) {
-        const data = await categoriesRes.json();
-        setCategories(data);
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load products",
-        variant: "destructive",
+  // Reset page on category change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory]);
+
+  // Fetch products
+  const fetchProducts = useCallback(async () => {
+    try {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: "20",
       });
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      if (selectedCategory !== "all") params.set("categoryId", selectedCategory);
+
+      const res = await fetch(`/api/products?${params}`);
+      if (res.ok) {
+        const json = await res.json();
+        setProducts(json.data ?? json);
+        if (json.pagination) setPagination(json.pagination);
+      }
+    } catch {
+      toast({ title: "Error", description: "Failed to load products", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, debouncedSearch, selectedCategory]);
+
+  // Fetch categories
+  const fetchCategories = useCallback(async () => {
+    try {
+      const res = await fetch("/api/products/categories");
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(data);
+      }
+    } catch {}
+  }, []);
+
+  const fetchData = useCallback(() => {
+    setIsLoading(true);
+    fetchProducts();
+    fetchCategories();
+  }, [fetchProducts, fetchCategories]);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleEdit = (product: Product) => {
     setSelectedProduct(product);
@@ -126,21 +168,34 @@ export default function ShopPage() {
     fetchData();
   };
 
-  // Filter products
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "all" || product.category?.id === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const handleEditCategory = (category: Category) => {
+    setEditingCategory(category);
+    setEditCategoryDialogOpen(true);
+  };
 
-  // Stats
+  const handleDeleteCategory = (category: Category) => {
+    setEditingCategory(category);
+    setDeleteCategoryDialogOpen(true);
+  };
+
+  const handleAdjustStock = (product: Product) => {
+    setSelectedProduct(product);
+    setAdjustStockDialogOpen(true);
+  };
+
+  const handleStockHistory = (product: Product) => {
+    setSelectedProduct(product);
+    setStockHistoryDialogOpen(true);
+  };
+
+  // Stats (from current page data + pagination total)
+  const lowStockItems = products.filter((p) => (p.stockOnHand - p.stockReserved) <= p.reorderLevel);
+  const outOfStockItems = products.filter((p) => (p.stockOnHand - p.stockReserved) <= 0);
   const stats = {
-    total: products.length,
+    total: pagination.total,
     active: products.filter((p) => p.isActive).length,
-    lowStock: products.filter((p) => p.stockOnHand <= p.reorderLevel).length,
+    lowStock: lowStockItems.length,
+    outOfStock: outOfStockItems.length,
     totalValue: products.reduce(
       (sum, p) => sum + Number(p.retailPrice) * p.stockOnHand,
       0
@@ -210,6 +265,11 @@ export default function ShopPage() {
               <div>
                 <p className="text-2xl font-bold">{stats.lowStock}</p>
                 <p className="text-sm text-muted-foreground">Low Stock</p>
+                {stats.outOfStock > 0 && (
+                  <p className="text-xs text-red-500 font-medium mt-0.5">
+                    {stats.outOfStock} out of stock
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -254,16 +314,35 @@ export default function ShopPage() {
               >
                 All ({products.length})
               </Button>
-              {categories.map((category) => (
-                <Button
-                  key={category.id}
-                  variant={selectedCategory === category.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={selectedCategory === category.id ? "bg-teal-600 hover:bg-teal-700" : ""}
-                >
-                  {category.icon} {category.name} ({category._count.products})
-                </Button>
+              {categories.map((cat) => (
+                <div key={cat.id} className="relative group flex items-center">
+                  <Button
+                    variant={selectedCategory === cat.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={selectedCategory === cat.id ? "bg-teal-600 hover:bg-teal-700 pr-8" : "pr-8"}
+                  >
+                    {cat.icon} {cat.name} ({cat._count.products})
+                  </Button>
+                  <div className="absolute right-1 flex opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleEditCategory(cat); }}
+                      className="p-0.5 rounded hover:bg-black/10"
+                      title="Edit category"
+                    >
+                      <Edit className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleDeleteCategory(cat); }}
+                      className="p-0.5 rounded hover:bg-red-100 text-destructive"
+                      title="Delete category"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
 
@@ -295,7 +374,7 @@ export default function ShopPage() {
             <div key={i} className="h-64 bg-muted animate-pulse rounded-xl" />
           ))}
         </div>
-      ) : filteredProducts.length === 0 ? (
+      ) : products.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <Package className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
@@ -313,7 +392,7 @@ export default function ShopPage() {
         </Card>
       ) : viewMode === "grid" ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredProducts.map((product) => (
+          {products.map((product) => (
             <motion.div
               key={product.id}
               initial={{ opacity: 0, y: 20 }}
@@ -342,11 +421,15 @@ export default function ShopPage() {
                       Sale
                     </Badge>
                   )}
-                  {getAvailableStock(product) <= product.reorderLevel && (
-                    <Badge className="absolute bottom-2 left-2 bg-amber-500">
-                      Low Stock
+                  {getAvailableStock(product) <= 0 ? (
+                    <Badge className="absolute bottom-2 left-2 bg-red-600">
+                      Out of Stock
                     </Badge>
-                  )}
+                  ) : getAvailableStock(product) <= product.reorderLevel ? (
+                    <Badge className="absolute bottom-2 left-2 bg-amber-500">
+                      Low Stock ({getAvailableStock(product)})
+                    </Badge>
+                  ) : null}
                 </div>
 
                 <CardContent className="p-4">
@@ -398,7 +481,7 @@ export default function ShopPage() {
                   </p>
 
                   {/* Actions */}
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
                     <Button
                       variant="outline"
                       size="sm"
@@ -410,9 +493,27 @@ export default function ShopPage() {
                     </Button>
                     <Button
                       variant="outline"
-                      size="sm"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => handleAdjustStock(product)}
+                      title="Adjust stock"
+                    >
+                      <PackagePlus className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => handleStockHistory(product)}
+                      title="Stock history"
+                    >
+                      <History className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
                       onClick={() => handleDelete(product)}
-                      className="text-destructive hover:text-destructive"
+                      className="text-destructive hover:text-destructive h-8 w-8"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -427,7 +528,7 @@ export default function ShopPage() {
         <Card>
           <CardContent className="p-0">
             <div className="divide-y">
-              {filteredProducts.map((product) => (
+              {products.map((product) => (
                 <div
                   key={product.id}
                   className="flex items-center gap-4 p-4 hover:bg-accent/50 transition-colors"
@@ -456,10 +557,18 @@ export default function ShopPage() {
 
                   {/* Stock */}
                   <div className="text-center shrink-0">
-                    <p className={`font-semibold ${getAvailableStock(product) <= product.reorderLevel ? "text-amber-600" : ""}`}>
+                    <p className={`font-semibold ${getAvailableStock(product) <= 0 ? "text-red-600" : getAvailableStock(product) <= product.reorderLevel ? "text-amber-600" : ""}`}>
                       {getAvailableStock(product)}
                     </p>
-                    <p className="text-xs text-muted-foreground">in stock</p>
+                    <p className="text-xs text-muted-foreground">
+                      {getAvailableStock(product) <= 0 ? (
+                        <span className="text-red-500 font-medium">out of stock</span>
+                      ) : getAvailableStock(product) <= product.reorderLevel ? (
+                        <span className="text-amber-500 font-medium">low stock</span>
+                      ) : (
+                        "in stock"
+                      )}
+                    </p>
                   </div>
 
                   {/* Price */}
@@ -482,12 +591,14 @@ export default function ShopPage() {
 
                   {/* Actions */}
                   <div className="flex gap-1 shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(product)}
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => handleEdit(product)} title="Edit">
                       <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleAdjustStock(product)} title="Adjust stock">
+                      <PackagePlus className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleStockHistory(product)} title="Stock history">
+                      <History className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="ghost"
@@ -503,6 +614,60 @@ export default function ShopPage() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Showing {(pagination.page - 1) * pagination.limit + 1}-{Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} products
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage <= 1}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              Previous
+            </Button>
+            <div className="flex gap-1">
+              {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                let pageNum: number;
+                if (pagination.totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= pagination.totalPages - 2) {
+                  pageNum = pagination.totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={currentPage === pageNum ? "bg-teal-600 hover:bg-teal-700" : ""}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
+              disabled={currentPage >= pagination.totalPages}
+            >
+              Next
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        </div>
       )}
 
       {/* Dialogs */}
@@ -533,6 +698,39 @@ export default function ShopPage() {
             onOpenChange={setDeleteDialogOpen}
             product={selectedProduct}
             onSuccess={handleSuccess}
+          />
+        </>
+      )}
+
+      {editingCategory && (
+        <>
+          <EditCategoryDialog
+            open={editCategoryDialogOpen}
+            onOpenChange={setEditCategoryDialogOpen}
+            category={editingCategory}
+            onSuccess={handleSuccess}
+          />
+          <DeleteCategoryDialog
+            open={deleteCategoryDialogOpen}
+            onOpenChange={setDeleteCategoryDialogOpen}
+            category={editingCategory}
+            onSuccess={handleSuccess}
+          />
+        </>
+      )}
+
+      {selectedProduct && (
+        <>
+          <AdjustStockDialog
+            open={adjustStockDialogOpen}
+            onOpenChange={setAdjustStockDialogOpen}
+            product={selectedProduct}
+            onSuccess={handleSuccess}
+          />
+          <StockHistoryDialog
+            open={stockHistoryDialogOpen}
+            onOpenChange={setStockHistoryDialogOpen}
+            product={selectedProduct}
           />
         </>
       )}

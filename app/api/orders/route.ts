@@ -126,6 +126,30 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate stock availability
+    const insufficientStock: { name: string; available: number; requested: number }[] = [];
+    for (const item of items) {
+      const product = products.find((p) => p.id === item.productId)!;
+      const available = product.stockOnHand - product.stockReserved;
+      if (available < item.quantity) {
+        insufficientStock.push({
+          name: product.name,
+          available: Math.max(0, available),
+          requested: item.quantity,
+        });
+      }
+    }
+
+    if (insufficientStock.length > 0) {
+      const details = insufficientStock
+        .map((p) => `${p.name}: ${p.available} available, ${p.requested} requested`)
+        .join("; ");
+      return NextResponse.json(
+        { error: `Insufficient stock: ${details}`, insufficientStock },
+        { status: 400 }
+      );
+    }
+
     // Calculate totals and prepare order items
     let subtotal = 0;
     const orderItems = items.map((item: any) => {

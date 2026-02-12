@@ -67,11 +67,33 @@ export async function PATCH(
       // If completing the order, move stock from reserved to sold (decrement both)
       if (status === "COMPLETED") {
         for (const item of order.items) {
+          // Get current stock before update
+          const product = await tx.product.findUnique({
+            where: { id: item.productId },
+            select: { stockOnHand: true },
+          });
+          const quantityBefore = product?.stockOnHand ?? 0;
+
           await tx.product.update({
             where: { id: item.productId },
             data: {
               stockOnHand: { decrement: item.quantity },
               stockReserved: { decrement: item.quantity },
+            },
+          });
+
+          // Record stock movement
+          await tx.stockMovement.create({
+            data: {
+              businessId: session.user.businessId,
+              productId: item.productId,
+              type: "SALE",
+              quantity: -item.quantity,
+              quantityBefore,
+              quantityAfter: quantityBefore - item.quantity,
+              reason: `Order ${order.orderNumber} completed`,
+              orderId: order.id,
+              createdBy: session.user.id,
             },
           });
         }
@@ -96,6 +118,38 @@ export async function PATCH(
             where: { id: item.productId },
             data: {
               stockReserved: { decrement: item.quantity },
+            },
+          });
+        }
+      }
+
+      // If cancelling after completion, return stock
+      if (status === "CANCELLED" && order.status === "COMPLETED") {
+        for (const item of order.items) {
+          const product = await tx.product.findUnique({
+            where: { id: item.productId },
+            select: { stockOnHand: true },
+          });
+          const quantityBefore = product?.stockOnHand ?? 0;
+
+          await tx.product.update({
+            where: { id: item.productId },
+            data: {
+              stockOnHand: { increment: item.quantity },
+            },
+          });
+
+          await tx.stockMovement.create({
+            data: {
+              businessId: session.user.businessId,
+              productId: item.productId,
+              type: "RETURN",
+              quantity: item.quantity,
+              quantityBefore,
+              quantityAfter: quantityBefore + item.quantity,
+              reason: `Order ${order.orderNumber} cancelled (return)`,
+              orderId: order.id,
+              createdBy: session.user.id,
             },
           });
         }

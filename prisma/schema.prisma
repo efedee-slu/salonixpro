@@ -101,6 +101,7 @@ model Business {
   orders        Order[]
   notifications Notification[]
   expenses      Expense[]
+  stockMovements StockMovement[]
 
   @@index([slug])
 }
@@ -443,11 +444,46 @@ model Product {
   business      Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
   category      ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   orderItems    OrderItem[]
+  stockMovements StockMovement[]
 
   @@unique([businessId, sku])
   @@index([businessId])
   @@index([categoryId])
   @@index([isFeatured])
+}
+
+// ============================================
+// STOCK MOVEMENTS
+// ============================================
+
+enum StockMovementType {
+  SALE
+  RESTOCK
+  ADJUSTMENT
+  DAMAGE
+  RETURN
+}
+
+model StockMovement {
+  id              String            @id @default(cuid())
+  businessId      String
+  productId       String
+  type            StockMovementType
+  quantity        Int               // positive = added, negative = removed
+  quantityBefore  Int
+  quantityAfter   Int
+  reason          String?
+  orderId         String?
+  createdBy       String?
+  createdAt       DateTime          @default(now())
+
+  // Relations
+  business        Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  product         Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@index([productId])
+  @@index([productId, createdAt])
 }
 
 // ============================================

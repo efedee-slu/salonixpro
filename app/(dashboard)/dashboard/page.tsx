@@ -527,14 +527,64 @@ export default function DashboardPage() {
                   <AlertCircle className="w-6 h-6 text-amber-600" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-amber-900">Low Stock Alert</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-amber-900">Low Stock Alert</h3>
+                    <Badge variant="warning" className="text-xs">
+                      {dashboardData.lowStockProducts.length}
+                    </Badge>
+                  </div>
                   <p className="text-sm text-amber-700 mt-1">
-                    {dashboardData.lowStockProducts.length} product{dashboardData.lowStockProducts.length !== 1 ? "s are" : " is"} running low on stock and need{dashboardData.lowStockProducts.length === 1 ? "s" : ""} to be reordered soon.
+                    {dashboardData.lowStockProducts.length} product{dashboardData.lowStockProducts.length !== 1 ? "s" : ""} need{dashboardData.lowStockProducts.length === 1 ? "s" : ""} restocking
                   </p>
+
+                  <div className="mt-3 space-y-2">
+                    {dashboardData.lowStockProducts.slice(0, 5).map((product: any) => {
+                      const available = product.stockOnHand - product.stockReserved;
+                      const isOutOfStock = available <= 0;
+                      return (
+                        <div
+                          key={product.id}
+                          className="flex items-center justify-between p-2 rounded-lg bg-white/60 border border-amber-100"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            {isOutOfStock ? (
+                              <Badge variant="destructive" className="text-[10px] px-1.5 shrink-0">
+                                OUT
+                              </Badge>
+                            ) : (
+                              <Badge variant="warning" className="text-[10px] px-1.5 shrink-0">
+                                LOW
+                              </Badge>
+                            )}
+                            <span className="text-sm font-medium text-amber-900 truncate">
+                              {product.name}
+                            </span>
+                            <span className="text-xs text-amber-600 shrink-0">
+                              {product.sku}
+                            </span>
+                          </div>
+                          <span className={cn(
+                            "text-sm font-semibold shrink-0 ml-2",
+                            isOutOfStock ? "text-red-600" : "text-amber-600"
+                          )}>
+                            {available} left
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {dashboardData.lowStockProducts.length > 5 && (
+                    <p className="text-xs text-amber-600 mt-2">
+                      +{dashboardData.lowStockProducts.length - 5} more products
+                    </p>
+                  )}
+
                   <div className="flex gap-2 mt-4">
                     <Link href="/shop">
                       <Button size="sm" variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-100">
-                        View Products
+                        <Package className="w-4 h-4 mr-1" />
+                        Manage Inventory
                       </Button>
                     </Link>
                   </div>
