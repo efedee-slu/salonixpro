@@ -12,6 +12,10 @@ export async function POST(request: Request) {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
+    const submittedCode = code.trim();
+
+    console.log("[Portal Verify] Email:", normalizedEmail, "| Code submitted:", submittedCode);
+    console.log("[Portal Verify] Current time:", new Date().toISOString());
 
     // Find the latest unused verification code for this email
     const verification = await prisma.clientVerification.findFirst({
@@ -24,8 +28,21 @@ export async function POST(request: Request) {
     });
 
     if (!verification) {
+      // Debug: check if there's ANY record for this email
+      const anyRecord = await prisma.clientVerification.findFirst({
+        where: { email: normalizedEmail },
+        orderBy: { createdAt: "desc" },
+      });
+      console.log("[Portal Verify] No valid code found. Latest record for email:", anyRecord ? JSON.stringify({
+        code: anyRecord.code,
+        used: anyRecord.used,
+        expiresAt: anyRecord.expiresAt.toISOString(),
+        attempts: anyRecord.attempts,
+      }) : "NONE");
       return NextResponse.json({ error: "Invalid or expired code" }, { status: 400 });
     }
+
+    console.log("[Portal Verify] Found code:", verification.code, "| Expires:", verification.expiresAt.toISOString(), "| Attempts:", verification.attempts);
 
     // Check attempt limit
     if (verification.attempts >= 5) {
@@ -39,7 +56,8 @@ export async function POST(request: Request) {
     });
 
     // Verify code
-    if (verification.code !== code.trim()) {
+    if (verification.code !== submittedCode) {
+      console.log("[Portal Verify] Code mismatch. Stored:", verification.code, "| Submitted:", submittedCode);
       return NextResponse.json({ error: "Invalid code" }, { status: 400 });
     }
 

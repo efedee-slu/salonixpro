@@ -21,8 +21,11 @@ export async function POST(request: Request) {
 
     // Always return success to prevent email enumeration
     if (clients.length === 0) {
+      console.log("[Portal] No clients found for email:", normalizedEmail);
       return NextResponse.json({ success: true });
     }
+
+    console.log("[Portal] Found", clients.length, "client(s) for", normalizedEmail);
 
     // Delete any unused codes for this email (cleanup)
     await prisma.clientVerification.deleteMany({
@@ -31,26 +34,28 @@ export async function POST(request: Request) {
 
     // Generate 6-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log("[Portal] Generated code for", normalizedEmail);
 
     // Store verification code (10 min expiry)
     await prisma.clientVerification.create({
       data: {
         email: normalizedEmail,
         code,
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
       },
     });
 
     // Send verification email
-    await sendPortalVerificationCode({
+    const emailResult = await sendPortalVerificationCode({
       to: normalizedEmail,
       code,
       clientName: clients[0].firstName,
     });
+    console.log("[Portal] Email send result:", JSON.stringify(emailResult));
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error sending portal code:", error);
+    console.error("[Portal] Error sending portal code:", error);
     return NextResponse.json({ error: "Failed to send code" }, { status: 500 });
   }
 }

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import { Scissors, Mail, KeyRound, ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -114,14 +113,8 @@ export default function PortalLoginPage() {
           </p>
         </div>
 
-        <AnimatePresence mode="wait">
-          {step === "email" && (
-            <motion.div
-              key="email"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
+        {step === "email" && (
+          <div>
               <Card>
                 <CardContent className="p-6">
                   <form onSubmit={handleSendCode} className="space-y-4">
@@ -163,16 +156,11 @@ export default function PortalLoginPage() {
                   </form>
                 </CardContent>
               </Card>
-            </motion.div>
-          )}
+          </div>
+        )}
 
-          {step === "verify" && (
-            <motion.div
-              key="verify"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
+        {step === "verify" && (
+          <div>
               <Card>
                 <CardContent className="p-6">
                   <form onSubmit={handleVerifyCode} className="space-y-4">
@@ -234,9 +222,8 @@ export default function PortalLoginPage() {
                   </form>
                 </CardContent>
               </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
+          </div>
+        )}
       </div>
     </div>
   );
