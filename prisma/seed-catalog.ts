@@ -14,204 +14,204 @@ interface MasterServiceEntry {
 
 const masterServices: MasterServiceEntry[] = [
   // ─────────────────────────────────────────────────────────────
-  // HAIR_SALON
+  // HAIR_SALON (62 services)
   // ─────────────────────────────────────────────────────────────
 
-  // Consultation
-  { code: "HS-CON-001", name: "Hair Consultation", category: "HAIR_SALON", subcategory: "Consultation", defaultDuration: 30, description: "Assessment of hair type, condition, and styling goals" },
+  // Consultation & Basics
+  { code: "HCONSULT", name: "Hair Consultation", category: "HAIR_SALON", subcategory: "Consultation", defaultDuration: 30, description: "Assessment of hair type, condition, and styling goals" },
+  { code: "HWASH", name: "Shampoo & Blow Dry", category: "HAIR_SALON", subcategory: "Wash & Style", defaultDuration: 45, description: "Wash, condition, and blow dry styling" },
+  { code: "HSCALPMASS", name: "Scalp Massage", category: "HAIR_SALON", subcategory: "Wash & Style", defaultDuration: 15, description: "Relaxing scalp massage treatment" },
 
   // Cuts
-  { code: "HS-CUT-001", name: "Women's Haircut", category: "HAIR_SALON", subcategory: "Cuts", defaultDuration: 45, description: "Precision cut, wash, and style" },
-  { code: "HS-CUT-002", name: "Men's Haircut", category: "HAIR_SALON", subcategory: "Cuts", defaultDuration: 30, description: "Classic men's cut and style" },
-  { code: "HS-CUT-003", name: "Kids Haircut (Under 12)", category: "HAIR_SALON", subcategory: "Cuts", defaultDuration: 30, description: "Gentle haircut for children" },
-  { code: "HS-CUT-004", name: "Bang/Fringe Trim", category: "HAIR_SALON", subcategory: "Cuts", defaultDuration: 15, description: "Quick trim for bangs or fringe" },
-  { code: "HS-CUT-005", name: "Dry Cut / Shape-Up", category: "HAIR_SALON", subcategory: "Cuts", defaultDuration: 30, description: "Cut on dry hair for precise shaping" },
+  { code: "HCUT_W", name: "Women's Haircut", category: "HAIR_SALON", subcategory: "Cuts", defaultDuration: 45, description: "Precision cut, wash, and style" },
+  { code: "HCUT_M", name: "Men's Haircut", category: "HAIR_SALON", subcategory: "Cuts", defaultDuration: 30, description: "Classic men's cut and style" },
+  { code: "HCUT_K", name: "Kids Haircut (Under 12)", category: "HAIR_SALON", subcategory: "Cuts", defaultDuration: 30, description: "Gentle haircut for children" },
+  { code: "HBLOW", name: "Blow Dry & Style", category: "HAIR_SALON", subcategory: "Styling", defaultDuration: 45, description: "Blow dry with round brush styling" },
+  { code: "HSILK", name: "Silk Press", category: "HAIR_SALON", subcategory: "Styling", defaultDuration: 90, description: "Flat iron press for sleek straight finish on natural hair" },
+  { code: "HBANGTRIM", name: "Bang / Fringe Trim", category: "HAIR_SALON", subcategory: "Cuts", defaultDuration: 15, description: "Quick trim for bangs or fringe" },
+  { code: "HNECKCLEAN", name: "Neckline Clean-Up", category: "HAIR_SALON", subcategory: "Cuts", defaultDuration: 10, description: "Tidy up the neckline between cuts" },
 
   // Natural Hair
-  { code: "HS-NAT-001", name: "Wash & Go (Natural)", category: "HAIR_SALON", subcategory: "Natural Hair", defaultDuration: 60, description: "Wash, condition, and define natural curls" },
-  { code: "HS-NAT-002", name: "Twist Out", category: "HAIR_SALON", subcategory: "Natural Hair", defaultDuration: 90, description: "Two-strand twist set and style" },
-  { code: "HS-NAT-003", name: "Bantu Knots", category: "HAIR_SALON", subcategory: "Natural Hair", defaultDuration: 75, description: "Bantu knot set for defined curls" },
-  { code: "HS-NAT-004", name: "Flat Twist Style", category: "HAIR_SALON", subcategory: "Natural Hair", defaultDuration: 90, description: "Flat twist protective style" },
-  { code: "HS-NAT-005", name: "Coil Set", category: "HAIR_SALON", subcategory: "Natural Hair", defaultDuration: 120, description: "Finger coil styling for defined look" },
-  { code: "HS-NAT-006", name: "Afro Shaping", category: "HAIR_SALON", subcategory: "Natural Hair", defaultDuration: 45, description: "Shape and trim natural afro" },
-  { code: "HS-NAT-007", name: "Rod Set / Perm Rod Set", category: "HAIR_SALON", subcategory: "Natural Hair", defaultDuration: 90, description: "Perm rods for bouncy curls" },
-  { code: "HS-NAT-008", name: "Straw Set", category: "HAIR_SALON", subcategory: "Natural Hair", defaultDuration: 120, description: "Tight spiral curls using straws" },
+  { code: "HNAT_WASHGO", name: "Wash & Go (Natural)", category: "HAIR_SALON", subcategory: "Natural Hair", defaultDuration: 60, description: "Wash, condition, and define natural curls" },
+  { code: "HNAT_TWISTS", name: "Two-Strand Twists", category: "HAIR_SALON", subcategory: "Natural Hair", defaultDuration: 90, description: "Two-strand twist protective style" },
+  { code: "HNAT_TWISTOUT", name: "Twist Out", category: "HAIR_SALON", subcategory: "Natural Hair", defaultDuration: 90, description: "Twist out set and style for defined curls" },
+  { code: "HNAT_RODSET", name: "Rod Set / Perm Rod Set", category: "HAIR_SALON", subcategory: "Natural Hair", defaultDuration: 90, description: "Perm rods for bouncy curls" },
+  { code: "HNAT_COILS", name: "Coil Set", category: "HAIR_SALON", subcategory: "Natural Hair", defaultDuration: 120, description: "Finger coil styling for defined look" },
+  { code: "HAFRO_SHAPE", name: "Afro Shaping", category: "HAIR_SALON", subcategory: "Natural Hair", defaultDuration: 45, description: "Shape and trim natural afro" },
 
   // Braids
-  { code: "HS-BRD-001", name: "Cornrows (Straight Back)", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 90, description: "Classic straight-back cornrow style" },
-  { code: "HS-BRD-002", name: "Cornrows (Design/Pattern)", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 150, description: "Intricate cornrow patterns and designs" },
-  { code: "HS-BRD-003", name: "Box Braids (Medium)", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 240, description: "Medium-sized individual braids" },
-  { code: "HS-BRD-004", name: "Box Braids (Small/Micro)", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 360, description: "Small to micro-sized individual braids" },
-  { code: "HS-BRD-005", name: "Knotless Braids", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 300, description: "Feed-in knotless braiding technique" },
-  { code: "HS-BRD-006", name: "Goddess Locs (Crochet)", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 180, description: "Goddess locs installed with crochet method" },
-  { code: "HS-BRD-007", name: "Passion Twists", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 240, description: "Bohemian-style passion twist braids" },
-  { code: "HS-BRD-008", name: "Senegalese Twists", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 240, description: "Rope-style Senegalese twists" },
-  { code: "HS-BRD-009", name: "Feed-In Braids (2\u20136 braids)", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 90, description: "Stitch/feed-in braids, small count" },
-  { code: "HS-BRD-010", name: "Fulani Braids", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 180, description: "Fulani-inspired braided style" },
-  { code: "HS-BRD-011", name: "Tribal Braids", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 180, description: "Large tribal-style braids" },
-  { code: "HS-BRD-012", name: "Crochet Braids / Locs Install", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 120, description: "Crochet method braid or loc install" },
-  { code: "HS-BRD-013", name: "Braid Take-Down", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 60, description: "Careful removal of braids" },
+  { code: "HBRAID_SINGLE", name: "Single / Individual Braids", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 180, description: "Individual braid installation" },
+  { code: "HBRAID_CORNBASIC", name: "Cornrows (Basic)", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 90, description: "Classic straight-back cornrow style" },
+  { code: "HBRAID_FEEDIN", name: "Feed-In Braids", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 90, description: "Stitch/feed-in braids for natural look" },
+  { code: "HBRAID_BOX", name: "Box Braids", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 240, description: "Medium to large box braids" },
+  { code: "HBRAID_KNOTLESS", name: "Knotless Braids", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 300, description: "Feed-in knotless braiding technique" },
+  { code: "HBRAID_SENEGAL", name: "Senegalese Twists", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 240, description: "Rope-style Senegalese twists" },
+  { code: "HLOC_FAUX", name: "Faux Locs", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 240, description: "Faux locs protective style installation" },
+  { code: "HBRAID_CROCHET", name: "Crochet Braids", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 120, description: "Crochet method braid install" },
+  { code: "HBRAID_KIDS", name: "Kids Braids", category: "HAIR_SALON", subcategory: "Braids", defaultDuration: 60, description: "Child-friendly braiding styles" },
 
   // Locs
-  { code: "HS-LOC-001", name: "Loc Start (Coils/Twists)", category: "HAIR_SALON", subcategory: "Locs", defaultDuration: 120, description: "Begin locs with coils or twists" },
-  { code: "HS-LOC-002", name: "Loc Retwist", category: "HAIR_SALON", subcategory: "Locs", defaultDuration: 90, description: "Maintenance retwist for existing locs" },
-  { code: "HS-LOC-003", name: "Loc Retwist & Style", category: "HAIR_SALON", subcategory: "Locs", defaultDuration: 120, description: "Retwist with a styled finish" },
-  { code: "HS-LOC-004", name: "Loc Interlocking", category: "HAIR_SALON", subcategory: "Locs", defaultDuration: 150, description: "Interlock maintenance technique" },
-  { code: "HS-LOC-005", name: "Loc Repair (per loc)", category: "HAIR_SALON", subcategory: "Locs", defaultDuration: 15, description: "Repair individual damaged locs" },
-  { code: "HS-LOC-006", name: "Loc Detox / Deep Cleanse", category: "HAIR_SALON", subcategory: "Locs", defaultDuration: 90, description: "Deep cleanse to remove buildup in locs" },
-  { code: "HS-LOC-007", name: "Loc Colouring", category: "HAIR_SALON", subcategory: "Locs", defaultDuration: 120, description: "Apply colour to locs" },
+  { code: "HLOC_START", name: "Loc Start (Coils/Twists)", category: "HAIR_SALON", subcategory: "Locs", defaultDuration: 120, description: "Begin locs with coils or twists" },
+  { code: "HLOC_RETWIST", name: "Loc Retwist", category: "HAIR_SALON", subcategory: "Locs", defaultDuration: 90, description: "Maintenance retwist for existing locs" },
+  { code: "HLOC_STYLE", name: "Loc Styling", category: "HAIR_SALON", subcategory: "Locs", defaultDuration: 60, description: "Creative styling for locs" },
+  { code: "HLOC_REPAIR", name: "Loc Repair", category: "HAIR_SALON", subcategory: "Locs", defaultDuration: 30, description: "Repair damaged or thinning locs" },
+  { code: "HLOC_INTERLOCK", name: "Loc Interlocking", category: "HAIR_SALON", subcategory: "Locs", defaultDuration: 150, description: "Interlock maintenance technique" },
+  { code: "HLOC_MICRO", name: "Microlocs", category: "HAIR_SALON", subcategory: "Locs", defaultDuration: 360, description: "Micro-sized loc installation" },
+  { code: "HLOC_SISTER", name: "Sisterlocs", category: "HAIR_SALON", subcategory: "Locs", defaultDuration: 480, description: "Sisterloc installation or retightening" },
 
   // Chemical Services
-  { code: "HS-CHM-001", name: "Relaxer (Virgin)", category: "HAIR_SALON", subcategory: "Chemical Services", defaultDuration: 120, description: "First-time chemical straightening" },
-  { code: "HS-CHM-002", name: "Relaxer (Touch-Up)", category: "HAIR_SALON", subcategory: "Chemical Services", defaultDuration: 90, description: "Relaxer applied to new growth" },
-  { code: "HS-CHM-003", name: "Texturizer", category: "HAIR_SALON", subcategory: "Chemical Services", defaultDuration: 75, description: "Loosen curl pattern without full straightening" },
-  { code: "HS-CHM-004", name: "Keratin / Smoothing Treatment", category: "HAIR_SALON", subcategory: "Chemical Services", defaultDuration: 180, description: "Keratin-based frizz control treatment" },
-  { code: "HS-CHM-005", name: "Silk Press", category: "HAIR_SALON", subcategory: "Chemical Services", defaultDuration: 90, description: "Flat iron press for sleek straight finish" },
+  { code: "HRELAX_VIR", name: "Relaxer (Virgin)", category: "HAIR_SALON", subcategory: "Chemical Services", defaultDuration: 120, description: "First-time chemical straightening" },
+  { code: "HRELAX_RE", name: "Relaxer (Touch-Up)", category: "HAIR_SALON", subcategory: "Chemical Services", defaultDuration: 90, description: "Relaxer applied to new growth" },
+  { code: "HTEXT", name: "Texturizer", category: "HAIR_SALON", subcategory: "Chemical Services", defaultDuration: 75, description: "Loosen curl pattern without full straightening" },
+  { code: "HKERATIN", name: "Keratin / Smoothing Treatment", category: "HAIR_SALON", subcategory: "Chemical Services", defaultDuration: 180, description: "Keratin-based frizz control treatment" },
+  { code: "HPERM_BODY", name: "Body Wave Perm", category: "HAIR_SALON", subcategory: "Chemical Services", defaultDuration: 120, description: "Perm for loose body waves" },
 
   // Colour
-  { code: "HS-COL-001", name: "Full Colour (Single Process)", category: "HAIR_SALON", subcategory: "Colour", defaultDuration: 90, description: "All-over single colour application" },
-  { code: "HS-COL-002", name: "Root Touch-Up", category: "HAIR_SALON", subcategory: "Colour", defaultDuration: 60, description: "Colour applied to roots/new growth" },
-  { code: "HS-COL-003", name: "Highlights (Foil)", category: "HAIR_SALON", subcategory: "Colour", defaultDuration: 120, description: "Foil highlight technique" },
-  { code: "HS-COL-004", name: "Balayage / Ombr\u00e9", category: "HAIR_SALON", subcategory: "Colour", defaultDuration: 150, description: "Hand-painted colour technique" },
-  { code: "HS-COL-005", name: "Fashion Colour / Vivids", category: "HAIR_SALON", subcategory: "Colour", defaultDuration: 150, description: "Bold or vivid colour application" },
-  { code: "HS-COL-006", name: "Colour Correction", category: "HAIR_SALON", subcategory: "Colour", defaultDuration: 180, description: "Fix or adjust previous colour work" },
-  { code: "HS-COL-007", name: "Rinse / Semi-Permanent Colour", category: "HAIR_SALON", subcategory: "Colour", defaultDuration: 45, description: "Temporary or semi-permanent colour" },
-  { code: "HS-COL-008", name: "Bleach & Tone", category: "HAIR_SALON", subcategory: "Colour", defaultDuration: 120, description: "Lightening and toning service" },
+  { code: "HCOL_FULL", name: "Full Colour (Single Process)", category: "HAIR_SALON", subcategory: "Colour", defaultDuration: 90, description: "All-over single colour application" },
+  { code: "HCOL_SEMI", name: "Semi-Permanent Colour", category: "HAIR_SALON", subcategory: "Colour", defaultDuration: 45, description: "Temporary or semi-permanent colour rinse" },
+  { code: "HCOL_ROOT", name: "Root Touch-Up", category: "HAIR_SALON", subcategory: "Colour", defaultDuration: 60, description: "Colour applied to roots and new growth" },
+  { code: "HCOL_HILITE", name: "Highlights (Foil)", category: "HAIR_SALON", subcategory: "Colour", defaultDuration: 120, description: "Foil highlight technique" },
+  { code: "HCOL_BALAY", name: "Balayage / Ombre", category: "HAIR_SALON", subcategory: "Colour", defaultDuration: 150, description: "Hand-painted balayage or ombre colour" },
+  { code: "HCOL_TONER", name: "Toner", category: "HAIR_SALON", subcategory: "Colour", defaultDuration: 30, description: "Toner application to adjust colour tone" },
+  { code: "HCOL_CORRECT", name: "Colour Correction", category: "HAIR_SALON", subcategory: "Colour", defaultDuration: 180, description: "Fix or adjust previous colour work" },
 
   // Treatments
-  { code: "HS-TRT-001", name: "Deep Conditioning Treatment", category: "HAIR_SALON", subcategory: "Treatments", defaultDuration: 30, description: "Intensive moisture or protein treatment" },
-  { code: "HS-TRT-002", name: "Hot Oil Treatment", category: "HAIR_SALON", subcategory: "Treatments", defaultDuration: 30, description: "Warm oil scalp and hair therapy" },
-  { code: "HS-TRT-003", name: "Scalp Treatment", category: "HAIR_SALON", subcategory: "Treatments", defaultDuration: 45, description: "Targeted treatment for scalp issues" },
-  { code: "HS-TRT-004", name: "Protein Treatment", category: "HAIR_SALON", subcategory: "Treatments", defaultDuration: 45, description: "Strengthening protein therapy" },
-  { code: "HS-TRT-005", name: "Bond Repair (Olaplex etc.)", category: "HAIR_SALON", subcategory: "Treatments", defaultDuration: 45, description: "Bond-building repair treatment" },
-  { code: "HS-TRT-006", name: "Steam Treatment", category: "HAIR_SALON", subcategory: "Treatments", defaultDuration: 30, description: "Hydrating steam therapy" },
+  { code: "HTREAT_DEEP", name: "Deep Conditioning Treatment", category: "HAIR_SALON", subcategory: "Treatments", defaultDuration: 30, description: "Intensive moisture or protein treatment" },
+  { code: "HTREAT_PROT", name: "Protein Treatment", category: "HAIR_SALON", subcategory: "Treatments", defaultDuration: 45, description: "Strengthening protein therapy" },
+  { code: "HTREAT_BOND", name: "Bond Repair Treatment", category: "HAIR_SALON", subcategory: "Treatments", defaultDuration: 45, description: "Bond-building repair treatment (Olaplex etc.)" },
+  { code: "HTREAT_HOTOIL", name: "Hot Oil Treatment", category: "HAIR_SALON", subcategory: "Treatments", defaultDuration: 30, description: "Warm oil scalp and hair therapy" },
+  { code: "HTREAT_SCALP", name: "Scalp Treatment", category: "HAIR_SALON", subcategory: "Treatments", defaultDuration: 45, description: "Targeted treatment for scalp health" },
 
   // Extensions
-  { code: "HS-EXT-001", name: "Sew-In Weave (Full)", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 150, description: "Full sew-in weave installation" },
-  { code: "HS-EXT-002", name: "Sew-In Weave (Partial / Leave-Out)", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 120, description: "Partial sew-in with leave-out" },
-  { code: "HS-EXT-003", name: "Wig Install (Lace Front)", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 60, description: "Lace front wig application and styling" },
-  { code: "HS-EXT-004", name: "Wig Customisation", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 90, description: "Custom cutting, colouring, plucking of wig" },
-  { code: "HS-EXT-005", name: "Tape-In Extensions", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 90, description: "Tape-in hair extension application" },
-  { code: "HS-EXT-006", name: "Clip-In Install & Style", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 45, description: "Install and style clip-in extensions" },
-  { code: "HS-EXT-007", name: "Ponytail Install", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 30, description: "Drawstring or clip ponytail styling" },
+  { code: "HEXT_SEWIN", name: "Sew-In Weave", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 150, description: "Full sew-in weave installation" },
+  { code: "HEXT_QUICK", name: "Quick Weave", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 90, description: "Quick weave bonded installation" },
+  { code: "HWIG_INSTALL", name: "Wig Install (Lace Front)", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 60, description: "Lace front wig application and styling" },
+  { code: "HWIG_CUSTOM", name: "Wig Customisation", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 90, description: "Custom cutting, colouring, and plucking of wig" },
+  { code: "HWIG_MAINT", name: "Wig Maintenance", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 45, description: "Wash, condition, and restyle wig" },
+  { code: "HEXT_TAPE", name: "Tape-In Extensions", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 90, description: "Tape-in hair extension application" },
+  { code: "HEXT_MICRO", name: "Micro-Link Extensions", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 150, description: "Micro-link / micro-bead extension install" },
+  { code: "HEXT_KERATIN", name: "Keratin Tip Extensions", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 180, description: "Keratin-bonded tip extension install" },
+  { code: "HEXT_CLIPIN", name: "Clip-In Install & Style", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 45, description: "Install and style clip-in extensions" },
+  { code: "HEXT_REMOVE", name: "Extension Removal", category: "HAIR_SALON", subcategory: "Extensions", defaultDuration: 60, description: "Safe removal of hair extensions" },
 
-  // Bridal & Special Occasion
-  { code: "HS-BRI-001", name: "Bridal Hair (Trial)", category: "HAIR_SALON", subcategory: "Bridal & Special Occasion", defaultDuration: 90, description: "Trial run for wedding day hairstyle" },
-  { code: "HS-BRI-002", name: "Bridal Hair (Wedding Day)", category: "HAIR_SALON", subcategory: "Bridal & Special Occasion", defaultDuration: 120, description: "Wedding day hairstyling" },
-  { code: "HS-BRI-003", name: "Special Occasion Updo", category: "HAIR_SALON", subcategory: "Bridal & Special Occasion", defaultDuration: 75, description: "Formal updo for events" },
-  { code: "HS-BRI-004", name: "Prom / Formal Style", category: "HAIR_SALON", subcategory: "Bridal & Special Occasion", defaultDuration: 75, description: "Styling for prom or formal events" },
-
-  // Add-ons
-  { code: "HS-ADD-001", name: "Blow Dry & Style", category: "HAIR_SALON", subcategory: "Add-ons", defaultDuration: 45, description: "Blow dry with round brush styling" },
-  { code: "HS-ADD-002", name: "Flat Iron / Press Add-On", category: "HAIR_SALON", subcategory: "Add-ons", defaultDuration: 20, description: "Flat iron service added to another" },
-  { code: "HS-ADD-003", name: "Trim Add-On", category: "HAIR_SALON", subcategory: "Add-ons", defaultDuration: 15, description: "Light trim added to any service" },
-  { code: "HS-ADD-004", name: "Hair Tinsel (per strand)", category: "HAIR_SALON", subcategory: "Add-ons", defaultDuration: 5, description: "Sparkle tinsel strand add-on" },
+  // Bridal & Events
+  { code: "HBRIDE_TRIAL", name: "Bridal Hair (Trial)", category: "HAIR_SALON", subcategory: "Bridal & Events", defaultDuration: 90, description: "Trial run for wedding day hairstyle" },
+  { code: "HBRIDE_DAY", name: "Bridal Hair (Wedding Day)", category: "HAIR_SALON", subcategory: "Bridal & Events", defaultDuration: 120, description: "Wedding day hairstyling" },
+  { code: "HEVENT_STYLE", name: "Event Styling", category: "HAIR_SALON", subcategory: "Bridal & Events", defaultDuration: 75, description: "Styling for prom, formal, or special events" },
 
   // ─────────────────────────────────────────────────────────────
-  // BARBERSHOP
+  // HAIR_SALON — Beauty Add-ons (4 services)
+  // ─────────────────────────────────────────────────────────────
+  { code: "HBROW_SHAPE", name: "Eyebrow Shaping", category: "HAIR_SALON", subcategory: "Beauty Add-ons", defaultDuration: 15, description: "Wax, thread, or tweeze eyebrow shaping" },
+  { code: "HBROW_TINT", name: "Eyebrow Tinting", category: "HAIR_SALON", subcategory: "Beauty Add-ons", defaultDuration: 20, description: "Semi-permanent brow colour tint" },
+  { code: "HWAX_FACE", name: "Facial Waxing", category: "HAIR_SALON", subcategory: "Beauty Add-ons", defaultDuration: 15, description: "Upper lip, chin, or full face waxing" },
+  { code: "HMAKEUP_BASIC", name: "Basic Makeup Application", category: "HAIR_SALON", subcategory: "Beauty Add-ons", defaultDuration: 45, description: "Simple everyday or event-ready makeup" },
+
+  // ─────────────────────────────────────────────────────────────
+  // BARBERSHOP (25 services)
   // ─────────────────────────────────────────────────────────────
 
   // Haircuts
-  { code: "BB-CUT-001", name: "Standard Men's Cut", category: "BARBERSHOP", subcategory: "Haircuts", defaultDuration: 30, description: "Classic barbershop haircut" },
-  { code: "BB-CUT-002", name: "Skin Fade", category: "BARBERSHOP", subcategory: "Haircuts", defaultDuration: 40, description: "Fade down to the skin" },
-  { code: "BB-CUT-003", name: "Taper Fade", category: "BARBERSHOP", subcategory: "Haircuts", defaultDuration: 35, description: "Gradual taper fade cut" },
-  { code: "BB-CUT-004", name: "Buzz Cut", category: "BARBERSHOP", subcategory: "Haircuts", defaultDuration: 20, description: "All-over clipper cut" },
-  { code: "BB-CUT-005", name: "Scissor Cut", category: "BARBERSHOP", subcategory: "Haircuts", defaultDuration: 40, description: "Full scissor haircut" },
-  { code: "BB-CUT-006", name: "Kids Cut (Under 12)", category: "BARBERSHOP", subcategory: "Haircuts", defaultDuration: 25, description: "Child-friendly haircut" },
-  { code: "BB-CUT-007", name: "Senior Cut (60+)", category: "BARBERSHOP", subcategory: "Haircuts", defaultDuration: 30, description: "Haircut for seniors" },
-  { code: "BB-CUT-008", name: "Design / Hair Art", category: "BARBERSHOP", subcategory: "Haircuts", defaultDuration: 45, description: "Custom design carved into hair" },
+  { code: "BCUT_CLASSIC", name: "Classic Cut", category: "BARBERSHOP", subcategory: "Haircuts", defaultDuration: 30, description: "Traditional barbershop haircut" },
+  { code: "BCUT_FADE", name: "Skin Fade", category: "BARBERSHOP", subcategory: "Haircuts", defaultDuration: 40, description: "Fade down to the skin" },
+  { code: "BCUT_TAPER", name: "Taper Fade", category: "BARBERSHOP", subcategory: "Haircuts", defaultDuration: 35, description: "Gradual taper fade cut" },
+  { code: "BCUT_AFRO", name: "Afro Shape-Up", category: "BARBERSHOP", subcategory: "Haircuts", defaultDuration: 40, description: "Shape and trim natural afro" },
+  { code: "BCUT_MOHAWK", name: "Mohawk / Faux Hawk", category: "BARBERSHOP", subcategory: "Haircuts", defaultDuration: 45, description: "Mohawk or faux hawk cut and style" },
+  { code: "BCUT_KIDS", name: "Kids Cut (Under 12)", category: "BARBERSHOP", subcategory: "Haircuts", defaultDuration: 25, description: "Child-friendly barber cut" },
 
   // Line-ups
-  { code: "BB-LIN-001", name: "Line-Up / Edge-Up", category: "BARBERSHOP", subcategory: "Line-ups", defaultDuration: 15, description: "Crisp line-up around hairline" },
-  { code: "BB-LIN-002", name: "Line-Up + Beard Shape", category: "BARBERSHOP", subcategory: "Line-ups", defaultDuration: 25, description: "Hairline and beard edge-up" },
+  { code: "BLINE", name: "Line-Up / Edge-Up", category: "BARBERSHOP", subcategory: "Line-ups", defaultDuration: 15, description: "Crisp line-up around hairline" },
+  { code: "BRAZOR_LINE", name: "Razor Line-Up", category: "BARBERSHOP", subcategory: "Line-ups", defaultDuration: 20, description: "Precise razor edge line-up" },
+  { code: "BNECK_TRIM", name: "Neck Trim", category: "BARBERSHOP", subcategory: "Line-ups", defaultDuration: 10, description: "Quick neckline clean-up" },
+  { code: "BDESIGN", name: "Hair Design / Art", category: "BARBERSHOP", subcategory: "Line-ups", defaultDuration: 45, description: "Custom design carved into hair" },
 
   // Beard & Shave
-  { code: "BB-BRD-001", name: "Beard Trim", category: "BARBERSHOP", subcategory: "Beard & Shave", defaultDuration: 20, description: "Shape and trim beard" },
-  { code: "BB-BRD-002", name: "Beard Shape-Up", category: "BARBERSHOP", subcategory: "Beard & Shave", defaultDuration: 15, description: "Clean edges on beard line" },
-  { code: "BB-BRD-003", name: "Hot Towel Shave", category: "BARBERSHOP", subcategory: "Beard & Shave", defaultDuration: 30, description: "Traditional straight razor shave with hot towel" },
-  { code: "BB-BRD-004", name: "Head Shave", category: "BARBERSHOP", subcategory: "Beard & Shave", defaultDuration: 30, description: "Full head shave with razor" },
+  { code: "BBEARD_TRIM", name: "Beard Trim", category: "BARBERSHOP", subcategory: "Beard & Shave", defaultDuration: 20, description: "Shape and trim full beard" },
+  { code: "BBEARD_SHAPE", name: "Beard Shape-Up", category: "BARBERSHOP", subcategory: "Beard & Shave", defaultDuration: 15, description: "Clean edges on beard line" },
+  { code: "BGOATEE", name: "Goatee Trim", category: "BARBERSHOP", subcategory: "Beard & Shave", defaultDuration: 15, description: "Shape and trim goatee" },
+  { code: "BSHAVE_HOT", name: "Hot Towel Shave", category: "BARBERSHOP", subcategory: "Beard & Shave", defaultDuration: 30, description: "Traditional straight razor shave with hot towel" },
+  { code: "BSHAVE_HEAD", name: "Head Shave", category: "BARBERSHOP", subcategory: "Beard & Shave", defaultDuration: 30, description: "Full head shave with razor" },
 
   // Colour
-  { code: "BB-COL-001", name: "Grey Blending / Camo", category: "BARBERSHOP", subcategory: "Colour", defaultDuration: 30, description: "Camouflage grey hairs for natural look" },
-  { code: "BB-COL-002", name: "Hair Colour (Full)", category: "BARBERSHOP", subcategory: "Colour", defaultDuration: 45, description: "Full hair colour application" },
-  { code: "BB-COL-003", name: "Beard Colour / Tint", category: "BARBERSHOP", subcategory: "Colour", defaultDuration: 20, description: "Colour or tint for beard" },
+  { code: "BCOL_GREY", name: "Grey Blending / Camo", category: "BARBERSHOP", subcategory: "Colour", defaultDuration: 30, description: "Camouflage grey hairs for natural look" },
+  { code: "BCOL_FULL", name: "Full Hair Colour", category: "BARBERSHOP", subcategory: "Colour", defaultDuration: 45, description: "Full hair colour application" },
+  { code: "BBEARD_COL", name: "Beard Colour / Tint", category: "BARBERSHOP", subcategory: "Colour", defaultDuration: 20, description: "Colour or tint for beard" },
 
   // Grooming
-  { code: "BB-GRM-001", name: "Eyebrow Wax / Thread", category: "BARBERSHOP", subcategory: "Grooming", defaultDuration: 10, description: "Clean up eyebrows" },
-  { code: "BB-GRM-002", name: "Nose Wax", category: "BARBERSHOP", subcategory: "Grooming", defaultDuration: 10, description: "Quick nose hair wax removal" },
+  { code: "BSCALP_TREAT", name: "Scalp Treatment", category: "BARBERSHOP", subcategory: "Grooming", defaultDuration: 30, description: "Scalp treatment for dryness or irritation" },
+  { code: "BEYEBROW", name: "Eyebrow Trim / Wax", category: "BARBERSHOP", subcategory: "Grooming", defaultDuration: 10, description: "Clean up and shape eyebrows" },
+  { code: "BNOSE_EAR", name: "Nose & Ear Hair Trim", category: "BARBERSHOP", subcategory: "Grooming", defaultDuration: 10, description: "Quick nose and ear hair removal" },
+  { code: "BFACE_MINI", name: "Mini Facial", category: "BARBERSHOP", subcategory: "Grooming", defaultDuration: 20, description: "Quick cleanse, exfoliate, and moisturise" },
 
   // Packages
-  { code: "BB-PKG-001", name: "Cut + Beard Combo", category: "BARBERSHOP", subcategory: "Packages", defaultDuration: 45, description: "Haircut and full beard service" },
-  { code: "BB-PKG-002", name: "The Works (Cut + Beard + Shave)", category: "BARBERSHOP", subcategory: "Packages", defaultDuration: 75, description: "Full haircut, beard, and shave package" },
+  { code: "BPKG_CUTBEARD", name: "Cut + Beard Combo", category: "BARBERSHOP", subcategory: "Packages", defaultDuration: 45, description: "Haircut and full beard service" },
+  { code: "BPKG_CUTSHAVE", name: "Cut + Shave Combo", category: "BARBERSHOP", subcategory: "Packages", defaultDuration: 60, description: "Haircut and hot towel shave" },
+  { code: "BPKG_VIP", name: "VIP Package", category: "BARBERSHOP", subcategory: "Packages", defaultDuration: 75, description: "Full haircut, beard trim, and hot towel shave" },
 
   // ─────────────────────────────────────────────────────────────
-  // NAIL_SALON
+  // NAIL_SALON (31 services)
   // ─────────────────────────────────────────────────────────────
 
   // Manicures
-  { code: "NS-MAN-001", name: "Classic Manicure", category: "NAIL_SALON", subcategory: "Manicures", defaultDuration: 30, description: "Shape, buff, cuticle care, and polish" },
-  { code: "NS-MAN-002", name: "French Manicure", category: "NAIL_SALON", subcategory: "Manicures", defaultDuration: 40, description: "Classic French tip manicure" },
-  { code: "NS-MAN-003", name: "Luxury / Spa Manicure", category: "NAIL_SALON", subcategory: "Manicures", defaultDuration: 50, description: "Extended manicure with scrub and mask" },
-  { code: "NS-MAN-004", name: "Express Manicure", category: "NAIL_SALON", subcategory: "Manicures", defaultDuration: 20, description: "Quick file, buff, and polish" },
+  { code: "NMAN_EXP", name: "Express Manicure", category: "NAIL_SALON", subcategory: "Manicures", defaultDuration: 20, description: "Quick file, buff, and polish" },
+  { code: "NMAN_CLASS", name: "Classic Manicure", category: "NAIL_SALON", subcategory: "Manicures", defaultDuration: 30, description: "Shape, buff, cuticle care, and polish" },
+  { code: "NMAN_MEN", name: "Men's Manicure", category: "NAIL_SALON", subcategory: "Manicures", defaultDuration: 30, description: "Grooming manicure for men" },
+  { code: "NMAN_SPA", name: "Spa Manicure", category: "NAIL_SALON", subcategory: "Manicures", defaultDuration: 45, description: "Extended manicure with scrub and mask" },
+  { code: "NMAN_DELUXE", name: "Deluxe Manicure", category: "NAIL_SALON", subcategory: "Manicures", defaultDuration: 50, description: "Premium manicure with hot towel and extras" },
 
   // Pedicures
-  { code: "NS-PED-001", name: "Classic Pedicure", category: "NAIL_SALON", subcategory: "Pedicures", defaultDuration: 45, description: "Soak, scrub, shape, and polish" },
-  { code: "NS-PED-002", name: "French Pedicure", category: "NAIL_SALON", subcategory: "Pedicures", defaultDuration: 50, description: "French tip pedicure" },
-  { code: "NS-PED-003", name: "Luxury / Spa Pedicure", category: "NAIL_SALON", subcategory: "Pedicures", defaultDuration: 60, description: "Full spa pedicure with extras" },
-  { code: "NS-PED-004", name: "Express Pedicure", category: "NAIL_SALON", subcategory: "Pedicures", defaultDuration: 25, description: "Quick pedicure \u2014 file, buff, polish" },
-  { code: "NS-PED-005", name: "Callus Removal Add-On", category: "NAIL_SALON", subcategory: "Pedicures", defaultDuration: 15, description: "Extra callus treatment" },
+  { code: "NPED_EXP", name: "Express Pedicure", category: "NAIL_SALON", subcategory: "Pedicures", defaultDuration: 25, description: "Quick pedicure — file, buff, polish" },
+  { code: "NPED_CLASS", name: "Classic Pedicure", category: "NAIL_SALON", subcategory: "Pedicures", defaultDuration: 45, description: "Soak, scrub, shape, and polish" },
+  { code: "NPED_MEN", name: "Men's Pedicure", category: "NAIL_SALON", subcategory: "Pedicures", defaultDuration: 45, description: "Grooming pedicure for men" },
+  { code: "NPED_SPA", name: "Spa Pedicure", category: "NAIL_SALON", subcategory: "Pedicures", defaultDuration: 55, description: "Full spa pedicure with extras" },
+  { code: "NPED_DELUXE", name: "Deluxe Pedicure", category: "NAIL_SALON", subcategory: "Pedicures", defaultDuration: 60, description: "Premium pedicure with hot towel and mask" },
 
   // Gel & Shellac
-  { code: "NS-GEL-001", name: "Gel Manicure", category: "NAIL_SALON", subcategory: "Gel & Shellac", defaultDuration: 45, description: "Gel polish manicure with UV/LED cure" },
-  { code: "NS-GEL-002", name: "Gel Pedicure", category: "NAIL_SALON", subcategory: "Gel & Shellac", defaultDuration: 55, description: "Gel polish pedicure with UV/LED cure" },
-  { code: "NS-GEL-003", name: "Gel Removal", category: "NAIL_SALON", subcategory: "Gel & Shellac", defaultDuration: 20, description: "Soak-off gel polish removal" },
-  { code: "NS-GEL-004", name: "Gel Removal + New Set", category: "NAIL_SALON", subcategory: "Gel & Shellac", defaultDuration: 60, description: "Remove old gel, apply fresh set" },
-  { code: "NS-GEL-005", name: "Builder Gel Overlay", category: "NAIL_SALON", subcategory: "Gel & Shellac", defaultDuration: 50, description: "Gel overlay for natural nail reinforcement" },
+  { code: "NGEL_MAN", name: "Gel Manicure", category: "NAIL_SALON", subcategory: "Gel & Shellac", defaultDuration: 45, description: "Gel polish manicure with UV/LED cure" },
+  { code: "NGEL_PED", name: "Gel Pedicure", category: "NAIL_SALON", subcategory: "Gel & Shellac", defaultDuration: 55, description: "Gel polish pedicure with UV/LED cure" },
+  { code: "NGEL_REM", name: "Gel Removal", category: "NAIL_SALON", subcategory: "Gel & Shellac", defaultDuration: 20, description: "Soak-off gel polish removal" },
 
   // Enhancements
-  { code: "NS-ENH-001", name: "Acrylic Full Set", category: "NAIL_SALON", subcategory: "Enhancements", defaultDuration: 75, description: "Full set of acrylic nails" },
-  { code: "NS-ENH-002", name: "Acrylic Fill", category: "NAIL_SALON", subcategory: "Enhancements", defaultDuration: 50, description: "Acrylic refill/maintenance" },
-  { code: "NS-ENH-003", name: "Acrylic Removal", category: "NAIL_SALON", subcategory: "Enhancements", defaultDuration: 30, description: "Safe acrylic nail removal" },
-  { code: "NS-ENH-004", name: "Dip Powder Full Set", category: "NAIL_SALON", subcategory: "Enhancements", defaultDuration: 60, description: "Full set using dip powder system" },
-  { code: "NS-ENH-005", name: "Dip Powder Refill", category: "NAIL_SALON", subcategory: "Enhancements", defaultDuration: 45, description: "Dip powder maintenance refill" },
-  { code: "NS-ENH-006", name: "Poly Gel Full Set", category: "NAIL_SALON", subcategory: "Enhancements", defaultDuration: 75, description: "Full set using poly gel" },
-  { code: "NS-ENH-007", name: "Nail Repair (per nail)", category: "NAIL_SALON", subcategory: "Enhancements", defaultDuration: 10, description: "Fix a single broken nail" },
+  { code: "NACRY_FULL", name: "Acrylic Full Set", category: "NAIL_SALON", subcategory: "Enhancements", defaultDuration: 75, description: "Full set of acrylic nails" },
+  { code: "NACRY_FILL", name: "Acrylic Fill", category: "NAIL_SALON", subcategory: "Enhancements", defaultDuration: 50, description: "Acrylic refill and maintenance" },
+  { code: "NGELBUIL_FULL", name: "Builder Gel Full Set", category: "NAIL_SALON", subcategory: "Enhancements", defaultDuration: 75, description: "Full set using builder gel" },
+  { code: "NGELBUIL_FILL", name: "Builder Gel Fill", category: "NAIL_SALON", subcategory: "Enhancements", defaultDuration: 50, description: "Builder gel refill and maintenance" },
+  { code: "NDIP", name: "Dip Powder", category: "NAIL_SALON", subcategory: "Enhancements", defaultDuration: 60, description: "Dip powder nail system application" },
+  { code: "NOVR_NAT", name: "Natural Nail Overlay", category: "NAIL_SALON", subcategory: "Enhancements", defaultDuration: 45, description: "Gel or acrylic overlay on natural nails" },
 
   // Nail Art
-  { code: "NS-ART-001", name: "Basic Nail Art (per nail)", category: "NAIL_SALON", subcategory: "Nail Art", defaultDuration: 10, description: "Simple design \u2014 lines, dots, glitter" },
-  { code: "NS-ART-002", name: "Advanced Nail Art (per nail)", category: "NAIL_SALON", subcategory: "Nail Art", defaultDuration: 20, description: "Complex hand-painted or 3D design" },
-  { code: "NS-ART-003", name: "Chrome / Mirror Finish", category: "NAIL_SALON", subcategory: "Nail Art", defaultDuration: 15, description: "Chrome or mirror powder application" },
-  { code: "NS-ART-004", name: "Foil / Stamp Design (full set)", category: "NAIL_SALON", subcategory: "Nail Art", defaultDuration: 25, description: "Foil or stamped design on all nails" },
+  { code: "NART_FRENCH", name: "French Tips", category: "NAIL_SALON", subcategory: "Nail Art", defaultDuration: 15, description: "Classic or coloured French tip design" },
+  { code: "NART_SIMPLE", name: "Simple Nail Art (per nail)", category: "NAIL_SALON", subcategory: "Nail Art", defaultDuration: 10, description: "Simple design — lines, dots, glitter" },
+  { code: "NART_DETAILED", name: "Detailed Nail Art (per nail)", category: "NAIL_SALON", subcategory: "Nail Art", defaultDuration: 20, description: "Complex hand-painted or 3D design" },
+  { code: "NART_CHROME", name: "Chrome / Mirror Finish", category: "NAIL_SALON", subcategory: "Nail Art", defaultDuration: 15, description: "Chrome or mirror powder application" },
 
   // Treatments
-  { code: "NS-TRT-001", name: "Paraffin Wax (Hands)", category: "NAIL_SALON", subcategory: "Treatments", defaultDuration: 15, description: "Warm paraffin wax hand treatment" },
-  { code: "NS-TRT-002", name: "Paraffin Wax (Feet)", category: "NAIL_SALON", subcategory: "Treatments", defaultDuration: 15, description: "Warm paraffin wax foot treatment" },
-  { code: "NS-TRT-003", name: "Nail Strengthening Treatment", category: "NAIL_SALON", subcategory: "Treatments", defaultDuration: 20, description: "Keratin or hardener nail therapy" },
+  { code: "NREPAIR", name: "Nail Repair (per nail)", category: "NAIL_SALON", subcategory: "Treatments", defaultDuration: 10, description: "Fix a single broken or damaged nail" },
+  { code: "NCUTICLE_TREAT", name: "Cuticle Treatment", category: "NAIL_SALON", subcategory: "Treatments", defaultDuration: 15, description: "Cuticle care and conditioning" },
+  { code: "NSTRENGTH", name: "Nail Strengthening Treatment", category: "NAIL_SALON", subcategory: "Treatments", defaultDuration: 20, description: "Keratin or hardener nail therapy" },
+  { code: "NCALLUS", name: "Callus Removal", category: "NAIL_SALON", subcategory: "Treatments", defaultDuration: 15, description: "Professional callus treatment" },
+  { code: "NPARAFFIN_HAND", name: "Paraffin Wax (Hands)", category: "NAIL_SALON", subcategory: "Treatments", defaultDuration: 15, description: "Warm paraffin wax hand treatment" },
+  { code: "NPARAFFIN_FOOT", name: "Paraffin Wax (Feet)", category: "NAIL_SALON", subcategory: "Treatments", defaultDuration: 15, description: "Warm paraffin wax foot treatment" },
 
   // Kids
-  { code: "NS-KID-001", name: "Kids Manicure", category: "NAIL_SALON", subcategory: "Kids", defaultDuration: 20, description: "Fun manicure for children" },
-  { code: "NS-KID-002", name: "Kids Pedicure", category: "NAIL_SALON", subcategory: "Kids", defaultDuration: 25, description: "Gentle pedicure for children" },
+  { code: "NKIDS_MAN", name: "Kids Manicure", category: "NAIL_SALON", subcategory: "Kids", defaultDuration: 20, description: "Fun manicure for children" },
+  { code: "NKIDS_PED", name: "Kids Pedicure", category: "NAIL_SALON", subcategory: "Kids", defaultDuration: 25, description: "Gentle pedicure for children" },
 ];
 
 async function main() {
   console.log("Seeding master service catalog...");
   console.log(`Total services to upsert: ${masterServices.length}`);
 
+  // Delete all existing master services (old codes will be cleared;
+  // Service.masterServiceId FK has onDelete: SetNull so linked services are safe)
+  const deleted = await prisma.masterService.deleteMany({});
+  console.log(`Deleted ${deleted.count} existing master service records`);
+
   let created = 0;
-  let updated = 0;
 
   for (const service of masterServices) {
-    const result = await prisma.masterService.upsert({
-      where: { code: service.code },
-      update: {
-        name: service.name,
-        category: service.category,
-        subcategory: service.subcategory,
-        defaultDuration: service.defaultDuration,
-        description: service.description,
-        isActive: true,
-      },
-      create: {
+    await prisma.masterService.create({
+      data: {
         code: service.code,
         name: service.name,
         category: service.category,
@@ -221,20 +221,10 @@ async function main() {
         isActive: true,
       },
     });
-
-    // If updatedAt is very close to createdAt, it was likely just created
-    const wasCreated =
-      result.createdAt.getTime() === result.updatedAt.getTime();
-    if (wasCreated) {
-      created++;
-    } else {
-      updated++;
-    }
+    created++;
   }
 
-  console.log(
-    `Master services seeded: ${created} created, ${updated} updated`
-  );
+  console.log(`Master services created: ${created}`);
 
   // Set onboardingComplete = true for all existing businesses
   const businessResult = await prisma.business.updateMany({
@@ -244,6 +234,10 @@ async function main() {
   console.log(
     `Updated ${businessResult.count} businesses with onboardingComplete = true`
   );
+
+  // Final count verification
+  const totalCount = await prisma.masterService.count();
+  console.log(`Total MasterService records in database: ${totalCount}`);
 
   console.log("Catalog seed completed successfully!");
 }
