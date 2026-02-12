@@ -18,8 +18,13 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "SalonixPro - Professional Salon Management",
-  description: "Complete salon management solution for appointments, clients, inventory, and more. One system. One salon. Total control.",
+  metadataBase: new URL("https://salonixpro.com"),
+  title: {
+    default: "SalonixPro — Professional Salon Management for the Caribbean",
+    template: "%s — SalonixPro",
+  },
+  description:
+    "The all-in-one platform for Caribbean salons, barbershops, and nail studios. Appointments, clients, inventory, finances — everything in one place.",
   manifest: "/manifest.json",
   icons: {
     icon: "/favicon.svg",
@@ -35,9 +40,22 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: "SalonixPro - Professional Salon Management",
-    description: "One system. One salon. Total control.",
+    url: "https://salonixpro.com",
+    title: "SalonixPro — Professional Salon Management for the Caribbean",
+    description:
+      "The all-in-one platform for Caribbean salons, barbershops, and nail studios. Appointments, clients, inventory, finances — everything in one place.",
     siteName: "SalonixPro",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SalonixPro — Professional Salon Management for the Caribbean",
+    description:
+      "The all-in-one platform for Caribbean salons, barbershops, and nail studios. Appointments, clients, inventory, finances — everything in one place.",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
