@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Clock,
   Check,
@@ -10,7 +9,6 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronUp,
-  User,
   Scissors,
   Phone,
   Mail,
@@ -23,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 interface PendingDeposit {
   id: string;
@@ -74,7 +73,6 @@ export function PendingConfirmations() {
 
   useEffect(() => {
     fetchPendingDeposits();
-    // Refresh every 30 seconds
     const interval = setInterval(fetchPendingDeposits, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -111,8 +109,8 @@ export function PendingConfirmations() {
       if (response.ok) {
         toast({
           title: action === "confirm" ? "Payment Confirmed" : action === "waive" ? "Deposit Waived" : "Booking Cancelled",
-          description: action === "confirm" 
-            ? "The booking has been confirmed" 
+          description: action === "confirm"
+            ? "The booking has been confirmed"
             : action === "waive"
             ? "Deposit requirement has been waived"
             : "The booking has been cancelled and slot reopened",
@@ -144,16 +142,18 @@ export function PendingConfirmations() {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-teal-600" />
+      <Card className="border border-gray-100 shadow-sm rounded-2xl overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-gray-50/80 to-white">
+          <CardTitle className="flex items-center gap-2.5 text-lg font-bold">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-amber-100 to-orange-50">
+              <CreditCard className="w-4 h-4 text-amber-600" />
+            </div>
             Pending Confirmations
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="w-6 h-6 animate-spin text-gray-300" />
           </div>
         </CardContent>
       </Card>
@@ -162,18 +162,22 @@ export function PendingConfirmations() {
 
   if (!data || data.counts.total === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-teal-600" />
+      <Card className="border border-gray-100 shadow-sm rounded-2xl overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-gray-50/80 to-white">
+          <CardTitle className="flex items-center gap-2.5 text-lg font-bold">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-amber-100 to-orange-50">
+              <CreditCard className="w-4 h-4 text-amber-600" />
+            </div>
             Pending Confirmations
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <Check className="w-12 h-12 mx-auto mb-2 text-green-500" />
-            <p>No pending confirmations</p>
-            <p className="text-sm">All deposit payments are up to date</p>
+          <div className="text-center py-10">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-50 to-green-50 flex items-center justify-center mx-auto mb-3">
+              <Check className="w-7 h-7 text-emerald-500" />
+            </div>
+            <p className="font-semibold text-gray-600">All caught up!</p>
+            <p className="text-sm text-gray-400 mt-1">No pending confirmations right now</p>
           </div>
         </CardContent>
       </Card>
@@ -184,234 +188,244 @@ export function PendingConfirmations() {
     const isExpanded = expandedId === deposit.id;
     const isProcessing = processingId === deposit.id;
 
+    const borderColor =
+      type === "submitted" ? "border-l-orange-400" :
+      type === "expired" ? "border-l-red-400" :
+      deposit.isUrgent ? "border-l-amber-400" :
+      "border-l-gray-300";
+
+    const bgColor =
+      type === "submitted" ? "bg-gradient-to-r from-orange-50/60 to-white" :
+      type === "expired" ? "bg-gradient-to-r from-red-50/60 to-white" :
+      deposit.isUrgent ? "bg-gradient-to-r from-amber-50/60 to-white" :
+      "bg-white";
+
     return (
-      <motion.div
+      <div
         key={deposit.id}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`border rounded-lg overflow-hidden ${
-          type === "submitted" 
-            ? "border-orange-200 bg-orange-50/50" 
-            : type === "expired"
-            ? "border-red-200 bg-red-50/50"
-            : deposit.isUrgent 
-            ? "border-amber-200 bg-amber-50/50" 
-            : "border-gray-200"
-        }`}
+        className={cn(
+          "rounded-xl overflow-hidden border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md border-l-4",
+          borderColor,
+          bgColor
+        )}
       >
         {/* Header */}
-        <div 
+        <div
           className="p-4 cursor-pointer"
           onClick={() => setExpandedId(isExpanded ? null : deposit.id)}
         >
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-mono font-bold text-sm">{deposit.bookingReference}</span>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="font-mono font-bold text-sm text-gray-800">{deposit.bookingReference}</span>
                 {type === "submitted" && (
-                  <Badge className="bg-orange-100 text-orange-700 border-orange-200">
+                  <Badge className="bg-orange-100 text-orange-700 border-0 font-bold text-[10px]">
                     Payment Submitted
                   </Badge>
                 )}
                 {type === "expired" && (
-                  <Badge variant="destructive">Expired</Badge>
+                  <Badge className="bg-red-100 text-red-700 border-0 font-bold text-[10px]">
+                    Expired
+                  </Badge>
                 )}
                 {deposit.isUrgent && type === "pending" && (
-                  <Badge className="bg-amber-100 text-amber-700 border-amber-200">
+                  <Badge className="bg-amber-100 text-amber-700 border-0 font-bold text-[10px]">
                     <AlertTriangle className="w-3 h-3 mr-1" />
                     Urgent
                   </Badge>
                 )}
               </div>
-              <p className="font-medium">
+              <p className="font-semibold text-gray-900">
                 {deposit.client.firstName} {deposit.client.lastName}
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500 mt-0.5">
                 {deposit.services.map(s => s.serviceName).join(", ")}
               </p>
             </div>
-            <div className="text-right">
-              <p className="font-bold text-teal-600">
+            <div className="text-right ml-4">
+              <p className="font-bold text-teal-600 text-lg">
                 ${deposit.depositAmount?.toFixed(2)}
               </p>
               {deposit.timeRemaining && !deposit.isExpired && (
-                <p className={`text-xs ${deposit.isUrgent ? "text-amber-600 font-medium" : "text-muted-foreground"}`}>
-                  <Clock className="w-3 h-3 inline mr-1" />
+                <p className={cn(
+                  "text-xs flex items-center gap-1 justify-end mt-0.5",
+                  deposit.isUrgent ? "text-amber-600 font-bold" : "text-gray-400"
+                )}>
+                  <Clock className="w-3 h-3" />
                   {deposit.timeRemaining} left
                 </p>
               )}
-              {isExpanded ? (
-                <ChevronUp className="w-4 h-4 mt-2 mx-auto text-muted-foreground" />
-              ) : (
-                <ChevronDown className="w-4 h-4 mt-2 mx-auto text-muted-foreground" />
-              )}
+              <div className="mt-2">
+                {isExpanded ? (
+                  <ChevronUp className="w-4 h-4 mx-auto text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 mx-auto text-gray-400" />
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Expanded Details */}
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="border-t"
-            >
-              <div className="p-4 space-y-3 bg-white/50">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Appointment</p>
-                    <p className="font-medium">{formatDate(deposit.requestedDate)}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Total Price</p>
-                    <p className="font-medium">${deposit.totalPrice.toFixed(2)}</p>
-                  </div>
-                  {deposit.stylist && (
-                    <div>
-                      <p className="text-muted-foreground">Stylist</p>
-                      <p className="font-medium flex items-center gap-1">
-                        <Scissors className="w-3 h-3" />
-                        {deposit.stylist.firstName} {deposit.stylist.lastName}
-                      </p>
-                    </div>
-                  )}
-                  {deposit.paymentDeadline && (
-                    <div>
-                      <p className="text-muted-foreground">Deadline</p>
-                      <p className="font-medium">{formatDate(deposit.paymentDeadline)}</p>
-                    </div>
-                  )}
+        {isExpanded && (
+          <div className="border-t border-gray-100">
+            <div className="p-4 space-y-4 bg-white/60">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Appointment</p>
+                  <p className="font-semibold text-gray-800 mt-0.5">{formatDate(deposit.requestedDate)}</p>
                 </div>
-
-                {/* Contact Info */}
-                <div className="flex gap-4 text-sm pt-2 border-t">
-                  <a 
-                    href={`tel:${deposit.client.phone}`}
-                    className="flex items-center gap-1 text-teal-600 hover:text-teal-700"
-                  >
-                    <Phone className="w-4 h-4" />
-                    {deposit.client.phone}
-                  </a>
-                  {deposit.client.email && (
-                    <a 
-                      href={`mailto:${deposit.client.email}`}
-                      className="flex items-center gap-1 text-teal-600 hover:text-teal-700"
-                    >
-                      <Mail className="w-4 h-4" />
-                      Email
-                    </a>
-                  )}
+                <div>
+                  <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Total Price</p>
+                  <p className="font-semibold text-gray-800 mt-0.5">${deposit.totalPrice.toFixed(2)}</p>
                 </div>
-
-                {deposit.paymentSubmittedAt && (
-                  <div className="text-sm bg-green-50 text-green-700 p-2 rounded">
-                    Payment submitted {formatDate(deposit.paymentSubmittedAt)}
+                {deposit.stylist && (
+                  <div>
+                    <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Stylist</p>
+                    <p className="font-semibold text-gray-800 mt-0.5 flex items-center gap-1">
+                      <Scissors className="w-3 h-3 text-gray-400" />
+                      {deposit.stylist.firstName} {deposit.stylist.lastName}
+                    </p>
                   </div>
                 )}
-
-                {/* Action Buttons */}
-                {type !== "expired" && (
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAction(deposit.id, "confirm");
-                      }}
-                      disabled={isProcessing}
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                    >
-                      {isProcessing ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <>
-                          <Check className="w-4 h-4 mr-1" />
-                          Confirm Payment
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAction(deposit.id, "waive");
-                      }}
-                      disabled={isProcessing}
-                    >
-                      Waive
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAction(deposit.id, "reject");
-                      }}
-                      disabled={isProcessing}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
-
-                {type === "expired" && (
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAction(deposit.id, "confirm");
-                      }}
-                      disabled={isProcessing}
-                      className="flex-1"
-                    >
-                      {isProcessing ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <>
-                          <Check className="w-4 h-4 mr-1" />
-                          Confirm Anyway
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAction(deposit.id, "reject");
-                      }}
-                      disabled={isProcessing}
-                    >
-                      <Ban className="w-4 h-4 mr-1" />
-                      Cancel
-                    </Button>
+                {deposit.paymentDeadline && (
+                  <div>
+                    <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Deadline</p>
+                    <p className="font-semibold text-gray-800 mt-0.5">{formatDate(deposit.paymentDeadline)}</p>
                   </div>
                 )}
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+
+              {/* Contact Info */}
+              <div className="flex gap-4 text-sm pt-3 border-t border-gray-100">
+                <a
+                  href={`tel:${deposit.client.phone}`}
+                  className="flex items-center gap-1.5 text-teal-600 hover:text-teal-700 font-medium"
+                >
+                  <Phone className="w-4 h-4" />
+                  {deposit.client.phone}
+                </a>
+                {deposit.client.email && (
+                  <a
+                    href={`mailto:${deposit.client.email}`}
+                    className="flex items-center gap-1.5 text-teal-600 hover:text-teal-700 font-medium"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Email
+                  </a>
+                )}
+              </div>
+
+              {deposit.paymentSubmittedAt && (
+                <div className="text-sm bg-emerald-50 text-emerald-700 p-3 rounded-xl font-medium">
+                  Payment submitted {formatDate(deposit.paymentSubmittedAt)}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              {type !== "expired" && (
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAction(deposit.id, "confirm");
+                    }}
+                    disabled={isProcessing}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 rounded-xl font-semibold shadow-sm"
+                  >
+                    {isProcessing ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4 mr-1.5" />
+                        Confirm Payment
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAction(deposit.id, "waive");
+                    }}
+                    disabled={isProcessing}
+                    className="rounded-xl font-semibold"
+                  >
+                    Waive
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAction(deposit.id, "reject");
+                    }}
+                    disabled={isProcessing}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+
+              {type === "expired" && (
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAction(deposit.id, "confirm");
+                    }}
+                    disabled={isProcessing}
+                    className="flex-1 rounded-xl font-semibold"
+                  >
+                    {isProcessing ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4 mr-1.5" />
+                        Confirm Anyway
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAction(deposit.id, "reject");
+                    }}
+                    disabled={isProcessing}
+                    className="rounded-xl font-semibold"
+                  >
+                    <Ban className="w-4 h-4 mr-1.5" />
+                    Cancel
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     );
   };
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border border-gray-100 shadow-sm rounded-2xl overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-gray-50/80 to-white">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-teal-600" />
+          <CardTitle className="flex items-center gap-2.5 text-lg font-bold">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-amber-100 to-orange-50">
+              <CreditCard className="w-4 h-4 text-amber-600" />
+            </div>
             Pending Confirmations
             {data.counts.total > 0 && (
-              <Badge variant="secondary" className="ml-2">
+              <span className="ml-1 text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
                 {data.counts.total}
-              </Badge>
+              </span>
             )}
           </CardTitle>
           <Button
@@ -419,20 +433,21 @@ export function PendingConfirmations() {
             size="sm"
             onClick={() => fetchPendingDeposits(true)}
             disabled={isRefreshing}
+            className="rounded-xl hover:bg-gray-100"
           >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
+            <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-5">
         {/* Submitted Payments - Need Action */}
         {data.submitted.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-orange-700 mb-2 flex items-center gap-1">
-              <AlertTriangle className="w-4 h-4" />
+            <h4 className="text-xs font-bold uppercase tracking-wider text-orange-600 mb-3 flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5" />
               Payments Submitted ({data.counts.submitted})
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {data.submitted.map((d) => renderDepositCard(d, "submitted"))}
             </div>
           </div>
@@ -441,10 +456,10 @@ export function PendingConfirmations() {
         {/* Pending Payments - Awaiting Customer */}
         {data.pending.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
               Awaiting Payment ({data.counts.pending})
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {data.pending.map((d) => renderDepositCard(d, "pending"))}
             </div>
           </div>
@@ -453,10 +468,10 @@ export function PendingConfirmations() {
         {/* Expired */}
         {data.expired.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-red-600 mb-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-red-500 mb-3">
               Expired ({data.counts.expired})
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {data.expired.map((d) => renderDepositCard(d, "expired"))}
             </div>
           </div>
