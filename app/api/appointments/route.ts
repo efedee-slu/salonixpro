@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
+import { sendAppointmentConfirmation } from "@/lib/email";
 
 // GET appointments for the business
 export async function GET(request: Request) {
@@ -167,6 +168,27 @@ export async function POST(request: Request) {
         },
       },
     });
+
+    // Send confirmation email to client if they have an email
+    if (appointment.client.email) {
+      const business = await prisma.business.findUnique({
+        where: { id: session.user.businessId },
+        select: { name: true, currencySymbol: true },
+      });
+
+      sendAppointmentConfirmation({
+        to: appointment.client.email,
+        clientName: `${appointment.client.firstName} ${appointment.client.lastName}`,
+        businessName: business?.name || "Salon",
+        stylistName: appointment.stylist ? `${appointment.stylist.firstName} ${appointment.stylist.lastName}` : "Any available",
+        date: appointment.requestedDate,
+        duration: appointment.duration,
+        services: appointment.services.map((s) => s.service.name),
+        totalPrice: Number(appointment.totalPrice),
+        currencySymbol: business?.currencySymbol || "EC$",
+        notes: appointment.notes || undefined,
+      }).catch((err) => console.error("Failed to send appointment confirmation:", err));
+    }
 
     // Transform for frontend compatibility
     const transformedAppointment = {

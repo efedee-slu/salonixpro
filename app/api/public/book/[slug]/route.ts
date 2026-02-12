@@ -1,12 +1,13 @@
 // app/api/public/book/[slug]/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { 
-  generateBookingReference, 
-  calculateDeposit, 
+import {
+  generateBookingReference,
+  calculateDeposit,
   calculatePaymentDeadline,
-  createNotification 
+  createNotification
 } from "@/lib/booking";
+import { sendAppointmentConfirmation, sendNewBookingNotification } from "@/lib/email";
 
 export async function GET(
   request: Request,
@@ -295,6 +296,41 @@ export async function POST(
       `${client.firstName} ${client.lastName} booked ${serviceRecords.map(s => s.name).join(", ")} for ${requestedDate.toLocaleDateString()} at ${time}`,
       { appointmentId: appointment.id, bookingReference }
     );
+
+    // Send confirmation email to customer
+    if (client.email) {
+      sendAppointmentConfirmation({
+        to: client.email,
+        clientName: `${client.firstName} ${client.lastName}`,
+        businessName: business.name,
+        stylistName: `${stylist.firstName} ${stylist.lastName}`,
+        date: requestedDate,
+        duration: totalDuration,
+        services: serviceRecords.map((s) => s.name),
+        totalPrice,
+        currencySymbol: business.currencySymbol || "EC$",
+        bookingReference,
+        notes: customer.notes || undefined,
+      }).catch((err) => console.error("Failed to send booking confirmation:", err));
+    }
+
+    // Notify salon owner via email
+    if (business.email) {
+      sendNewBookingNotification({
+        to: business.email,
+        businessName: business.name,
+        clientName: `${client.firstName} ${client.lastName}`,
+        clientPhone: client.phone || undefined,
+        stylistName: `${stylist.firstName} ${stylist.lastName}`,
+        date: requestedDate,
+        services: serviceRecords.map((s) => s.name),
+        totalPrice,
+        currencySymbol: business.currencySymbol || "EC$",
+        bookingReference,
+        requiresDeposit: business.requiresDeposit,
+        depositAmount: depositAmount ? Number(depositAmount) : undefined,
+      }).catch((err) => console.error("Failed to send new booking notification:", err));
+    }
 
     return NextResponse.json({
       success: true,

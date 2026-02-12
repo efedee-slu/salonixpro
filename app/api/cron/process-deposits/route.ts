@@ -5,6 +5,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/booking";
+import { sendDepositExpired, sendPaymentDeadlineWarning } from "@/lib/email";
 
 export async function GET(request: Request) {
   try {
@@ -52,6 +53,17 @@ export async function GET(request: Request) {
         `Booking ${apt.bookingReference} for ${apt.client.firstName} ${apt.client.lastName} was automatically cancelled due to payment deadline expiry.`,
         { appointmentId: apt.id, bookingReference: apt.bookingReference }
       );
+
+      // Email client about expiry
+      if (apt.client.email) {
+        sendDepositExpired({
+          to: apt.client.email,
+          clientName: `${apt.client.firstName} ${apt.client.lastName}`,
+          businessName: apt.business.name,
+          bookingReference: apt.bookingReference || "",
+          date: apt.requestedDate,
+        }).catch((err) => console.error("Failed to send deposit expired email:", err));
+      }
     }
 
     // 2. Send 30-minute warning notifications
@@ -66,6 +78,7 @@ export async function GET(request: Request) {
       },
       include: {
         client: true,
+        business: true,
       },
     });
 
@@ -94,6 +107,24 @@ export async function GET(request: Request) {
           { appointmentId: apt.id, bookingReference: apt.bookingReference },
           true // isUrgent
         );
+
+        // Email client about deadline
+        if (apt.client.email && apt.paymentDeadline) {
+          sendPaymentDeadlineWarning({
+            to: apt.client.email,
+            clientName: `${apt.client.firstName} ${apt.client.lastName}`,
+            businessName: apt.business.name,
+            depositAmount: Number(apt.depositAmount),
+            currencySymbol: apt.business.currencySymbol || "EC$",
+            bookingReference: apt.bookingReference || "",
+            date: apt.requestedDate,
+            paymentDeadline: apt.paymentDeadline,
+            bankName: apt.business.bankName || undefined,
+            bankAccountName: apt.business.bankAccountName || undefined,
+            bankAccountNumber: apt.business.bankAccountNumber || undefined,
+            paymentInstructions: apt.business.paymentInstructions || undefined,
+          }).catch((err) => console.error("Failed to send deadline warning email:", err));
+        }
       }
     }
 

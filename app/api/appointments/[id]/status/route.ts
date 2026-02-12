@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sendAppointmentCancellation } from "@/lib/email";
 
 // PATCH update appointment status
 export async function PATCH(
@@ -77,6 +78,24 @@ export async function PATCH(
           lastVisitAt: new Date(),
         },
       });
+    }
+
+    // Send cancellation email if status changed to CANCELLED
+    if (status === "CANCELLED" && appointment.client.email) {
+      const business = await prisma.business.findUnique({
+        where: { id: session.user.businessId },
+        select: { name: true },
+      });
+
+      sendAppointmentCancellation({
+        to: appointment.client.email,
+        clientName: `${appointment.client.firstName} ${appointment.client.lastName}`,
+        businessName: business?.name || "Salon",
+        date: appointment.requestedDate,
+        services: appointment.services.map((s) => s.service.name),
+        cancelReason: body.reason,
+        bookingReference: appointment.bookingReference || undefined,
+      }).catch((err) => console.error("Failed to send cancellation email:", err));
     }
 
     // Transform for frontend

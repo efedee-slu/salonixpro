@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/booking";
+import { sendDepositSubmittedNotification, sendDepositConfirmed, sendDepositRejected } from "@/lib/email";
 
 // GET - Get deposit status for an appointment (public access with booking reference)
 export async function GET(
@@ -160,6 +161,23 @@ export async function POST(
         true // Mark as urgent
       );
 
+      // Email notification to salon owner
+      const business = await prisma.business.findUnique({
+        where: { id: result.businessId },
+        select: { name: true, email: true, currencySymbol: true },
+      });
+      if (business?.email) {
+        sendDepositSubmittedNotification({
+          to: business.email,
+          businessName: business.name,
+          clientName: `${result.client.firstName} ${result.client.lastName}`,
+          depositAmount: Number(result.depositAmount),
+          currencySymbol: business.currencySymbol || "EC$",
+          bookingReference: bookingReference,
+          date: result.requestedDate,
+        }).catch((err) => console.error("Failed to send deposit submitted email:", err));
+      }
+
       return NextResponse.json({ success: true });
     }
 
@@ -214,6 +232,23 @@ export async function PUT(
         },
       });
 
+      // Email client that deposit is confirmed
+      if (appointment.client.email) {
+        const business = await prisma.business.findUnique({
+          where: { id: session.user.businessId },
+          select: { name: true, currencySymbol: true },
+        });
+        sendDepositConfirmed({
+          to: appointment.client.email,
+          clientName: `${appointment.client.firstName} ${appointment.client.lastName}`,
+          businessName: business?.name || "Salon",
+          depositAmount: Number(appointment.depositAmount),
+          currencySymbol: business?.currencySymbol || "EC$",
+          bookingReference: appointment.bookingReference || "",
+          date: appointment.requestedDate,
+        }).catch((err) => console.error("Failed to send deposit confirmed email:", err));
+      }
+
       return NextResponse.json({ success: true, message: "Payment confirmed" });
     }
 
@@ -227,6 +262,23 @@ export async function PUT(
           cancelReason: body.reason || "Payment not verified",
         },
       });
+
+      // Email client that deposit was rejected
+      if (appointment.client.email) {
+        const business = await prisma.business.findUnique({
+          where: { id: session.user.businessId },
+          select: { name: true, currencySymbol: true },
+        });
+        sendDepositRejected({
+          to: appointment.client.email,
+          clientName: `${appointment.client.firstName} ${appointment.client.lastName}`,
+          businessName: business?.name || "Salon",
+          depositAmount: Number(appointment.depositAmount),
+          currencySymbol: business?.currencySymbol || "EC$",
+          bookingReference: appointment.bookingReference || "",
+          date: appointment.requestedDate,
+        }).catch((err) => console.error("Failed to send deposit rejected email:", err));
+      }
 
       return NextResponse.json({ success: true, message: "Booking cancelled" });
     }

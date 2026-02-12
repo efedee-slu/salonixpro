@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { getCurrencyForCountry } from "@/lib/currencies";
+import { sendWelcomeEmail } from "@/lib/email";
 
 // Default business hours
 const defaultBusinessHours = [
@@ -174,6 +175,14 @@ export async function POST(request: Request) {
         ...sched,
       })),
     });
+
+    // Send welcome email (non-blocking)
+    sendWelcomeEmail({
+      to: email.toLowerCase(),
+      firstName: ownerFirstName,
+      businessName,
+      trialEndsAt,
+    }).catch((err) => console.error("Failed to send welcome email:", err));
 
     return NextResponse.json({
       success: true,

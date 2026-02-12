@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
+import { sendOrderConfirmation } from "@/lib/email";
 
 const VALID_ORDER_STATUSES = ["CART", "PENDING", "CONFIRMED", "READY", "COMPLETED", "CANCELLED"];
 
@@ -213,6 +214,7 @@ export async function POST(request: Request) {
               firstName: true,
               lastName: true,
               phone: true,
+              email: true,
             },
           },
           items: true,
@@ -233,6 +235,34 @@ export async function POST(request: Request) {
 
       return newOrder;
     });
+
+    // Send order confirmation email if customer has email
+    const customerEmail = order.client?.email || body.customerEmail;
+    if (customerEmail) {
+      const business = await prisma.business.findUnique({
+        where: { id: session.user.businessId },
+        select: { name: true, currencySymbol: true },
+      });
+      sendOrderConfirmation({
+        to: customerEmail,
+        customerName: order.client
+          ? `${order.client.firstName} ${order.client.lastName}`
+          : order.customerName || "Customer",
+        businessName: business?.name || "Salon",
+        orderNumber: order.orderNumber,
+        items: order.items.map((item) => ({
+          name: item.productName,
+          quantity: item.quantity,
+          price: Number(item.lineTotal),
+        })),
+        subtotal: Number(order.subtotal),
+        discount: Number(order.discount),
+        total: Number(order.total),
+        currencySymbol: business?.currencySymbol || "EC$",
+        paymentMethod: body.paymentMethod,
+        pickupDate: body.pickupDate ? new Date(body.pickupDate) : undefined,
+      }).catch((err) => console.error("Failed to send order confirmation:", err));
+    }
 
     return NextResponse.json(order, { status: 201 });
   } catch (error) {
