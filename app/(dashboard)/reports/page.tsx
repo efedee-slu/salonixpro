@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   BarChart3,
   TrendingUp,
@@ -40,6 +41,7 @@ import {
   Legend,
 } from "recharts";
 import { useToast } from "@/components/ui/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatCurrency } from "@/lib/utils";
@@ -172,7 +174,7 @@ const PIE_COLORS = ["#0d9488", "#06b6d4", "#8b5cf6", "#f59e0b", "#ec4899", "#10b
 const CHART_TOOLTIP_STYLE = {
   backgroundColor: "hsl(var(--card))",
   border: "1px solid hsl(var(--border))",
-  borderRadius: "12px",
+  borderRadius: "0.75rem",
   boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
 };
 
@@ -303,47 +305,20 @@ export default function ReportsPage() {
   if (isLoading || !data) {
     return (
       <div className="space-y-6">
-        {/* Banner Skeleton */}
-        <div className="animate-in stagger-1 relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#312e81] via-[#4338ca] to-[#7c3aed] p-8 lg:p-10 shadow-2xl shadow-indigo-900/20 ring-1 ring-white/10">
-          <div className="absolute inset-0 shimmer pointer-events-none" />
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-indigo-400/15 blur-3xl animate-float" />
-            <div className="absolute -bottom-32 -left-16 w-96 h-96 rounded-full bg-purple-400/10 blur-3xl animate-float-delayed" />
-          </div>
-          <div className="relative">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-              <div className="h-3 w-32 skeleton-shimmer rounded" />
-            </div>
-            <div className="h-9 w-48 skeleton-shimmer rounded mb-2" />
-            <div className="h-4 w-64 skeleton-shimmer rounded" />
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
+            <p className="text-muted-foreground">Business analytics and insights</p>
           </div>
         </div>
-
-        {/* Stat Cards Skeleton */}
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className={cn("animate-in glass-card glow-border p-5 rounded-2xl", `stagger-${i + 2}`)}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-11 h-11 rounded-xl skeleton-shimmer" />
-              </div>
-              <div className="h-8 w-24 skeleton-shimmer rounded mb-2" />
-              <div className="h-4 w-32 skeleton-shimmer rounded" />
-            </div>
+            <div key={i} className="h-32 bg-muted animate-pulse rounded-xl" />
           ))}
         </div>
-
-        {/* Content Skeleton */}
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-              <div className="p-6 space-y-3">
-                <div className="h-5 w-32 skeleton-shimmer rounded" />
-                <div className="h-4 w-48 skeleton-shimmer rounded" />
-                <div className="h-32 skeleton-shimmer rounded" />
-              </div>
-            </div>
+            <div key={i} className="h-64 bg-muted animate-pulse rounded-xl" />
           ))}
         </div>
       </div>
@@ -354,199 +329,147 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      {/* ═══════ BANNER ═══════ */}
-      <div className="animate-in stagger-1 relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#312e81] via-[#4338ca] to-[#7c3aed] p-8 lg:p-10 shadow-2xl shadow-indigo-900/20 ring-1 ring-white/10">
-        {/* Shimmer overlay */}
-        <div className="absolute inset-0 shimmer pointer-events-none" />
-
-        {/* Decorative animated shapes */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-indigo-400/15 blur-3xl animate-float" />
-          <div className="absolute -bottom-32 -left-16 w-96 h-96 rounded-full bg-purple-400/10 blur-3xl animate-float-delayed" />
-          <div className="absolute top-1/2 right-1/4 w-48 h-48 rounded-full bg-violet-400/10 blur-2xl animate-float-slow" />
-          <div className="absolute top-8 right-16 w-16 h-16 border border-white/[0.08] rounded-2xl rotate-12 animate-float" />
-          <div className="absolute top-1/2 right-8 w-10 h-10 border border-white/[0.06] rounded-xl rotate-45 animate-float-delayed" />
-          <div className="absolute bottom-8 right-1/3 w-20 h-20 border border-white/[0.05] rounded-full animate-float-slow" />
-          <div className="absolute top-4 left-1/3 w-6 h-6 bg-white/[0.04] rounded-lg rotate-12 animate-float" />
-          <div className="absolute inset-0 opacity-[0.03]" style={{
-            backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)",
-            backgroundSize: "20px 20px",
-          }} />
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
+          <p className="text-muted-foreground">Business analytics and insights</p>
         </div>
-
-        <div className="relative">
-          {/* Top row: title + date range pills + export */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-6">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-                <p className="text-indigo-200/60 text-xs font-semibold tracking-widest uppercase">Analytics & Insights</p>
-              </div>
-              <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight text-glow leading-[1.1]">
-                Reports
-              </h1>
-              <p className="text-indigo-100/60 mt-2 text-[15px] leading-relaxed max-w-lg">
-                Business analytics and insights for your salon
-              </p>
-            </div>
-            <div className="flex items-center gap-3 flex-wrap">
-              {/* Date range pills */}
-              <div className="flex gap-1.5">
-                {(["today", "week", "month", "year"] as DateRange[]).map((range) => (
-                  <button
-                    key={range}
-                    onClick={() => setDateRange(range)}
-                    className={cn(
-                      "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                      dateRange === range
-                        ? "bg-white/20 text-white shadow-lg"
-                        : "bg-white/10 text-white/70 hover:bg-white/15 hover:text-white"
-                    )}
-                  >
-                    {range.charAt(0).toUpperCase() + range.slice(1)}
-                  </button>
-                ))}
-              </div>
-              <Button
-                size="sm"
-                onClick={handleExportCSV}
-                className="glow-button bg-white text-indigo-700 hover:bg-white/95 font-bold shadow-2xl shadow-black/20 h-10 px-6 text-sm rounded-xl border-0"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Export CSV
-              </Button>
-            </div>
-          </div>
-
-          {/* Tab selector inside banner */}
-          <div className="bg-white/10 rounded-xl p-1 inline-flex gap-1">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as TabType)}
-                className={cn(
-                  "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
-                  activeTab === tab.id
-                    ? "bg-white/20 text-white shadow-lg"
-                    : "text-white/60 hover:text-white hover:bg-white/10"
-                )}
-              >
-                <tab.icon className="w-4 h-4" />
-                {tab.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex gap-2 flex-wrap">
+          {(["today", "week", "month", "year"] as DateRange[]).map((range) => (
+            <Button
+              key={range}
+              variant={dateRange === range ? "default" : "outline"}
+              size="sm"
+              onClick={() => setDateRange(range)}
+              className={dateRange === range ? "bg-teal-600 hover:bg-teal-700" : ""}
+            >
+              {range.charAt(0).toUpperCase() + range.slice(1)}
+            </Button>
+          ))}
+          <Button variant="outline" size="sm" onClick={handleExportCSV}>
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
         </div>
       </div>
 
-      {/* ═══════ OVERVIEW TAB ═══════ */}
+      {/* Tabs */}
+      <div className="flex gap-2 border-b pb-2 overflow-x-auto">
+        {tabs.map((tab) => (
+          <Button
+            key={tab.id}
+            variant="ghost"
+            onClick={() => setActiveTab(tab.id as TabType)}
+            className={`flex items-center gap-2 ${
+              activeTab === tab.id
+                ? "bg-teal-50 text-teal-700 border-b-2 border-teal-600"
+                : ""
+            }`}
+          >
+            <tab.icon className="w-4 h-4" />
+            {tab.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* Overview Tab */}
       {activeTab === "overview" && (
-        <div className="animate-in stagger-1 space-y-6">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-6"
+        >
           {/* Key Metrics */}
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {/* Total Revenue */}
-            <div className="glass-card glow-border p-5 rounded-2xl shadow-indigo-500/20 hover:shadow-indigo-500/30 group cursor-default">
-              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-indigo-500/10 via-transparent to-transparent pointer-events-none" />
-              <div className="relative">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-indigo-500 to-indigo-600 transition-transform duration-300 group-hover:scale-110">
-                    <DollarSign className="w-5 h-5 text-white" />
-                  </div>
-                  <div className={cn(
-                    "flex items-center gap-0.5 text-[11px] font-bold px-2.5 py-1 rounded-lg ring-1",
-                    monthGrowth >= 0
-                      ? "bg-emerald-50 text-emerald-700 ring-emerald-200/50"
-                      : "bg-red-50 text-red-700 ring-red-200/50"
-                  )}>
-                    {monthGrowth >= 0 ? (
-                      <ArrowUpRight className="w-3 h-3" />
-                    ) : (
-                      <ArrowDownRight className="w-3 h-3" />
-                    )}
-                    {Math.abs(monthGrowth).toFixed(1)}%
-                  </div>
-                </div>
-                <p className="text-4xl font-black text-gray-900 tracking-tight leading-none number-display">
-                  {formatCurrency(data.revenue.thisMonth)}
-                </p>
-                <p className="text-[13px] text-gray-500 mt-2 font-semibold">Total Revenue</p>
-                <p className="text-[11px] text-gray-400 mt-1 font-medium">vs last month</p>
-              </div>
-            </div>
-
-            {/* Appointments */}
-            <div className="glass-card glow-border p-5 rounded-2xl shadow-blue-500/20 hover:shadow-blue-500/30 group cursor-default">
-              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-blue-500/10 via-transparent to-transparent pointer-events-none" />
-              <div className="relative">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 transition-transform duration-300 group-hover:scale-110">
-                    <Calendar className="w-5 h-5 text-white" />
-                  </div>
-                  <Badge className="bg-green-100 text-green-700 text-[11px] font-bold px-2.5 py-0.5 rounded-lg ring-1 ring-green-200/50">
-                    {data.appointments.completed} completed
-                  </Badge>
-                </div>
-                <p className="text-4xl font-black text-gray-900 tracking-tight leading-none number-display">
-                  {data.appointments.thisWeek}
-                </p>
-                <p className="text-[13px] text-gray-500 mt-2 font-semibold">Appointments</p>
-                <p className="text-[11px] text-gray-400 mt-1 font-medium">this week</p>
-              </div>
-            </div>
-
-            {/* Product Sales */}
-            <div className="glass-card glow-border p-5 rounded-2xl shadow-purple-500/20 hover:shadow-purple-500/30 group cursor-default">
-              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-purple-500/10 via-transparent to-transparent pointer-events-none" />
-              <div className="relative">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 transition-transform duration-300 group-hover:scale-110">
-                    <ShoppingBag className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-                <p className="text-4xl font-black text-gray-900 tracking-tight leading-none number-display">
-                  {formatCurrency(data.orders.totalRevenue)}
-                </p>
-                <p className="text-[13px] text-gray-500 mt-2 font-semibold">Product Sales</p>
-                <p className="text-[11px] text-gray-400 mt-1 font-medium">{data.orders.thisWeek} orders this week</p>
-              </div>
-            </div>
-
-            {/* Total Clients */}
-            <div className="glass-card glow-border p-5 rounded-2xl shadow-amber-500/20 hover:shadow-amber-500/30 group cursor-default">
-              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-amber-500/10 via-transparent to-transparent pointer-events-none" />
-              <div className="relative">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-amber-500 to-orange-500 transition-transform duration-300 group-hover:scale-110">
-                    <Users className="w-5 h-5 text-white" />
-                  </div>
-                  {data.clients.newThisMonth > 0 && (
-                    <div className="flex items-center gap-0.5 text-[11px] font-bold px-2.5 py-1 rounded-lg ring-1 bg-emerald-50 text-emerald-700 ring-emerald-200/50">
-                      <ArrowUpRight className="w-3 h-3" />
-                      +{data.clients.newThisMonth}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card className="border-l-4 border-l-teal-500 hover:shadow-md hover:-translate-y-0.5">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Revenue</p>
+                    <p className="text-2xl font-bold">{formatCurrency(data.revenue.thisMonth)}</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      {monthGrowth >= 0 ? (
+                        <ArrowUpRight className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <ArrowDownRight className="w-4 h-4 text-red-500" />
+                      )}
+                      <span className={`text-sm ${monthGrowth >= 0 ? "text-green-500" : "text-red-500"}`}>
+                        {Math.abs(monthGrowth).toFixed(1)}%
+                      </span>
+                      <span className="text-xs text-muted-foreground">vs last month</span>
                     </div>
-                  )}
+                  </div>
+                  <div className="p-3 rounded-xl bg-teal-50">
+                    <DollarSign className="w-6 h-6 text-teal-600" />
+                  </div>
                 </div>
-                <p className="text-4xl font-black text-gray-900 tracking-tight leading-none number-display">
-                  {data.clients.total}
-                </p>
-                <p className="text-[13px] text-gray-500 mt-2 font-semibold">Total Clients</p>
-                <p className="text-[11px] text-gray-400 mt-1 font-medium">+{data.clients.newThisMonth} new this month</p>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-blue-500 hover:shadow-md hover:-translate-y-0.5">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Appointments</p>
+                    <p className="text-2xl font-bold">{data.appointments.thisWeek}</p>
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 mt-1">
+                      {data.appointments.completed} completed
+                    </Badge>
+                  </div>
+                  <div className="p-3 rounded-xl bg-blue-50">
+                    <Calendar className="w-6 h-6 text-blue-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-purple-500 hover:shadow-md hover:-translate-y-0.5">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Product Sales</p>
+                    <p className="text-2xl font-bold">{formatCurrency(data.orders.totalRevenue)}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {data.orders.thisWeek} orders this week
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-purple-50">
+                    <ShoppingBag className="w-6 h-6 text-purple-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-orange-500 hover:shadow-md hover:-translate-y-0.5">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Clients</p>
+                    <p className="text-2xl font-bold">{data.clients.total}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      +{data.clients.newThisMonth} new this month
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-orange-50">
+                    <Users className="w-6 h-6 text-orange-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Revenue Chart */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-            <div className="flex flex-row items-center justify-between p-6 pb-2 border-b border-gray-100">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
-                <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-indigo-600" />
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-teal-600" />
                   Revenue Overview
-                </h3>
-                <p className="text-sm text-gray-400 mt-0.5 font-medium">Track your salon earnings over time</p>
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">Track your salon earnings over time</p>
               </div>
-              <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+              <div className="flex gap-1 bg-muted rounded-lg p-1">
                 {(["daily", "weekly", "monthly", "yearly"] as const).map((period) => (
                   <button
                     key={period}
@@ -554,16 +477,16 @@ export default function ReportsPage() {
                     className={cn(
                       "px-3 py-1.5 text-xs font-medium rounded-md transition-all capitalize",
                       chartPeriod === period
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-500 hover:text-gray-900"
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
                     )}
                   >
                     {period}
                   </button>
                 ))}
               </div>
-            </div>
-            <div className="p-6">
+            </CardHeader>
+            <CardContent>
               <ResponsiveContainer width="100%" height={320}>
                 <AreaChart data={revenueTimeSeries[chartPeriod]}>
                   <defs>
@@ -600,28 +523,22 @@ export default function ReportsPage() {
                   />
                 </AreaChart>
               </ResponsiveContainer>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          {/* Charts Row: Top Services, Top Products, Top Clients */}
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {/* Charts Row */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {/* Top Services */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-full">
-              <div className="h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-              <div className="p-6 pb-4 border-b border-gray-100">
-                <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
-                  <Scissors className="w-5 h-5 text-indigo-600" />
+            <Card className="h-full">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Scissors className="w-5 h-5 text-teal-600" />
                   Top Services
-                </h3>
-              </div>
-              <div className="p-6">
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 {data.topServices.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center mx-auto mb-3 ring-1 ring-indigo-200/50">
-                      <Scissors className="w-7 h-7 text-indigo-300" />
-                    </div>
-                    <p className="text-gray-700 font-bold">No service data yet</p>
-                  </div>
+                  <p className="text-sm text-muted-foreground text-center py-8">No service data yet</p>
                 ) : (
                   <div className="space-y-4">
                     {data.topServices.map((service, index) => (
@@ -637,34 +554,28 @@ export default function ReportsPage() {
                           </div>
                           <div>
                             <p className="font-medium text-sm">{service.name}</p>
-                            <p className="text-xs text-gray-400">{service.count} bookings</p>
+                            <p className="text-xs text-muted-foreground">{service.count} bookings</p>
                           </div>
                         </div>
-                        <p className="font-semibold text-indigo-600">{formatCurrency(service.revenue)}</p>
+                        <p className="font-semibold text-teal-600">{formatCurrency(service.revenue)}</p>
                       </div>
                     ))}
                   </div>
                 )}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Top Products */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-full">
-              <div className="h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-              <div className="p-6 pb-4 border-b border-gray-100">
-                <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
+            <Card className="h-full">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
                   <Package className="w-5 h-5 text-purple-600" />
                   Top Products
-                </h3>
-              </div>
-              <div className="p-6">
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 {data.topProducts.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center mx-auto mb-3 ring-1 ring-purple-200/50">
-                      <Package className="w-7 h-7 text-purple-300" />
-                    </div>
-                    <p className="text-gray-700 font-bold">No product sales yet</p>
-                  </div>
+                  <p className="text-sm text-muted-foreground text-center py-8">No product sales yet</p>
                 ) : (
                   <div className="space-y-4">
                     {data.topProducts.map((product, index) => (
@@ -680,7 +591,7 @@ export default function ReportsPage() {
                           </div>
                           <div>
                             <p className="font-medium text-sm">{product.name}</p>
-                            <p className="text-xs text-gray-400">{product.sold} sold</p>
+                            <p className="text-xs text-muted-foreground">{product.sold} sold</p>
                           </div>
                         </div>
                         <p className="font-semibold text-purple-600">{formatCurrency(product.revenue)}</p>
@@ -688,26 +599,20 @@ export default function ReportsPage() {
                     ))}
                   </div>
                 )}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Top Clients */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-full">
-              <div className="h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-              <div className="p-6 pb-4 border-b border-gray-100">
-                <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
+            <Card className="h-full">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
                   <Star className="w-5 h-5 text-orange-600" />
                   Top Clients
-                </h3>
-              </div>
-              <div className="p-6">
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 {data.clients.topSpenders.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center mx-auto mb-3 ring-1 ring-orange-200/50">
-                      <Star className="w-7 h-7 text-orange-300" />
-                    </div>
-                    <p className="text-gray-700 font-bold">No client data yet</p>
-                  </div>
+                  <p className="text-sm text-muted-foreground text-center py-8">No client data yet</p>
                 ) : (
                   <div className="space-y-4">
                     {data.clients.topSpenders.map((client, index) => (
@@ -726,7 +631,7 @@ export default function ReportsPage() {
                               {client.name}
                               {client.isVip && <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
                             </p>
-                            <p className="text-xs text-gray-400">{client.visits} visits</p>
+                            <p className="text-xs text-muted-foreground">{client.visits} visits</p>
                           </div>
                         </div>
                         <p className="font-semibold text-orange-600">{formatCurrency(client.totalSpent)}</p>
@@ -734,77 +639,67 @@ export default function ReportsPage() {
                     ))}
                   </div>
                 )}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Appointment Stats + Recent Activity */}
-          <div className="grid gap-5 md:grid-cols-2">
-            {/* Appointment Statistics */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-              <div className="p-6 pb-4 border-b border-gray-100">
-                <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
+          {/* Appointment Stats */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
                   <Clock className="w-5 h-5 text-blue-600" />
                   Appointment Statistics
-                </h3>
-              </div>
-              <div className="p-6">
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-green-50 rounded-xl ring-1 ring-green-200/50">
+                  <div className="text-center p-4 bg-green-50 rounded-xl">
                     <p className="text-2xl font-bold text-green-600">{data.appointments.completed}</p>
-                    <p className="text-xs text-gray-500 font-medium mt-1">Completed</p>
+                    <p className="text-sm text-muted-foreground">Completed</p>
                   </div>
-                  <div className="text-center p-4 bg-red-50 rounded-xl ring-1 ring-red-200/50">
+                  <div className="text-center p-4 bg-red-50 rounded-xl">
                     <p className="text-2xl font-bold text-red-600">{data.appointments.cancelled}</p>
-                    <p className="text-xs text-gray-500 font-medium mt-1">Cancelled</p>
+                    <p className="text-sm text-muted-foreground">Cancelled</p>
                   </div>
-                  <div className="text-center p-4 bg-yellow-50 rounded-xl ring-1 ring-yellow-200/50">
+                  <div className="text-center p-4 bg-yellow-50 rounded-xl">
                     <p className="text-2xl font-bold text-yellow-600">{data.appointments.noShow}</p>
-                    <p className="text-xs text-gray-500 font-medium mt-1">No Show</p>
+                    <p className="text-sm text-muted-foreground">No Show</p>
                   </div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="mt-4 pt-4 border-t">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 font-medium">Completion Rate</span>
-                    <span className="font-bold text-gray-900">
-                      {data.appointments.thisWeek > 0
+                    <span className="text-muted-foreground">Completion Rate</span>
+                    <span className="font-semibold">
+                      {data.appointments.thisWeek > 0 
                         ? ((data.appointments.completed / data.appointments.thisWeek) * 100).toFixed(1)
                         : 0}%
                     </span>
                   </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
-            {/* Recent Activity */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-              <div className="p-6 pb-4 border-b border-gray-100">
-                <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-indigo-600" />
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-teal-600" />
                   Recent Activity
-                </h3>
-              </div>
-              <div className="p-6">
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 {data.recentActivity.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center mx-auto mb-3 ring-1 ring-indigo-200/50">
-                      <TrendingUp className="w-7 h-7 text-indigo-300" />
-                    </div>
-                    <p className="text-gray-700 font-bold">No recent activity</p>
-                  </div>
+                  <p className="text-sm text-muted-foreground text-center py-8">No recent activity</p>
                 ) : (
                   <div className="space-y-3">
                     {data.recentActivity.slice(0, 4).map((activity, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50/80 rounded-xl ring-1 ring-black/[0.04]">
+                      <div key={index} className="flex items-center justify-between p-3 bg-accent/30 rounded-lg">
                         <div className="flex items-center gap-3">
-                          <div className={cn(
-                            "p-2 rounded-lg ring-1",
-                            activity.type === "appointment" ? "bg-blue-50 ring-blue-200/50" :
-                            activity.type === "order" ? "bg-purple-50 ring-purple-200/50" :
-                            "bg-green-50 ring-green-200/50"
-                          )}>
+                          <div className={`p-2 rounded-lg ${
+                            activity.type === "appointment" ? "bg-blue-100" :
+                            activity.type === "order" ? "bg-purple-100" :
+                            "bg-green-100"
+                          }`}>
                             {activity.type === "appointment" ? (
                               <Calendar className="w-4 h-4 text-blue-600" />
                             ) : activity.type === "order" ? (
@@ -814,131 +709,120 @@ export default function ReportsPage() {
                             )}
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-gray-800">{activity.description}</p>
-                            <p className="text-xs text-gray-400">{activity.time}</p>
+                            <p className="text-sm font-medium">{activity.description}</p>
+                            <p className="text-xs text-muted-foreground">{activity.time}</p>
                           </div>
                         </div>
                         {activity.amount > 0 && (
-                          <p className="font-bold text-indigo-600 number-display">{formatCurrency(activity.amount)}</p>
+                          <p className="font-semibold text-teal-600">{formatCurrency(activity.amount)}</p>
                         )}
                       </div>
                     ))}
                   </div>
                 )}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
-        </div>
+        </motion.div>
       )}
 
-      {/* ═══════ SALES TAB ═══════ */}
+      {/* Sales Tab */}
       {activeTab === "sales" && (
-        <div className="animate-in stagger-1 space-y-6">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-6"
+        >
           {/* Sales Summary */}
-          <div className="grid gap-5 md:grid-cols-3">
-            {/* Avg Appointment */}
-            <div className="glass-card glow-border p-5 rounded-2xl shadow-blue-500/20 hover:shadow-blue-500/30 group cursor-default">
-              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-blue-500/10 via-transparent to-transparent pointer-events-none" />
-              <div className="relative">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 transition-transform duration-300 group-hover:scale-110">
-                    <Calendar className="w-5 h-5 text-white" />
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card className="border-l-4 border-l-blue-500 hover:shadow-md hover:-translate-y-0.5">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Avg Appointment</p>
+                    <p className="text-2xl font-bold">{formatCurrency(data.sales.averageTicket.appointments)}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-blue-50">
+                    <Calendar className="w-6 h-6 text-blue-600" />
                   </div>
                 </div>
-                <p className="text-4xl font-black text-gray-900 tracking-tight leading-none number-display">
-                  {formatCurrency(data.sales.averageTicket.appointments)}
-                </p>
-                <p className="text-[13px] text-gray-500 mt-2 font-semibold">Avg Appointment</p>
-              </div>
-            </div>
-
-            {/* Avg Order */}
-            <div className="glass-card glow-border p-5 rounded-2xl shadow-purple-500/20 hover:shadow-purple-500/30 group cursor-default">
-              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-purple-500/10 via-transparent to-transparent pointer-events-none" />
-              <div className="relative">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 transition-transform duration-300 group-hover:scale-110">
-                    <ShoppingBag className="w-5 h-5 text-white" />
+              </CardContent>
+            </Card>
+            <Card className="border-l-4 border-l-purple-500 hover:shadow-md hover:-translate-y-0.5">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Avg Order</p>
+                    <p className="text-2xl font-bold">{formatCurrency(data.sales.averageTicket.orders)}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-purple-50">
+                    <ShoppingBag className="w-6 h-6 text-purple-600" />
                   </div>
                 </div>
-                <p className="text-4xl font-black text-gray-900 tracking-tight leading-none number-display">
-                  {formatCurrency(data.sales.averageTicket.orders)}
-                </p>
-                <p className="text-[13px] text-gray-500 mt-2 font-semibold">Avg Order</p>
-              </div>
-            </div>
-
-            {/* Overall Avg Ticket */}
-            <div className="glass-card glow-border p-5 rounded-2xl shadow-indigo-500/20 hover:shadow-indigo-500/30 group cursor-default">
-              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-indigo-500/10 via-transparent to-transparent pointer-events-none" />
-              <div className="relative">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-indigo-500 to-indigo-600 transition-transform duration-300 group-hover:scale-110">
-                    <DollarSign className="w-5 h-5 text-white" />
+              </CardContent>
+            </Card>
+            <Card className="border-l-4 border-l-teal-500 hover:shadow-md hover:-translate-y-0.5">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Overall Avg Ticket</p>
+                    <p className="text-2xl font-bold">{formatCurrency(data.sales.averageTicket.overall)}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-teal-50">
+                    <DollarSign className="w-6 h-6 text-teal-600" />
                   </div>
                 </div>
-                <p className="text-4xl font-black text-gray-900 tracking-tight leading-none number-display">
-                  {formatCurrency(data.sales.averageTicket.overall)}
-                </p>
-                <p className="text-[13px] text-gray-500 mt-2 font-semibold">Overall Avg Ticket</p>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {/* Payment Methods */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-              <div className="p-6 pb-4 border-b border-gray-100">
-                <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-indigo-600" />
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-teal-600" />
                   Revenue by Payment Method
-                </h3>
-              </div>
-              <div className="p-6">
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl ring-1 ring-green-200/50">
+                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
                     <div className="flex items-center gap-3">
                       <Banknote className="w-6 h-6 text-green-600" />
-                      <span className="font-semibold text-gray-800">Cash</span>
+                      <span className="font-medium">Cash</span>
                     </div>
-                    <p className="text-xl font-black text-green-600 number-display">{formatCurrency(data.sales.byPaymentMethod.cash)}</p>
+                    <p className="text-xl font-bold text-green-600">{formatCurrency(data.sales.byPaymentMethod.cash)}</p>
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-xl ring-1 ring-blue-200/50">
+                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-xl">
                     <div className="flex items-center gap-3">
                       <CreditCard className="w-6 h-6 text-blue-600" />
-                      <span className="font-semibold text-gray-800">Card</span>
+                      <span className="font-medium">Card</span>
                     </div>
-                    <p className="text-xl font-black text-blue-600 number-display">{formatCurrency(data.sales.byPaymentMethod.card)}</p>
+                    <p className="text-xl font-bold text-blue-600">{formatCurrency(data.sales.byPaymentMethod.card)}</p>
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-purple-50 rounded-xl ring-1 ring-purple-200/50">
+                  <div className="flex items-center justify-between p-4 bg-purple-50 rounded-xl">
                     <div className="flex items-center gap-3">
                       <ArrowRightLeft className="w-6 h-6 text-purple-600" />
-                      <span className="font-semibold text-gray-800">Transfer</span>
+                      <span className="font-medium">Transfer</span>
                     </div>
-                    <p className="text-xl font-black text-purple-600 number-display">{formatCurrency(data.sales.byPaymentMethod.transfer)}</p>
+                    <p className="text-xl font-bold text-purple-600">{formatCurrency(data.sales.byPaymentMethod.transfer)}</p>
                   </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Revenue by Category — Pie Chart */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-              <div className="p-6 pb-4 border-b border-gray-100">
-                <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
-                  <Scissors className="w-5 h-5 text-indigo-600" />
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Scissors className="w-5 h-5 text-teal-600" />
                   Revenue by Service Category
-                </h3>
-              </div>
-              <div className="p-6">
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 {data.sales.byCategory.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center mx-auto mb-3 ring-1 ring-indigo-200/50">
-                      <Scissors className="w-7 h-7 text-indigo-300" />
-                    </div>
-                    <p className="text-gray-700 font-bold">No category data yet</p>
-                  </div>
+                  <p className="text-sm text-muted-foreground text-center py-8">No category data yet</p>
                 ) : (
                   <div className="flex flex-col items-center">
                     <ResponsiveContainer width="100%" height={240}>
@@ -971,34 +855,28 @@ export default function ReportsPage() {
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
                           />
-                          <span className="text-gray-500">{cat.category}</span>
-                          <span className="font-semibold text-gray-800">{formatCurrency(cat.revenue)}</span>
+                          <span className="text-muted-foreground">{cat.category}</span>
+                          <span className="font-medium">{formatCurrency(cat.revenue)}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Busiest Days */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-            <div className="p-6 pb-4 border-b border-gray-100">
-              <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-blue-600" />
                 Busiest Days
-              </h3>
-            </div>
-            <div className="p-6">
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               {data.sales.busiestDays.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center mx-auto mb-3 ring-1 ring-blue-200/50">
-                    <Calendar className="w-7 h-7 text-blue-300" />
-                  </div>
-                  <p className="text-gray-700 font-bold">No data yet</p>
-                </div>
+                <p className="text-sm text-muted-foreground text-center py-8">No data yet</p>
               ) : (
                 <div className="grid grid-cols-7 gap-2">
                   {data.sales.busiestDays.map((day, index) => {
@@ -1006,189 +884,168 @@ export default function ReportsPage() {
                     const intensity = maxAppts > 0 ? (day.appointments / maxAppts) : 0;
                     return (
                       <div key={index} className="text-center">
-                        <p className="text-xs text-gray-400 mb-2 font-medium">{day.day}</p>
+                        <p className="text-xs text-muted-foreground mb-2">{day.day}</p>
                         <div
-                          className={cn(
-                            "p-4 rounded-xl ring-1 transition-all",
-                            intensity > 0.7 ? "bg-indigo-500 text-white ring-indigo-400" :
-                            intensity > 0.4 ? "bg-indigo-200 text-indigo-800 ring-indigo-300/50" :
-                            intensity > 0 ? "bg-indigo-50 text-indigo-600 ring-indigo-200/50" :
-                            "bg-gray-50 text-gray-400 ring-gray-200/50"
-                          )}
+                          className={`p-4 rounded-xl ${
+                            intensity > 0.7 ? "bg-teal-500 text-white" :
+                            intensity > 0.4 ? "bg-teal-200 text-teal-800" :
+                            intensity > 0 ? "bg-teal-50 text-teal-600" :
+                            "bg-gray-50 text-gray-400"
+                          }`}
                         >
-                          <p className="text-lg font-black">{day.appointments}</p>
+                          <p className="text-lg font-bold">{day.appointments}</p>
                           <p className="text-xs">appts</p>
                         </div>
-                        <p className="text-xs font-semibold mt-1 text-gray-600">{formatCurrency(day.revenue)}</p>
+                        <p className="text-xs font-medium mt-1">{formatCurrency(day.revenue)}</p>
                       </div>
                     );
                   })}
                 </div>
               )}
-            </div>
-          </div>
-        </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
 
-      {/* ═══════ INVENTORY TAB ═══════ */}
+      {/* Inventory Tab */}
       {activeTab === "inventory" && (
-        <div className="animate-in stagger-1 space-y-6">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-6"
+        >
           {/* Inventory Summary */}
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {/* Total Products */}
-            <div className="glass-card glow-border p-5 rounded-2xl shadow-blue-500/20 hover:shadow-blue-500/30 group cursor-default">
-              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-blue-500/10 via-transparent to-transparent pointer-events-none" />
-              <div className="relative">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 transition-transform duration-300 group-hover:scale-110">
-                    <Box className="w-5 h-5 text-white" />
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card className="border-l-4 border-l-blue-500 hover:shadow-md hover:-translate-y-0.5">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Products</p>
+                    <p className="text-2xl font-bold">{data.inventory.totalProducts}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-blue-50">
+                    <Box className="w-6 h-6 text-blue-600" />
                   </div>
                 </div>
-                <p className="text-4xl font-black text-gray-900 tracking-tight leading-none number-display">
-                  {data.inventory.totalProducts}
-                </p>
-                <p className="text-[13px] text-gray-500 mt-2 font-semibold">Total Products</p>
-              </div>
-            </div>
-
-            {/* Inventory Value (Cost) */}
-            <div className="glass-card glow-border p-5 rounded-2xl shadow-indigo-500/20 hover:shadow-indigo-500/30 group cursor-default">
-              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-indigo-500/10 via-transparent to-transparent pointer-events-none" />
-              <div className="relative">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-indigo-500 to-indigo-600 transition-transform duration-300 group-hover:scale-110">
-                    <DollarSign className="w-5 h-5 text-white" />
+              </CardContent>
+            </Card>
+            <Card className="border-l-4 border-l-teal-500 hover:shadow-md hover:-translate-y-0.5">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Inventory Value (Cost)</p>
+                    <p className="text-2xl font-bold">{formatCurrency(data.inventory.totalValue)}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-teal-50">
+                    <DollarSign className="w-6 h-6 text-teal-600" />
                   </div>
                 </div>
-                <p className="text-4xl font-black text-gray-900 tracking-tight leading-none number-display">
-                  {formatCurrency(data.inventory.totalValue)}
-                </p>
-                <p className="text-[13px] text-gray-500 mt-2 font-semibold">Inventory Value (Cost)</p>
-              </div>
-            </div>
-
-            {/* Retail Value */}
-            <div className="glass-card glow-border p-5 rounded-2xl shadow-purple-500/20 hover:shadow-purple-500/30 group cursor-default">
-              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-purple-500/10 via-transparent to-transparent pointer-events-none" />
-              <div className="relative">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 transition-transform duration-300 group-hover:scale-110">
-                    <TrendingUp className="w-5 h-5 text-white" />
+              </CardContent>
+            </Card>
+            <Card className="border-l-4 border-l-purple-500 hover:shadow-md hover:-translate-y-0.5">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Retail Value</p>
+                    <p className="text-2xl font-bold">{formatCurrency(data.inventory.retailValue)}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-purple-50">
+                    <TrendingUp className="w-6 h-6 text-purple-600" />
                   </div>
                 </div>
-                <p className="text-4xl font-black text-gray-900 tracking-tight leading-none number-display">
-                  {formatCurrency(data.inventory.retailValue)}
-                </p>
-                <p className="text-[13px] text-gray-500 mt-2 font-semibold">Retail Value</p>
-              </div>
-            </div>
-
-            {/* Potential Profit */}
-            <div className="glass-card glow-border p-5 rounded-2xl shadow-emerald-500/20 hover:shadow-emerald-500/30 group cursor-default">
-              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
-              <div className="relative">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-emerald-500 to-emerald-600 transition-transform duration-300 group-hover:scale-110">
-                    <Percent className="w-5 h-5 text-white" />
+              </CardContent>
+            </Card>
+            <Card className="border-l-4 border-l-green-500 hover:shadow-md hover:-translate-y-0.5">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Potential Profit</p>
+                    <p className="text-2xl font-bold text-green-600">{formatCurrency(data.inventory.potentialProfit)}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-green-50">
+                    <Percent className="w-6 h-6 text-green-600" />
                   </div>
                 </div>
-                <p className="text-4xl font-black text-emerald-600 tracking-tight leading-none number-display">
-                  {formatCurrency(data.inventory.potentialProfit)}
-                </p>
-                <p className="text-[13px] text-gray-500 mt-2 font-semibold">Potential Profit</p>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Stock Alerts */}
           {(data.inventory.lowStockCount > 0 || data.inventory.outOfStockCount > 0) && (
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2">
               {data.inventory.lowStockCount > 0 && (
-                <div className="bg-gradient-to-br from-yellow-50/40 to-white rounded-2xl shadow-sm border border-yellow-200/60 overflow-hidden">
-                  <div className="h-[3px] bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-400" />
-                  <div className="p-5">
+                <Card className="border-yellow-200 bg-yellow-50/50">
+                  <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2.5 bg-gradient-to-br from-yellow-100 to-amber-100 rounded-xl ring-1 ring-yellow-200/50 shadow-sm">
-                        <AlertTriangle className="w-5 h-5 text-yellow-600" />
-                      </div>
+                      <AlertTriangle className="w-6 h-6 text-yellow-600" />
                       <div>
-                        <p className="font-bold text-yellow-800">Low Stock Alert</p>
+                        <p className="font-semibold text-yellow-800">Low Stock Alert</p>
                         <p className="text-sm text-yellow-700">{data.inventory.lowStockCount} products below reorder level</p>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               )}
               {data.inventory.outOfStockCount > 0 && (
-                <div className="bg-gradient-to-br from-red-50/40 to-white rounded-2xl shadow-sm border border-red-200/60 overflow-hidden">
-                  <div className="h-[3px] bg-gradient-to-r from-red-400 via-red-500 to-rose-400" />
-                  <div className="p-5">
+                <Card className="border-red-200 bg-red-50/50">
+                  <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2.5 bg-gradient-to-br from-red-100 to-rose-100 rounded-xl ring-1 ring-red-200/50 shadow-sm">
-                        <AlertTriangle className="w-5 h-5 text-red-600" />
-                      </div>
+                      <AlertTriangle className="w-6 h-6 text-red-600" />
                       <div>
-                        <p className="font-bold text-red-800">Out of Stock</p>
+                        <p className="font-semibold text-red-800">Out of Stock</p>
                         <p className="text-sm text-red-700">{data.inventory.outOfStockCount} products out of stock</p>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               )}
             </div>
           )}
 
           {/* Product Stock Table */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-            <div className="p-6 pb-4 border-b border-gray-100">
-              <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
                 <Package className="w-5 h-5 text-blue-600" />
                 Stock Levels
-              </h3>
-            </div>
-            <div className="p-6">
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               {data.inventory.products.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center mx-auto mb-3 ring-1 ring-blue-200/50">
-                    <Package className="w-7 h-7 text-blue-300" />
-                  </div>
-                  <p className="text-gray-700 font-bold">No products yet</p>
-                </div>
+                <p className="text-sm text-muted-foreground text-center py-8">No products yet</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="data-table">
                     <thead>
-                      <tr className="border-b border-gray-100">
-                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider py-3 px-2">Product</th>
-                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider py-3 px-2">SKU</th>
-                        <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider py-3 px-2">In Stock</th>
-                        <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider py-3 px-2">Reserved</th>
-                        <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider py-3 px-2">Available</th>
-                        <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider py-3 px-2">Cost</th>
-                        <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider py-3 px-2">Retail</th>
-                        <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider py-3 px-2">Value</th>
-                        <th className="text-center text-xs font-semibold text-gray-500 uppercase tracking-wider py-3 px-2">Status</th>
+                      <tr>
+                        <th className="text-left">Product</th>
+                        <th className="text-left">SKU</th>
+                        <th className="text-right">In Stock</th>
+                        <th className="text-right">Reserved</th>
+                        <th className="text-right">Available</th>
+                        <th className="text-right">Cost</th>
+                        <th className="text-right">Retail</th>
+                        <th className="text-right">Value</th>
+                        <th className="text-center">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody>
                       {data.inventory.products.map((product) => (
-                        <tr key={product.id} className="hover:bg-gray-50/60 transition-colors">
-                          <td className="py-3 px-2 font-semibold text-sm text-gray-800">{product.name}</td>
-                          <td className="py-3 px-2 text-sm text-gray-400">{product.sku}</td>
-                          <td className="py-3 px-2 text-right text-sm text-gray-700">{product.stockOnHand}</td>
-                          <td className="py-3 px-2 text-right text-sm text-gray-700">{product.stockReserved}</td>
-                          <td className="py-3 px-2 text-right font-bold text-sm text-gray-900">{product.stockOnHand - product.stockReserved}</td>
-                          <td className="py-3 px-2 text-right text-sm text-gray-700">{formatCurrency(product.costPrice)}</td>
-                          <td className="py-3 px-2 text-right text-sm text-gray-700">{formatCurrency(product.retailPrice)}</td>
-                          <td className="py-3 px-2 text-right font-bold text-sm text-gray-900">{formatCurrency(product.value)}</td>
+                        <tr key={product.id}>
+                          <td className="py-3 px-2 font-medium">{product.name}</td>
+                          <td className="py-3 px-2 text-muted-foreground">{product.sku}</td>
+                          <td className="py-3 px-2 text-right">{product.stockOnHand}</td>
+                          <td className="py-3 px-2 text-right">{product.stockReserved}</td>
+                          <td className="py-3 px-2 text-right font-medium">{product.stockOnHand - product.stockReserved}</td>
+                          <td className="py-3 px-2 text-right">{formatCurrency(product.costPrice)}</td>
+                          <td className="py-3 px-2 text-right">{formatCurrency(product.retailPrice)}</td>
+                          <td className="py-3 px-2 text-right font-medium">{formatCurrency(product.value)}</td>
                           <td className="py-3 px-2 text-center">
-                            <Badge className={cn(
-                              "text-[10px] font-bold px-2.5 py-0.5 rounded-lg ring-1",
-                              product.status === "out" ? "bg-red-100 text-red-700 ring-red-200/50" :
-                              product.status === "low" ? "bg-yellow-100 text-yellow-700 ring-yellow-200/50" :
-                              "bg-green-100 text-green-700 ring-green-200/50"
-                            )}>
+                            <Badge className={
+                              product.status === "out" ? "bg-red-100 text-red-700" :
+                              product.status === "low" ? "bg-yellow-100 text-yellow-700" :
+                              "bg-green-100 text-green-700"
+                            }>
                               {product.status === "out" ? "Out" : product.status === "low" ? "Low" : "OK"}
                             </Badge>
                           </td>
@@ -1198,52 +1055,45 @@ export default function ReportsPage() {
                   </table>
                 </div>
               )}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Product Movement / Profit Margins */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-            <div className="p-6 pb-4 border-b border-gray-100">
-              <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-green-600" />
                 Product Movement & Profit Margins
-              </h3>
-            </div>
-            <div className="p-6">
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               {data.inventory.movements.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center mx-auto mb-3 ring-1 ring-green-200/50">
-                    <TrendingUp className="w-7 h-7 text-green-300" />
-                  </div>
-                  <p className="text-gray-700 font-bold">No sales data yet</p>
-                </div>
+                <p className="text-sm text-muted-foreground text-center py-8">No sales data yet</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="data-table">
                     <thead>
-                      <tr className="border-b border-gray-100">
-                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider py-3 px-2">Product</th>
-                        <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider py-3 px-2">Units Sold</th>
-                        <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider py-3 px-2">Revenue</th>
-                        <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider py-3 px-2">Profit</th>
-                        <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider py-3 px-2">Margin</th>
+                      <tr>
+                        <th className="text-left">Product</th>
+                        <th className="text-right">Units Sold</th>
+                        <th className="text-right">Revenue</th>
+                        <th className="text-right">Profit</th>
+                        <th className="text-right">Margin</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody>
                       {data.inventory.movements.map((movement, index) => (
-                        <tr key={index} className="hover:bg-gray-50/60 transition-colors">
-                          <td className="py-3 px-2 font-semibold text-sm text-gray-800">{movement.product}</td>
-                          <td className="py-3 px-2 text-right text-sm text-gray-700">{movement.sold}</td>
-                          <td className="py-3 px-2 text-right text-sm text-gray-700">{formatCurrency(movement.revenue)}</td>
-                          <td className="py-3 px-2 text-right text-green-600 font-bold text-sm">{formatCurrency(movement.profit)}</td>
+                        <tr key={index}>
+                          <td className="py-3 px-2 font-medium">{movement.product}</td>
+                          <td className="py-3 px-2 text-right">{movement.sold}</td>
+                          <td className="py-3 px-2 text-right">{formatCurrency(movement.revenue)}</td>
+                          <td className="py-3 px-2 text-right text-green-600 font-medium">{formatCurrency(movement.profit)}</td>
                           <td className="py-3 px-2 text-right">
-                            <Badge className={cn(
-                              "text-[10px] font-bold px-2.5 py-0.5 rounded-lg ring-1",
-                              movement.margin >= 50 ? "bg-green-100 text-green-700 ring-green-200/50" :
-                              movement.margin >= 30 ? "bg-yellow-100 text-yellow-700 ring-yellow-200/50" :
-                              "bg-red-100 text-red-700 ring-red-200/50"
-                            )}>
+                            <Badge className={
+                              movement.margin >= 50 ? "bg-green-100 text-green-700" :
+                              movement.margin >= 30 ? "bg-yellow-100 text-yellow-700" :
+                              "bg-red-100 text-red-700"
+                            }>
                               {movement.margin.toFixed(1)}%
                             </Badge>
                           </td>
@@ -1253,37 +1103,37 @@ export default function ReportsPage() {
                   </table>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
 
-      {/* ═══════ STYLISTS TAB ═══════ */}
+      {/* Stylists Tab */}
       {activeTab === "stylists" && (
-        <div className="animate-in stagger-1 space-y-6">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-6"
+        >
           {data.stylists.length === 0 ? (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-              <div className="py-16 text-center">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center mx-auto mb-5 ring-1 ring-indigo-200/50 shadow-lg shadow-indigo-500/10">
-                  <UserCircle className="w-10 h-10 text-indigo-400" />
-                </div>
-                <h3 className="text-lg font-black text-gray-900 tracking-tight mb-2">No stylist data yet</h3>
-                <p className="text-sm text-gray-400 max-w-xs mx-auto leading-relaxed">Complete some appointments to see stylist performance</p>
-              </div>
-            </div>
+            <Card>
+              <CardContent className="py-12 text-center">
+                <UserCircle className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No stylist data yet</h3>
+                <p className="text-muted-foreground">Complete some appointments to see stylist performance</p>
+              </CardContent>
+            </Card>
           ) : (
             <div className="grid gap-6">
               {/* Revenue by Stylist — Bar Chart */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-                <div className="p-6 pb-4 border-b border-gray-100">
-                  <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-indigo-600" />
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-teal-600" />
                     Revenue by Stylist
-                  </h3>
-                </div>
-                <div className="p-6">
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                   <ResponsiveContainer width="100%" height={Math.max(200, data.stylists.length * 50)}>
                     <BarChart
                       data={data.stylists.map((s) => ({ name: s.name, revenue: s.revenue }))}
@@ -1314,91 +1164,89 @@ export default function ReportsPage() {
                       <Bar dataKey="revenue" fill="hsl(166, 76%, 32%)" radius={[0, 6, 6, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              {/* Individual Stylist Cards */}
               {data.stylists.map((stylist) => (
-                <div key={stylist.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                  <div className="h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-                  <div className="p-6 pb-4 border-b border-gray-100">
+                <Card key={stylist.id}>
+                  <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                          <span className="text-sm font-bold text-white">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center">
+                          <span className="text-sm font-bold text-teal-700">
                             {stylist.name.split(" ").map(n => n[0]).join("")}
                           </span>
                         </div>
-                        <h3 className="text-lg font-black text-gray-900 tracking-tight">{stylist.name}</h3>
-                      </div>
-                      <Badge className="bg-indigo-100 text-indigo-700 text-lg px-3 py-1 font-black ring-1 ring-indigo-200/50 rounded-lg">
+                        {stylist.name}
+                      </CardTitle>
+                      <Badge className="bg-teal-100 text-teal-700 text-lg px-3 py-1">
                         {formatCurrency(stylist.revenue)}
                       </Badge>
                     </div>
-                  </div>
-                  <div className="p-6">
+                  </CardHeader>
+                  <CardContent>
                     <div className="grid gap-4 md:grid-cols-4 mb-4">
-                      <div className="text-center p-3 bg-blue-50 rounded-xl ring-1 ring-blue-200/50">
-                        <p className="text-2xl font-black text-blue-600">{stylist.appointments}</p>
-                        <p className="text-xs text-gray-500 font-medium mt-1">Appointments</p>
+                      <div className="text-center p-3 bg-blue-50 rounded-xl">
+                        <p className="text-2xl font-bold text-blue-600">{stylist.appointments}</p>
+                        <p className="text-xs text-muted-foreground">Appointments</p>
                       </div>
-                      <div className="text-center p-3 bg-green-50 rounded-xl ring-1 ring-green-200/50">
-                        <p className="text-2xl font-black text-green-600">{stylist.completed}</p>
-                        <p className="text-xs text-gray-500 font-medium mt-1">Completed</p>
+                      <div className="text-center p-3 bg-green-50 rounded-xl">
+                        <p className="text-2xl font-bold text-green-600">{stylist.completed}</p>
+                        <p className="text-xs text-muted-foreground">Completed</p>
                       </div>
-                      <div className="text-center p-3 bg-indigo-50 rounded-xl ring-1 ring-indigo-200/50">
-                        <p className="text-2xl font-black text-indigo-600">{formatCurrency(stylist.averageTicket)}</p>
-                        <p className="text-xs text-gray-500 font-medium mt-1">Avg Ticket</p>
+                      <div className="text-center p-3 bg-teal-50 rounded-xl">
+                        <p className="text-2xl font-bold text-teal-600">{formatCurrency(stylist.averageTicket)}</p>
+                        <p className="text-xs text-muted-foreground">Avg Ticket</p>
                       </div>
-                      <div className="text-center p-3 bg-purple-50 rounded-xl ring-1 ring-purple-200/50">
-                        <p className="text-2xl font-black text-purple-600">{stylist.completionRate.toFixed(0)}%</p>
-                        <p className="text-xs text-gray-500 font-medium mt-1">Completion Rate</p>
+                      <div className="text-center p-3 bg-purple-50 rounded-xl">
+                        <p className="text-2xl font-bold text-purple-600">{stylist.completionRate.toFixed(0)}%</p>
+                        <p className="text-xs text-muted-foreground">Completion Rate</p>
                       </div>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
                       {/* Appointment Breakdown */}
                       <div>
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Appointment Status</p>
+                        <p className="text-sm font-medium mb-2">Appointment Status</p>
                         <div className="flex gap-2">
-                          <div className="flex-1 text-center p-2.5 bg-green-50 rounded-xl ring-1 ring-green-200/50">
-                            <p className="font-black text-green-600">{stylist.completed}</p>
-                            <p className="text-xs text-gray-500 font-medium">Done</p>
+                          <div className="flex-1 text-center p-2 bg-green-50 rounded">
+                            <p className="font-bold text-green-600">{stylist.completed}</p>
+                            <p className="text-xs text-muted-foreground">Done</p>
                           </div>
-                          <div className="flex-1 text-center p-2.5 bg-red-50 rounded-xl ring-1 ring-red-200/50">
-                            <p className="font-black text-red-600">{stylist.cancelled}</p>
-                            <p className="text-xs text-gray-500 font-medium">Cancelled</p>
+                          <div className="flex-1 text-center p-2 bg-red-50 rounded">
+                            <p className="font-bold text-red-600">{stylist.cancelled}</p>
+                            <p className="text-xs text-muted-foreground">Cancelled</p>
                           </div>
-                          <div className="flex-1 text-center p-2.5 bg-yellow-50 rounded-xl ring-1 ring-yellow-200/50">
-                            <p className="font-black text-yellow-600">{stylist.noShow}</p>
-                            <p className="text-xs text-gray-500 font-medium">No Show</p>
+                          <div className="flex-1 text-center p-2 bg-yellow-50 rounded">
+                            <p className="font-bold text-yellow-600">{stylist.noShow}</p>
+                            <p className="text-xs text-muted-foreground">No Show</p>
                           </div>
                         </div>
                       </div>
 
                       {/* Top Services */}
                       <div>
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Top Services</p>
+                        <p className="text-sm font-medium mb-2">Top Services</p>
                         {stylist.topServices.length === 0 ? (
-                          <p className="text-sm text-gray-400 font-medium">No services yet</p>
+                          <p className="text-sm text-muted-foreground">No services yet</p>
                         ) : (
-                          <div className="space-y-1.5">
+                          <div className="space-y-1">
                             {stylist.topServices.slice(0, 3).map((service, index) => (
-                              <div key={index} className="flex justify-between text-sm items-center p-2 bg-gray-50/80 rounded-lg ring-1 ring-black/[0.04]">
-                                <span className="font-medium text-gray-800">{service.name}</span>
-                                <Badge variant="secondary" className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200/50">{service.count}</Badge>
+                              <div key={index} className="flex justify-between text-sm">
+                                <span>{service.name}</span>
+                                <Badge variant="secondary">{service.count}</Badge>
                               </div>
                             ))}
                           </div>
                         )}
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
-        </div>
+        </motion.div>
       )}
     </div>
   );

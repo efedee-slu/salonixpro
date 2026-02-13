@@ -3,6 +3,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 import {
   Building2,
   Clock,
@@ -17,6 +18,7 @@ import {
   UserPlus,
   Mail,
 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -412,95 +414,54 @@ function SettingsContent() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 animate-spin text-zinc-600" />
-          <div className="space-y-3 w-72">
-            <div className="h-4 skeleton-shimmer rounded-lg" />
-            <div className="h-4 skeleton-shimmer rounded-lg w-2/3" />
-          </div>
-        </div>
+        <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-5 max-w-[1400px]">
-
-      {/* ═══════ SETTINGS BANNER ═══════ */}
-      <div className="animate-in stagger-1 relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#18181b] via-[#27272a] to-[#3f3f46] p-8 lg:p-10 shadow-2xl shadow-zinc-900/20 ring-1 ring-white/10">
-        {/* Shimmer overlay */}
-        <div className="absolute inset-0 shimmer pointer-events-none" />
-
-        {/* Decorative animated shapes */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-zinc-400/10 blur-3xl animate-float" />
-          <div className="absolute -bottom-32 -left-16 w-96 h-96 rounded-full bg-gray-400/8 blur-3xl animate-float-delayed" />
-          <div className="absolute top-1/2 right-1/4 w-48 h-48 rounded-full bg-slate-400/8 blur-2xl animate-float-slow" />
-          <div className="absolute top-8 right-16 w-16 h-16 border border-white/[0.08] rounded-2xl rotate-12 animate-float" />
-          <div className="absolute top-1/2 right-8 w-10 h-10 border border-white/[0.06] rounded-xl rotate-45 animate-float-delayed" />
-          <div className="absolute bottom-8 right-1/3 w-20 h-20 border border-white/[0.05] rounded-full animate-float-slow" />
-          <div className="absolute top-4 left-1/3 w-6 h-6 bg-white/[0.04] rounded-lg rotate-12 animate-float" />
-          <div className="absolute inset-0 opacity-[0.03]" style={{
-            backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)",
-            backgroundSize: "20px 20px",
-          }} />
-        </div>
-
-        <div className="relative">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-8">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 rounded-full bg-zinc-400 animate-pulse" />
-                <p className="text-zinc-400/60 text-xs font-semibold tracking-widest uppercase">Configuration</p>
-              </div>
-              <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight text-glow leading-[1.1]">
-                Settings
-              </h1>
-              <p className="text-zinc-300/50 mt-3 text-[15px] leading-relaxed max-w-lg">
-                Manage your salon settings and preferences
-              </p>
-            </div>
-          </div>
-
-          {/* Tab Selector Pills */}
-          <div className="bg-white/10 rounded-xl p-1 inline-flex gap-1">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? "bg-white/20 text-white font-semibold shadow-sm"
-                    : "text-zinc-400 hover:text-zinc-200 hover:bg-white/5"
-                }`}
-              >
-                <tab.icon className="w-4 h-4" />
-                {tab.name}
-              </button>
-            ))}
-          </div>
-        </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold">Settings</h1>
+        <p className="text-muted-foreground">
+          Manage your salon settings and preferences
+        </p>
       </div>
 
-      {/* ═══════ GENERAL TAB ═══════ */}
+      {/* Tabs */}
+      <div className="flex gap-2 border-b">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors ${
+              activeTab === tab.id
+                ? "border-teal-600 text-teal-600"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <tab.icon className="w-4 h-4" />
+            {tab.name}
+          </button>
+        ))}
+      </div>
+
+      {/* General Tab */}
       {activeTab === "general" && (
-        <div className="animate-in stagger-1 space-y-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="h-[3px] bg-gradient-to-r from-zinc-500 via-gray-500 to-slate-500" />
-            <div className="p-6 pb-4 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zinc-100 to-gray-100 flex items-center justify-center ring-1 ring-zinc-200/50">
-                  <Building2 className="w-5 h-5 text-zinc-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-gray-900 tracking-tight">Business Information</h3>
-                  <p className="text-sm text-gray-400 mt-0.5 font-medium">
-                    Update your salon&apos;s basic information
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="p-6 space-y-4">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-6"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>Business Information</CardTitle>
+              <CardDescription>
+                Update your salon&apos;s basic information
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="name">Business Name</Label>
@@ -591,12 +552,8 @@ function SettingsContent() {
                   <option value="GYD">G$ - Guyanese Dollar</option>
                 </select>
               </div>
-              <div className="flex justify-end pt-2">
-                <Button
-                  onClick={handleSaveGeneral}
-                  disabled={isSaving}
-                  className="rounded-xl bg-gradient-to-r from-zinc-700 to-zinc-800 hover:from-zinc-800 hover:to-zinc-900 text-white font-bold shadow-lg shadow-zinc-800/20 h-10 px-6"
-                >
+              <div className="flex justify-end">
+                <Button onClick={handleSaveGeneral} disabled={isSaving}>
                   {isSaving ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -610,48 +567,40 @@ function SettingsContent() {
                   )}
                 </Button>
               </div>
-            </div>
-          </div>
-        </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
 
-      {/* ═══════ HOURS TAB ═══════ */}
+      {/* Hours Tab */}
       {activeTab === "hours" && (
-        <div className="animate-in stagger-1 space-y-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="h-[3px] bg-gradient-to-r from-zinc-500 via-gray-500 to-slate-500" />
-            <div className="p-6 pb-4 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zinc-100 to-gray-100 flex items-center justify-center ring-1 ring-zinc-200/50">
-                  <Clock className="w-5 h-5 text-zinc-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-gray-900 tracking-tight">Business Hours</h3>
-                  <p className="text-sm text-gray-400 mt-0.5 font-medium">
-                    Set your salon&apos;s operating hours
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="p-6 space-y-1">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-6"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>Business Hours</CardTitle>
+              <CardDescription>
+                Set your salon&apos;s operating hours
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               {daysOfWeek.map((day) => (
                 <div
                   key={day}
-                  className="flex items-center gap-4 py-3.5 px-3 rounded-xl border-b border-gray-100/60 last:border-0 hover:bg-gray-50/60 transition-colors group/row"
+                  className="flex items-center gap-4 py-3 border-b last:border-0"
                 >
-                  <div className="w-28 font-semibold text-gray-800 text-sm">{day}</div>
-                  <div className="flex items-center gap-2.5">
+                  <div className="w-28 font-medium">{day}</div>
+                  <div className="flex items-center gap-2">
                     <Switch
                       checked={!businessHours[day]?.closed}
                       onCheckedChange={(checked) =>
                         updateHours(day, "closed", !checked)
                       }
                     />
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ring-1 ${
-                      businessHours[day]?.closed
-                        ? "bg-red-50 text-red-600 ring-red-200/50"
-                        : "bg-emerald-50 text-emerald-700 ring-emerald-200/50"
-                    }`}>
+                    <span className="text-sm text-muted-foreground">
                       {businessHours[day]?.closed ? "Closed" : "Open"}
                     </span>
                   </div>
@@ -665,7 +614,7 @@ function SettingsContent() {
                         }
                         className="w-32"
                       />
-                      <span className="text-gray-400 text-sm font-medium">to</span>
+                      <span className="text-muted-foreground">to</span>
                       <Input
                         type="time"
                         value={businessHours[day]?.close || "18:00"}
@@ -678,12 +627,8 @@ function SettingsContent() {
                   )}
                 </div>
               ))}
-              <div className="flex justify-end pt-5">
-                <Button
-                  onClick={handleSaveHours}
-                  disabled={isSaving}
-                  className="rounded-xl bg-gradient-to-r from-zinc-700 to-zinc-800 hover:from-zinc-800 hover:to-zinc-900 text-white font-bold shadow-lg shadow-zinc-800/20 h-10 px-6"
-                >
+              <div className="flex justify-end pt-4">
+                <Button onClick={handleSaveHours} disabled={isSaving}>
                   {isSaving ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -697,71 +642,54 @@ function SettingsContent() {
                   )}
                 </Button>
               </div>
-            </div>
-          </div>
-        </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
 
-      {/* ═══════ TEAM TAB ═══════ */}
+      {/* Team Tab */}
       {activeTab === "team" && (
-        <div className="animate-in stagger-1 space-y-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="h-[3px] bg-gradient-to-r from-zinc-500 via-gray-500 to-slate-500" />
-            <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zinc-100 to-gray-100 flex items-center justify-center ring-1 ring-zinc-200/50">
-                  <Users className="w-5 h-5 text-zinc-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-gray-900 tracking-tight">Team Members</h3>
-                  <p className="text-sm text-gray-400 mt-0.5 font-medium">
-                    Manage staff access to SalonixPro
-                  </p>
-                </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-6"
+        >
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Team Members</CardTitle>
+                <CardDescription>
+                  Manage staff access to SalonixPro
+                </CardDescription>
               </div>
               {currentUserRole === "OWNER" && (
-                <Button
-                  onClick={() => setInviteDialogOpen(true)}
-                  size="sm"
-                  className="rounded-xl bg-gradient-to-r from-zinc-700 to-zinc-800 hover:from-zinc-800 hover:to-zinc-900 text-white font-bold shadow-lg shadow-zinc-800/20"
-                >
+                <Button onClick={() => setInviteDialogOpen(true)} size="sm">
                   <UserPlus className="w-4 h-4 mr-2" />
                   Invite Member
                 </Button>
               )}
-            </div>
-            <div className="p-6">
+            </CardHeader>
+            <CardContent>
               {teamMembers.length === 0 ? (
-                <div className="text-center py-16 px-4">
-                  <div className="inline-flex flex-col items-center border-2 border-dashed border-zinc-200/60 rounded-2xl px-12 py-10 bg-gradient-to-br from-zinc-50/30 to-slate-50/50">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-zinc-100 to-gray-100 flex items-center justify-center mb-5 ring-1 ring-zinc-200/50 shadow-lg shadow-zinc-500/10">
-                      <Users className="w-10 h-10 text-zinc-400" />
-                    </div>
-                    <p className="text-gray-900 font-black text-lg tracking-tight">No team members yet</p>
-                    <p className="text-sm text-gray-400 mt-1.5 max-w-xs mx-auto leading-relaxed">
-                      Add team members to give them access to the system
-                    </p>
-                  </div>
+                <div className="text-center py-8 text-muted-foreground">
+                  <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No team members yet</p>
+                  <p className="text-sm">
+                    Add team members to give them access to the system
+                  </p>
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-4">
                   {teamMembers.map((member) => (
                     <div
                       key={member.id}
-                      className="flex items-center justify-between p-4 rounded-xl ring-1 ring-black/[0.04] hover:bg-gray-50/60 transition-all shadow-sm group/row"
+                      className="flex items-center justify-between p-4 border rounded-lg"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zinc-200 to-gray-300 flex items-center justify-center shadow-sm shrink-0 group-hover/row:scale-105 transition-transform">
-                          <span className="text-[11px] font-bold text-zinc-700">
-                            {member.name.split(" ").map((n: string) => n[0]).join("").toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900 text-sm">{member.name}</p>
-                          <p className="text-xs text-gray-400">
-                            {member.email}
-                          </p>
-                        </div>
+                      <div>
+                        <p className="font-medium">{member.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {member.email}
+                        </p>
                       </div>
                       <div className="flex items-center gap-2">
                         {currentUserRole === "OWNER" && member.role !== "OWNER" && (
@@ -769,21 +697,12 @@ function SettingsContent() {
                             variant="outline"
                             size="sm"
                             onClick={() => openPermissions(member)}
-                            className="rounded-lg border-gray-200 font-semibold text-gray-500 hover:text-gray-900 ring-1 ring-gray-200/50 text-xs"
                           >
                             <Shield className="w-3.5 h-3.5 mr-1.5" />
                             Permissions
                           </Button>
                         )}
-                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg ring-1 ${
-                          member.role === "OWNER"
-                            ? "bg-zinc-100 text-zinc-800 ring-zinc-300/50"
-                            : member.role === "MANAGER"
-                            ? "bg-blue-50 text-blue-700 ring-blue-200/50"
-                            : "bg-gray-50 text-gray-600 ring-gray-200/50"
-                        }`}>
-                          {member.role}
-                        </span>
+                        <Badge>{member.role}</Badge>
                       </div>
                     </div>
                   ))}
@@ -966,41 +885,38 @@ function SettingsContent() {
                   </div>
                 </DialogContent>
               </Dialog>
-            </div>
-          </div>
-        </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
 
-      {/* ═══════ BILLING TAB ═══════ */}
+      {/* Billing Tab */}
       {activeTab === "billing" && (
-        <div className="animate-in stagger-1 space-y-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="h-[3px] bg-gradient-to-r from-zinc-500 via-gray-500 to-slate-500" />
-            <div className="p-6 pb-4 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zinc-100 to-gray-100 flex items-center justify-center ring-1 ring-zinc-200/50">
-                  <CreditCard className="w-5 h-5 text-zinc-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-gray-900 tracking-tight">Subscription</h3>
-                  <p className="text-sm text-gray-400 mt-0.5 font-medium">
-                    Manage your SalonixPro subscription
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="p-6 space-y-6">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-6"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-teal-600" />
+                Subscription
+              </CardTitle>
+              <CardDescription>
+                Manage your SalonixPro subscription
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
               {billingStatus?.isOnTrial ? (
-                <div className="p-5 bg-gradient-to-br from-amber-50/60 to-orange-50/40 rounded-xl ring-1 ring-amber-200/50">
-                  <div className="flex items-center gap-2.5 mb-2">
-                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center ring-1 ring-amber-200/50">
-                      <Zap className="w-4.5 h-4.5 text-amber-600" />
-                    </div>
-                    <span className="font-bold text-amber-800 text-sm">
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Zap className="w-5 h-5 text-amber-600" />
+                    <span className="font-semibold text-amber-800">
                       Free Trial Active
                     </span>
                   </div>
-                  <p className="text-sm text-amber-700 leading-relaxed ml-[46px]">
+                  <p className="text-sm text-amber-700">
                     Your trial ends on{" "}
                     {billingStatus.trialEndsAt
                       ? new Date(billingStatus.trialEndsAt).toLocaleDateString()
@@ -1009,16 +925,14 @@ function SettingsContent() {
                   </p>
                 </div>
               ) : (
-                <div className="p-5 bg-gradient-to-br from-emerald-50/60 to-teal-50/40 rounded-xl ring-1 ring-emerald-200/50">
-                  <div className="flex items-center gap-2.5 mb-2">
-                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center ring-1 ring-emerald-200/50">
-                      <Check className="w-4.5 h-4.5 text-emerald-600" />
-                    </div>
-                    <span className="font-bold text-emerald-800 text-sm">
+                <div className="p-4 bg-teal-50 border border-teal-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Check className="w-5 h-5 text-teal-600" />
+                    <span className="font-semibold text-teal-800">
                       {billingStatus?.plan || "Free"} Plan
                     </span>
                   </div>
-                  <p className="text-sm text-emerald-700 leading-relaxed ml-[46px]">
+                  <p className="text-sm text-teal-700">
                     {billingStatus?.status === "active"
                       ? "Your subscription is active"
                       : "Subscribe to unlock all features"}
@@ -1026,94 +940,81 @@ function SettingsContent() {
                 </div>
               )}
 
-              <div className="grid gap-5 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2">
                 {/* Monthly Plan */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-6 hover:border-zinc-300 transition-all hover:shadow-md">
-                  <div className="flex justify-between items-start mb-6">
+                <div className="p-6 border rounded-xl hover:border-teal-300 transition-colors">
+                  <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h3 className="font-bold text-gray-900 text-base">Monthly</h3>
-                      <p className="text-sm text-gray-400 font-medium mt-0.5">
+                      <h3 className="font-semibold">Monthly</h3>
+                      <p className="text-sm text-muted-foreground">
                         Flexible monthly billing
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-3xl font-black text-gray-900 tracking-tight number-display">$30</p>
-                      <p className="text-xs text-gray-400 font-semibold">/month</p>
+                      <p className="text-2xl font-bold">$30</p>
+                      <p className="text-sm text-muted-foreground">/month</p>
                     </div>
                   </div>
-                  <Button className="w-full rounded-xl border-gray-200 font-semibold text-gray-600 hover:text-gray-900 ring-1 ring-gray-200/50 h-10" variant="outline">
+                  <Button className="w-full" variant="outline">
                     Choose Monthly
                   </Button>
                 </div>
 
                 {/* Yearly Plan */}
-                <div className="glass-card glow-border rounded-2xl overflow-hidden p-6 relative ring-2 ring-zinc-400/30">
-                  <div className="h-[3px] bg-gradient-to-r from-zinc-500 via-gray-500 to-slate-500 absolute top-0 left-0 right-0" />
-                  <Badge className="absolute -top-3 left-4 bg-gradient-to-r from-zinc-700 to-zinc-800 text-white text-[10px] font-bold px-3 py-0.5 shadow-lg shadow-zinc-800/20 border-0">
+                <div className="p-6 border-2 border-teal-500 rounded-xl relative">
+                  <Badge className="absolute -top-3 left-4 bg-teal-600">
                     Save $60/year
                   </Badge>
-                  <div className="flex justify-between items-start mb-6 mt-1">
+                  <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h3 className="font-bold text-gray-900 text-base">Yearly</h3>
-                      <p className="text-sm text-gray-400 font-medium mt-0.5">
+                      <h3 className="font-semibold">Yearly</h3>
+                      <p className="text-sm text-muted-foreground">
                         Best value
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-3xl font-black text-gray-900 tracking-tight number-display">$300</p>
-                      <p className="text-xs text-gray-400 font-semibold">/year</p>
+                      <p className="text-2xl font-bold">$300</p>
+                      <p className="text-sm text-muted-foreground">/year</p>
                     </div>
                   </div>
-                  <Button className="w-full rounded-xl bg-gradient-to-r from-zinc-700 to-zinc-800 hover:from-zinc-800 hover:to-zinc-900 text-white font-bold shadow-lg shadow-zinc-800/20 h-10 border-0">
+                  <Button className="w-full bg-teal-600 hover:bg-teal-700">
                     Choose Yearly
                   </Button>
                 </div>
               </div>
 
-              <div className="pt-5 border-t border-gray-100">
-                <h4 className="font-bold text-gray-900 text-sm mb-3 tracking-tight">All plans include:</h4>
-                <ul className="grid gap-2.5 md:grid-cols-2 text-sm">
-                  <li className="flex items-center gap-2.5">
-                    <div className="w-5 h-5 rounded-md bg-emerald-50 flex items-center justify-center ring-1 ring-emerald-200/50">
-                      <Check className="w-3 h-3 text-emerald-600" />
-                    </div>
-                    <span className="text-gray-600 font-medium">Unlimited appointments</span>
+              <div className="pt-4 border-t">
+                <h4 className="font-medium mb-2">All plans include:</h4>
+                <ul className="grid gap-2 md:grid-cols-2 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-teal-600" />
+                    Unlimited appointments
                   </li>
-                  <li className="flex items-center gap-2.5">
-                    <div className="w-5 h-5 rounded-md bg-emerald-50 flex items-center justify-center ring-1 ring-emerald-200/50">
-                      <Check className="w-3 h-3 text-emerald-600" />
-                    </div>
-                    <span className="text-gray-600 font-medium">Client management</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-teal-600" />
+                    Client management
                   </li>
-                  <li className="flex items-center gap-2.5">
-                    <div className="w-5 h-5 rounded-md bg-emerald-50 flex items-center justify-center ring-1 ring-emerald-200/50">
-                      <Check className="w-3 h-3 text-emerald-600" />
-                    </div>
-                    <span className="text-gray-600 font-medium">Online booking</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-teal-600" />
+                    Online booking
                   </li>
-                  <li className="flex items-center gap-2.5">
-                    <div className="w-5 h-5 rounded-md bg-emerald-50 flex items-center justify-center ring-1 ring-emerald-200/50">
-                      <Check className="w-3 h-3 text-emerald-600" />
-                    </div>
-                    <span className="text-gray-600 font-medium">Point of sale</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-teal-600" />
+                    Point of sale
                   </li>
-                  <li className="flex items-center gap-2.5">
-                    <div className="w-5 h-5 rounded-md bg-emerald-50 flex items-center justify-center ring-1 ring-emerald-200/50">
-                      <Check className="w-3 h-3 text-emerald-600" />
-                    </div>
-                    <span className="text-gray-600 font-medium">Reports & analytics</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-teal-600" />
+                    Reports & analytics
                   </li>
-                  <li className="flex items-center gap-2.5">
-                    <div className="w-5 h-5 rounded-md bg-emerald-50 flex items-center justify-center ring-1 ring-emerald-200/50">
-                      <Check className="w-3 h-3 text-emerald-600" />
-                    </div>
-                    <span className="text-gray-600 font-medium">Priority support</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-teal-600" />
+                    Priority support
                   </li>
                 </ul>
               </div>
-            </div>
-          </div>
-        </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
     </div>
   );
@@ -1123,13 +1024,9 @@ function SettingsContent() {
 function SettingsLoading() {
   return (
     <div className="flex items-center justify-center h-96">
-      <div className="flex flex-col items-center gap-4">
-        <Loader2 className="w-6 h-6 animate-spin text-zinc-600" />
-        <div className="space-y-3 w-64">
-          <div className="h-4 skeleton-shimmer rounded-lg" />
-          <div className="h-4 skeleton-shimmer rounded-lg w-2/3 mx-auto" />
-        </div>
-        <span className="text-gray-400 text-sm font-medium">Loading settings...</span>
+      <div className="flex items-center gap-3">
+        <Loader2 className="w-6 h-6 animate-spin text-teal-600" />
+        <span className="text-muted-foreground">Loading settings...</span>
       </div>
     </div>
   );
