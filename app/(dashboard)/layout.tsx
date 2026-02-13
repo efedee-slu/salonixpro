@@ -27,6 +27,7 @@ import {
   DollarSign,
   TrendingUp,
   Search,
+  Calculator,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -61,6 +62,7 @@ const navigationGroups = [
     label: "FINANCE",
     items: [
       { name: "Expenses", href: "/expenses", icon: Wallet, permission: "viewExpenses" as PermissionKey | null },
+      { name: "Product Costing", href: "/product-costing", icon: Calculator, permission: "viewProductCosts" as PermissionKey | null },
       { name: "Payroll", href: "/payroll", icon: DollarSign, permission: "viewPayroll" as PermissionKey | null },
       { name: "P&L Report", href: "/profit-loss", icon: TrendingUp, permission: "viewProfitLoss" as PermissionKey | null },
       { name: "Reports", href: "/reports", icon: BarChart3, permission: "viewReports" as PermissionKey | null },

@@ -136,11 +136,14 @@ export async function GET(request: Request) {
     const products = productIds.size > 0
       ? await prisma.product.findMany({
           where: { id: { in: Array.from(productIds) } },
-          select: { id: true, costPrice: true },
+          select: { id: true, name: true, costPrice: true },
         })
       : [];
 
     const costPriceMap = new Map(products.map((p) => [p.id, Number(p.costPrice)]));
+
+    // Build a product name map for COGS breakdown
+    const productNameMap = new Map(products.map((p) => [p.id, p.name]));
 
     // --- Calculate current period metrics ---
     const serviceRevenue = currentAppointments.reduce(
@@ -153,12 +156,37 @@ export async function GET(request: Request) {
     );
     const totalRevenue = serviceRevenue + productRevenue;
 
+    // COGS with per-product breakdown
+    const cogsBreakdownMap = new Map<string, { productId: string; productName: string; quantity: number; costPrice: number; total: number; costUnknown: boolean }>();
+
     const cogs = currentOrders.reduce((sum, order) => {
       return sum + order.items.reduce((s, item) => {
         const cost = costPriceMap.get(item.productId) || 0;
-        return s + cost * item.quantity;
+        const itemCogs = cost * item.quantity;
+        const costUnknown = cost === 0;
+
+        // Accumulate breakdown
+        const existing = cogsBreakdownMap.get(item.productId);
+        if (existing) {
+          existing.quantity += item.quantity;
+          existing.total += itemCogs;
+        } else {
+          cogsBreakdownMap.set(item.productId, {
+            productId: item.productId,
+            productName: productNameMap.get(item.productId) || "Unknown Product",
+            quantity: item.quantity,
+            costPrice: cost,
+            total: itemCogs,
+            costUnknown,
+          });
+        }
+
+        return s + itemCogs;
       }, 0);
     }, 0);
+
+    const cogsBreakdown = Array.from(cogsBreakdownMap.values())
+      .sort((a, b) => b.total - a.total);
 
     const grossProfit = totalRevenue - cogs;
     const grossMargin = totalRevenue > 0 ? Math.round((grossProfit / totalRevenue) * 1000) / 10 : 0;
@@ -297,6 +325,7 @@ export async function GET(request: Request) {
         total: cogs,
         previousTotal: prevCogs,
         change: pctChange(cogs, prevCogs),
+        breakdown: cogsBreakdown,
       },
       grossProfit: {
         total: grossProfit,

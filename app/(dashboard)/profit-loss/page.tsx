@@ -48,6 +48,14 @@ interface PLData {
     total: number;
     previousTotal: number;
     change: number;
+    breakdown?: {
+      productId: string;
+      productName: string;
+      quantity: number;
+      costPrice: number;
+      total: number;
+      costUnknown: boolean;
+    }[];
   };
   grossProfit: {
     total: number;
@@ -753,6 +761,26 @@ export default function ProfitLossPage() {
                   negative
                   tooltip={PL_TOOLTIPS["Product Costs"]}
                 />
+                {data.cogs.breakdown && data.cogs.breakdown.length > 0 && (
+                  <div className="ml-8 space-y-0.5 py-1">
+                    {data.cogs.breakdown.map((item) => (
+                      <div
+                        key={item.productId}
+                        className="flex justify-between text-xs text-muted-foreground"
+                      >
+                        <span className="flex items-center gap-1.5">
+                          {item.productName} ({item.quantity} sold)
+                          {item.costUnknown && (
+                            <span className="text-amber-500 font-medium" title="Cost unknown — run through Product Costing">
+                              Cost unknown
+                            </span>
+                          )}
+                        </span>
+                        <span>{item.costUnknown ? "-" : formatCurrency(item.total)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="border-t my-1" />
                 <PLRow
                   label="Total COGS"

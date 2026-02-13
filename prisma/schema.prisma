@@ -102,6 +102,8 @@ model Business {
   notifications Notification[]
   expenses      Expense[]
   stockMovements StockMovement[]
+  productCostings ProductCosting[]
+  costingTemplates CostingTemplate[]
 
   @@index([slug])
 }
@@ -486,6 +488,7 @@ model Product {
   category      ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   orderItems    OrderItem[]
   stockMovements StockMovement[]
+  costings      ProductCosting[]
 
   @@unique([businessId, sku])
   @@index([businessId])
@@ -708,4 +711,94 @@ model Expense {
   @@index([businessId])
   @@index([category])
   @@index([date])
+}
+
+// ============================================
+// PRODUCT COSTING
+// ============================================
+
+model ProductCosting {
+  id                  String   @id @default(cuid())
+  businessId          String
+  productName         String
+  supplier            String?
+  quantity            Int      @default(1)
+  unitPrice           Decimal  @db.Decimal(10, 2)
+  purchaseCurrency    String   @default("USD") // USD, EUR, GBP, etc.
+
+  // Shipping & Freight
+  shippingCost        Decimal  @default(0) @db.Decimal(10, 2)  // in purchase currency
+  freightCost         Decimal  @default(0) @db.Decimal(10, 2)  // local transport, in local currency
+
+  // Duties & Taxes (all editable, no hardcoded defaults)
+  dutyRate            Decimal  @default(0) @db.Decimal(5, 2)
+  dutyAmount          Decimal  @default(0) @db.Decimal(10, 2)
+  vatRate             Decimal  @default(0) @db.Decimal(5, 2)
+  vatAmount           Decimal  @default(0) @db.Decimal(10, 2)
+  hslRate             Decimal  @default(0) @db.Decimal(5, 2)   // Health & Security Levy (optional)
+  hslAmount           Decimal  @default(0) @db.Decimal(10, 2)
+  exciseTax           Decimal  @default(0) @db.Decimal(10, 2)
+  customsFee          Decimal  @default(0) @db.Decimal(10, 2)
+
+  // Other costs (local currency)
+  insurance           Decimal  @default(0) @db.Decimal(10, 2)
+  handlingFee         Decimal  @default(0) @db.Decimal(10, 2)
+  otherCosts          Decimal  @default(0) @db.Decimal(10, 2)
+  otherDescription    String?
+
+  // Custom tax/fee entries (JSON array)
+  customTaxes         Json?    // [{ name, rate, amount, isPercentage }]
+
+  // Totals
+  totalLandedCost     Decimal  @default(0) @db.Decimal(10, 2)  // total for entire order
+  totalLandedCostLocal Decimal @default(0) @db.Decimal(10, 2)  // same, in local currency
+  landedCostPerUnit   Decimal  @default(0) @db.Decimal(10, 2)  // per unit in local currency
+
+  // Currency & Exchange
+  localCurrency       String   @default("XCD")
+  localCurrencySymbol String   @default("EC$")
+  exchangeRate        Decimal  @default(1) @db.Decimal(10, 4)  // purchase → local
+
+  // Markup & Pricing
+  markupPercent       Decimal  @default(0) @db.Decimal(5, 2)
+  sellingPrice        Decimal  @default(0) @db.Decimal(10, 2)
+
+  // Link to product in shop
+  linkedProductId     String?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  business            Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  linkedProduct       Product? @relation(fields: [linkedProductId], references: [id], onDelete: SetNull)
+
+  @@index([businessId])
+  @@index([linkedProductId])
+  @@index([createdAt])
+}
+
+model CostingTemplate {
+  id                  String   @id @default(cuid())
+  businessId          String
+  name                String
+  dutyRate            Decimal  @default(0) @db.Decimal(5, 2)
+  vatRate             Decimal  @default(0) @db.Decimal(5, 2)
+  hslRate             Decimal  @default(0) @db.Decimal(5, 2)
+  exciseTax           Decimal  @default(0) @db.Decimal(10, 2)
+  customsFee          Decimal  @default(0) @db.Decimal(10, 2)
+  exchangeRate        Decimal  @default(1) @db.Decimal(10, 4)
+  defaultMarkup       Decimal  @default(0) @db.Decimal(5, 2)
+  shippingEstimate    Decimal  @default(0) @db.Decimal(10, 2)
+  purchaseCurrency    String   @default("USD")
+  customTaxes         Json?    // [{ name, rate, isPercentage }]
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  business            Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, name])
+  @@index([businessId])
 }

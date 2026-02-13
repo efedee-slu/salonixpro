@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
   Plus,
@@ -20,6 +21,7 @@ import {
   ChevronRight,
   History,
   PackagePlus,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,6 +75,8 @@ interface Category {
 }
 
 export default function ShopPage() {
+  const { data: session } = useSession();
+  const isOwnerOrManager = session?.user?.role === "OWNER" || session?.user?.role === "MANAGER";
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -433,12 +437,25 @@ export default function ShopPage() {
                 </div>
 
                 <CardContent className="p-4">
-                  {/* Category */}
-                  {product.category && (
-                    <Badge variant="secondary" className="mb-2">
-                      {product.category.icon} {product.category.name}
-                    </Badge>
-                  )}
+                  {/* Category & Costing Badge */}
+                  <div className="flex items-center gap-1.5 flex-wrap mb-2">
+                    {product.category && (
+                      <Badge variant="secondary">
+                        {product.category.icon} {product.category.name}
+                      </Badge>
+                    )}
+                    {Number(product.costPrice) > 0 ? (
+                      <Badge className="bg-emerald-100 text-emerald-700 text-[10px]">
+                        <CheckCircle2 className="w-3 h-3 mr-0.5" />
+                        Costed
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-amber-100 text-amber-700 text-[10px]">
+                        <AlertTriangle className="w-3 h-3 mr-0.5" />
+                        Cost unknown
+                      </Badge>
+                    )}
+                  </div>
 
                   {/* Name & SKU */}
                   <h3 className="font-semibold truncate">{product.name}</h3>
@@ -474,6 +491,13 @@ export default function ShopPage() {
                       </span>
                     )}
                   </div>
+
+                  {/* Cost Price (OWNER/MANAGER only) */}
+                  {isOwnerOrManager && Number(product.costPrice) > 0 && (
+                    <p className="text-xs text-muted-foreground mb-1">
+                      Cost: {formatCurrency(Number(product.costPrice))}
+                    </p>
+                  )}
 
                   {/* Stock */}
                   <p className="text-sm text-muted-foreground mb-3">
@@ -553,6 +577,24 @@ export default function ShopPage() {
                       SKU: {product.sku}
                       {product.category && ` • ${product.category.name}`}
                     </p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      {Number(product.costPrice) > 0 ? (
+                        <Badge className="bg-emerald-100 text-emerald-700 text-[10px] h-5">
+                          <CheckCircle2 className="w-3 h-3 mr-0.5" />
+                          Costed
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-amber-100 text-amber-700 text-[10px] h-5">
+                          <AlertTriangle className="w-3 h-3 mr-0.5" />
+                          Cost unknown
+                        </Badge>
+                      )}
+                      {isOwnerOrManager && Number(product.costPrice) > 0 && (
+                        <span className="text-xs text-muted-foreground">
+                          Cost: {formatCurrency(Number(product.costPrice))}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Stock */}
