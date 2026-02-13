@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import {
   TrendingUp,
   TrendingDown,
@@ -29,7 +28,6 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HelpTooltip } from "@/components/ui/help-tooltip";
@@ -92,13 +90,6 @@ const PIE_COLORS = [
   "#06b6d4", "#a855f7",
 ];
 
-const statBorderColors = [
-  "border-l-teal-500",
-  "border-l-emerald-500",
-  "border-l-amber-500",
-  "border-l-purple-500",
-];
-
 const PL_TOOLTIPS: Record<string, string> = {
   "Service Revenue": "Income from completed salon appointments and services",
   "Product Revenue": "Income from product orders that were completed and paid",
@@ -114,16 +105,6 @@ const PL_TOOLTIPS: Record<string, string> = {
     "Sum of all operating expense categories for the period",
   "NET PROFIT":
     "Your bottom line — gross profit minus all operating expenses. This is what the business actually earned",
-};
-
-const container = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.1 } },
-};
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 },
 };
 
 export default function ProfitLossPage() {
@@ -358,8 +339,8 @@ export default function ProfitLossPage() {
         : "",
       changeType: data && data.revenue.change >= 0 ? "positive" : "negative",
       icon: TrendingUp,
-      color: "text-teal-600",
-      bgColor: "bg-teal-50",
+      color: "text-blue-600",
+      bgColor: "bg-gradient-to-br from-blue-500/20 to-blue-600/10",
       tooltip:
         "Total income from completed appointments and paid product orders",
     },
@@ -371,7 +352,7 @@ export default function ProfitLossPage() {
         data && data.grossProfit.total >= 0 ? "positive" : "negative",
       icon: DollarSign,
       color: "text-emerald-600",
-      bgColor: "bg-emerald-50",
+      bgColor: "bg-gradient-to-br from-emerald-500/20 to-emerald-600/10",
       tooltip: "Revenue minus cost of goods sold (product costs)",
     },
     {
@@ -384,7 +365,7 @@ export default function ProfitLossPage() {
         data && data.expenses.change <= 0 ? "positive" : "negative",
       icon: Wallet,
       color: "text-amber-600",
-      bgColor: "bg-amber-50",
+      bgColor: "bg-gradient-to-br from-amber-500/20 to-amber-600/10",
       tooltip:
         "Total operating expenses including rent, wages, utilities, and more",
     },
@@ -398,9 +379,9 @@ export default function ProfitLossPage() {
       color:
         data && data.netProfit.total < 0
           ? "text-red-600"
-          : "text-purple-600",
+          : "text-violet-600",
       bgColor:
-        data && data.netProfit.total < 0 ? "bg-red-50" : "bg-purple-50",
+        data && data.netProfit.total < 0 ? "bg-gradient-to-br from-red-500/20 to-red-600/10" : "bg-gradient-to-br from-violet-500/20 to-violet-600/10",
       tooltip:
         "Gross profit minus all operating expenses — your bottom line",
     },
@@ -447,112 +428,116 @@ export default function ProfitLossPage() {
     : [];
 
   return (
-    <motion.div
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className="space-y-8"
-    >
-      {/* Page Header + Period Selector + Export */}
-      <motion.div variants={item} className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Profit &amp; Loss Report
-            </h1>
-            <p className="text-muted-foreground">
-              {data ? data.period.label : "Financial overview of your business"}
-            </p>
+    <div className="space-y-6">
+      {/* ═══════ GRADIENT BANNER — Header + Period Selector + Export ═══════ */}
+      <div className="animate-in stagger-1">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1e3a5f] via-[#1e40af] to-[#5b21b6] p-6 md:p-8 text-white">
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl animate-float" />
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/5 rounded-full blur-3xl animate-float-delayed" />
+            <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-white/3 rounded-full blur-2xl animate-float-slow" />
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportCSV}
-              disabled={!data || isLoading}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              CSV
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportPDF}
-              disabled={!data || isLoading}
-            >
-              <FileDown className="w-4 h-4 mr-2" />
-              PDF
-            </Button>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex flex-wrap gap-2">
-            {PERIODS.map((p) => (
-              <button
-                key={p.key}
-                onClick={() => setPeriod(p.key)}
-                className={cn(
-                  "px-4 py-2 rounded-full text-sm font-medium transition-colors",
-                  period === p.key
-                    ? "bg-teal-600 text-white"
-                    : "bg-accent text-muted-foreground hover:bg-accent/80"
-                )}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-          {period === "custom" && (
-            <div className="flex gap-2">
-              <Input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="w-auto"
-              />
-              <Input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="w-auto"
-              />
-            </div>
-          )}
-        </div>
-      </motion.div>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent shimmer" />
+          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
 
-      {/* Key Metric Cards */}
-      <motion.div
-        variants={item}
-        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
-      >
-        {statCards.map((stat, index) => (
-          <Card
-            key={stat.name}
-            className={cn(
-              "overflow-hidden border-l-4 hover:shadow-md transition-shadow",
-              statBorderColors[index]
-            )}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className={cn("p-3 rounded-xl", stat.bgColor)}>
-                  <stat.icon className={cn("w-6 h-6", stat.color)} />
+          <div className="relative z-10">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <div>
+                <h1 className="text-3xl font-black tracking-tight text-glow">
+                  Profit &amp; Loss Report
+                </h1>
+                <p className="text-blue-200/70 mt-1 text-sm">
+                  {data ? data.period.label : "Financial overview of your business"}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportCSV}
+                  disabled={!data || isLoading}
+                  className="bg-white/10 hover:bg-white/20 text-white border-white/20 rounded-xl"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  CSV
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportPDF}
+                  disabled={!data || isLoading}
+                  className="bg-white/10 hover:bg-white/20 text-white border-white/20 rounded-xl"
+                >
+                  <FileDown className="w-4 h-4 mr-2" />
+                  PDF
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap gap-2">
+                {PERIODS.map((p) => (
+                  <button
+                    key={p.key}
+                    onClick={() => setPeriod(p.key)}
+                    className={cn(
+                      "px-4 py-2 rounded-xl text-sm font-medium transition-colors",
+                      period === p.key
+                        ? "bg-white/20 text-white font-semibold"
+                        : "bg-white/10 text-blue-100/80 hover:bg-white/15 hover:text-white"
+                    )}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+              {period === "custom" && (
+                <div className="flex gap-2">
+                  <Input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-auto bg-white/10 border-white/20 text-white rounded-xl"
+                  />
+                  <Input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-auto bg-white/10 border-white/20 text-white rounded-xl"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════ KEY METRIC STAT CARDS ═══════ */}
+      <div className="animate-in stagger-2">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {statCards.map((stat) => (
+            <div
+              key={stat.name}
+              className="glass-card glow-border p-5 rounded-2xl"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={cn("p-2.5 rounded-xl", stat.bgColor)}>
+                    <stat.icon className={cn("w-5 h-5", stat.color)} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{stat.name}</p>
+                    {isLoading ? (
+                      <div className="h-7 w-24 skeleton-shimmer rounded mt-1" />
+                    ) : (
+                      <p className="text-2xl font-black number-display text-gray-900">{stat.value}</p>
+                    )}
+                  </div>
                 </div>
                 <HelpTooltip text={stat.tooltip} />
               </div>
-              <div className="mt-4">
-                {isLoading ? (
-                  <div className="h-9 w-28 bg-muted animate-pulse rounded" />
-                ) : (
-                  <p className="text-3xl font-bold">{stat.value}</p>
-                )}
-                <p className="text-sm text-muted-foreground mt-1">
-                  {stat.name}
-                </p>
-              </div>
               {!isLoading && stat.change && (
-                <div className="mt-3 flex items-center gap-1">
+                <div className="mt-3 flex items-center gap-1 pl-[52px]">
                   {stat.changeType === "positive" ? (
                     <ArrowUpRight className="w-4 h-4 text-emerald-600" />
                   ) : (
@@ -560,7 +545,7 @@ export default function ProfitLossPage() {
                   )}
                   <span
                     className={cn(
-                      "text-sm",
+                      "text-sm font-medium",
                       stat.changeType === "positive"
                         ? "text-emerald-600"
                         : "text-red-500"
@@ -570,51 +555,48 @@ export default function ProfitLossPage() {
                   </span>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        ))}
-      </motion.div>
+            </div>
+          ))}
+        </div>
+      </div>
 
-      {/* Period Comparison */}
+      {/* ═══════ PERIOD COMPARISON ═══════ */}
       {!isLoading && data && (
-        <motion.div variants={item}>
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-cyan-50">
-                  <ArrowLeftRight className="w-5 h-5 text-cyan-600" />
+        <div className="animate-in stagger-3">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="h-[3px] bg-gradient-to-r from-blue-500 via-violet-500 to-purple-500" />
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/10">
+                  <ArrowLeftRight className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg">Period Comparison</CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Current vs previous period
-                  </p>
+                  <h2 className="text-lg font-bold text-gray-900">Period Comparison</h2>
+                  <p className="text-sm text-gray-500">Current vs previous period</p>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-3 px-4 font-semibold text-muted-foreground">
+                    <tr className="border-b border-gray-100">
+                      <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Metric
                       </th>
-                      <th className="text-right py-3 px-4 font-semibold text-muted-foreground">
+                      <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Current
                       </th>
-                      <th className="text-right py-3 px-4 font-semibold text-muted-foreground">
+                      <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Previous
                       </th>
-                      <th className="text-right py-3 px-4 font-semibold text-muted-foreground">
+                      <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Change
                       </th>
-                      <th className="text-right py-3 px-4 font-semibold text-muted-foreground">
+                      <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         %
                       </th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-gray-50">
                     {comparisonRows.map((row) => {
                       const diff = row.current - row.previous;
                       const isGood = row.positiveIsGood
@@ -623,15 +605,15 @@ export default function ProfitLossPage() {
                       return (
                         <tr
                           key={row.label}
-                          className="border-b last:border-0 hover:bg-accent/30 transition-colors"
+                          className="group/row hover:bg-gray-50/60 transition-colors"
                         >
-                          <td className="py-3 px-4 font-medium">
+                          <td className="py-3 px-4 font-medium text-gray-900">
                             {row.label}
                           </td>
-                          <td className="py-3 px-4 text-right font-medium tabular-nums">
+                          <td className="py-3 px-4 text-right font-medium tabular-nums text-gray-900">
                             {formatCurrency(row.current)}
                           </td>
-                          <td className="py-3 px-4 text-right text-muted-foreground tabular-nums">
+                          <td className="py-3 px-4 text-right text-gray-500 tabular-nums">
                             {formatCurrency(row.previous)}
                           </td>
                           <td
@@ -664,51 +646,56 @@ export default function ProfitLossPage() {
                   </tbody>
                 </table>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* P&L Statement Table */}
-      <motion.div variants={item}>
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-teal-50">
-                <FileText className="w-5 h-5 text-teal-600" />
+      {/* ═══════ P&L STATEMENT TABLE ═══════ */}
+      <div className="animate-in stagger-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="h-[3px] bg-gradient-to-r from-blue-500 via-violet-500 to-purple-500" />
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500/20 to-violet-600/10">
+                <FileText className="w-5 h-5 text-violet-600" />
               </div>
               <div>
-                <CardTitle className="text-lg">
+                <h2 className="text-lg font-bold text-gray-900">
                   Profit &amp; Loss Statement
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
+                </h2>
+                <p className="text-sm text-gray-500">
                   {data ? data.period.label : ""}
                 </p>
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
             {isLoading ? (
               <div className="space-y-3">
                 {[...Array(10)].map((_, i) => (
                   <div
                     key={i}
-                    className="flex justify-between p-3 animate-pulse"
+                    className="flex justify-between p-3"
                   >
-                    <div className="h-4 bg-muted rounded w-1/3" />
-                    <div className="h-4 bg-muted rounded w-20" />
+                    <div className="h-4 skeleton-shimmer rounded w-1/3" />
+                    <div className="h-4 skeleton-shimmer rounded w-20" />
                   </div>
                 ))}
               </div>
             ) : !data ? (
-              <p className="text-center py-8 text-muted-foreground">
-                No data available for the selected period.
-              </p>
+              <div className="text-center py-16">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-violet-50 flex items-center justify-center mx-auto mb-3 ring-1 ring-blue-200/50">
+                  <FileText className="w-7 h-7 text-blue-300" />
+                </div>
+                <p className="text-gray-900 font-bold">No data available</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  No data available for the selected period.
+                </p>
+              </div>
             ) : (
               <div className="space-y-1 font-mono text-sm">
                 {/* Revenue Section */}
                 <div className="py-2">
-                  <p className="font-bold text-base font-sans flex items-center gap-1.5">
+                  <p className="font-bold text-base font-sans flex items-center gap-1.5 text-gray-900">
                     Revenue
                     <HelpTooltip
                       text="All income generated from services and product sales"
@@ -728,7 +715,7 @@ export default function ProfitLossPage() {
                   indent
                   tooltip={PL_TOOLTIPS["Product Revenue"]}
                 />
-                <div className="border-t my-1" />
+                <div className="border-t border-gray-100 my-1" />
                 <PLRow
                   label="Total Revenue"
                   amount={data.revenue.total}
@@ -738,7 +725,7 @@ export default function ProfitLossPage() {
 
                 {/* COGS Section */}
                 <div className="pt-4 pb-2">
-                  <p className="font-bold text-base font-sans flex items-center gap-1.5">
+                  <p className="font-bold text-base font-sans flex items-center gap-1.5 text-gray-900">
                     Cost of Goods Sold
                     <HelpTooltip
                       text="The direct cost of products sold, based on their purchase/cost price"
@@ -753,7 +740,7 @@ export default function ProfitLossPage() {
                   negative
                   tooltip={PL_TOOLTIPS["Product Costs"]}
                 />
-                <div className="border-t my-1" />
+                <div className="border-t border-gray-100 my-1" />
                 <PLRow
                   label="Total COGS"
                   amount={data.cogs.total}
@@ -763,7 +750,7 @@ export default function ProfitLossPage() {
                 />
 
                 {/* Gross Profit */}
-                <div className="border-t-2 border-double mt-3 pt-3">
+                <div className="border-t-2 border-double border-gray-200 mt-3 pt-3">
                   <PLRow
                     label="GROSS PROFIT"
                     amount={data.grossProfit.total}
@@ -776,7 +763,7 @@ export default function ProfitLossPage() {
 
                 {/* Operating Expenses */}
                 <div className="pt-4 pb-2">
-                  <p className="font-bold text-base font-sans flex items-center gap-1.5">
+                  <p className="font-bold text-base font-sans flex items-center gap-1.5 text-gray-900">
                     Operating Expenses
                     <HelpTooltip
                       text="Regular business costs like rent, wages, utilities, and marketing"
@@ -794,11 +781,11 @@ export default function ProfitLossPage() {
                   />
                 ))}
                 {data.expenses.byCategory.length === 0 && (
-                  <p className="text-muted-foreground pl-6 py-1">
+                  <p className="text-gray-500 pl-6 py-1">
                     No expenses recorded
                   </p>
                 )}
-                <div className="border-t my-1" />
+                <div className="border-t border-gray-100 my-1" />
                 <PLRow
                   label="Total Operating Expenses"
                   amount={data.expenses.total}
@@ -808,7 +795,7 @@ export default function ProfitLossPage() {
                 />
 
                 {/* Net Profit */}
-                <div className="border-t-2 border-double mt-3 pt-3">
+                <div className="border-t-2 border-double border-gray-200 mt-3 pt-3">
                   <PLRow
                     label="NET PROFIT"
                     amount={data.netProfit.total}
@@ -820,25 +807,27 @@ export default function ProfitLossPage() {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
-      </motion.div>
+          </div>
+        </div>
+      </div>
 
-      {/* Charts Section */}
+      {/* ═══════ CHARTS SECTION ═══════ */}
       {!isLoading && data && (
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Revenue vs Expenses Trend */}
-          <motion.div variants={item} className="lg:col-span-2">
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  Revenue vs Expenses Trend
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Monthly comparison over the selected period
-                </p>
-              </CardHeader>
-              <CardContent>
+          <div className="animate-in stagger-5 lg:col-span-2">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-full">
+              <div className="h-[3px] bg-gradient-to-r from-blue-500 via-violet-500 to-purple-500" />
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/10">
+                    <TrendingUp className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900">Revenue vs Expenses Trend</h2>
+                    <p className="text-sm text-gray-500">Monthly comparison over the selected period</p>
+                  </div>
+                </div>
                 {data.monthlyBreakdown.length > 0 ? (
                   <ResponsiveContainer width="100%" height={320}>
                     <AreaChart data={data.monthlyBreakdown}>
@@ -945,24 +934,28 @@ export default function ProfitLossPage() {
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="flex items-center justify-center h-64 text-muted-foreground">
+                  <div className="flex items-center justify-center h-64 text-gray-500">
                     No data to display
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </motion.div>
+              </div>
+            </div>
+          </div>
 
           {/* Expense Breakdown Pie Chart */}
-          <motion.div variants={item}>
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="text-lg">Expense Breakdown</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  By category for the selected period
-                </p>
-              </CardHeader>
-              <CardContent>
+          <div className="animate-in stagger-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-full">
+              <div className="h-[3px] bg-gradient-to-r from-blue-500 via-violet-500 to-purple-500" />
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500/20 to-violet-600/10">
+                    <BarChart3 className="w-5 h-5 text-violet-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900">Expense Breakdown</h2>
+                    <p className="text-sm text-gray-500">By category for the selected period</p>
+                  </div>
+                </div>
                 {data.expenses.byCategory.length > 0 ? (
                   <>
                     <ResponsiveContainer width="100%" height={240}>
@@ -1019,13 +1012,13 @@ export default function ProfitLossPage() {
                                     PIE_COLORS[i % PIE_COLORS.length],
                                 }}
                               />
-                              <span className="text-muted-foreground">
+                              <span className="text-gray-500">
                                 {cat.label}
                               </span>
                             </div>
-                            <span className="font-medium">
+                            <span className="font-medium text-gray-900">
                               {formatCurrency(cat.amount)}{" "}
-                              <span className="text-muted-foreground">
+                              <span className="text-gray-500">
                                 ({pct}%)
                               </span>
                             </span>
@@ -1035,16 +1028,22 @@ export default function ProfitLossPage() {
                     </div>
                   </>
                 ) : (
-                  <div className="flex items-center justify-center h-64 text-muted-foreground">
-                    No expenses recorded
+                  <div className="flex items-center justify-center h-64 text-center">
+                    <div>
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center mx-auto mb-3 ring-1 ring-violet-200/50">
+                        <Wallet className="w-7 h-7 text-violet-300" />
+                      </div>
+                      <p className="text-gray-900 font-bold">No expenses recorded</p>
+                      <p className="text-sm text-gray-500 mt-1">Expense data will appear here</p>
+                    </div>
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </motion.div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 
@@ -1075,7 +1074,7 @@ function PLRow({
         "flex items-center justify-between py-1.5 px-3 rounded",
         indent && "pl-8",
         bold && "font-bold",
-        highlight && "bg-accent/50 text-base font-sans"
+        highlight && "bg-gray-50/80 text-base font-sans"
       )}
     >
       <span className={cn(bold && "font-sans", "flex items-center gap-1.5")}>
@@ -1093,7 +1092,7 @@ function PLRow({
         {formatCurrency(Math.abs(amount))}
         {negative && amount > 0 && ")"}
         {suffix && (
-          <span className="text-muted-foreground ml-2 text-xs font-normal">
+          <span className="text-gray-500 ml-2 text-xs font-normal">
             {suffix}
           </span>
         )}

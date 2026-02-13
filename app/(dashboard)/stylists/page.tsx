@@ -14,11 +14,10 @@ import {
   UserCircle,
   Clock,
   Users,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { AddStylistDialog } from "./add-stylist-dialog";
 import { EditStylistDialog } from "./edit-stylist-dialog";
@@ -56,8 +55,7 @@ export default function StylistsPage() {
   const [filteredStylists, setFilteredStylists] = useState<Stylist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  
-  // Dialog states
+
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -65,7 +63,6 @@ export default function StylistsPage() {
   const [selectedStylist, setSelectedStylist] = useState<Stylist | null>(null);
   const { toast } = useToast();
 
-  // Fetch stylists
   const fetchStylists = async () => {
     try {
       const response = await fetch("/api/stylists");
@@ -90,7 +87,6 @@ export default function StylistsPage() {
     fetchStylists();
   }, []);
 
-  // Search filter
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setFilteredStylists(stylists);
@@ -140,217 +136,276 @@ export default function StylistsPage() {
     totalAppointments: stylists.reduce((sum, s) => sum + (s._count?.appointments || 0), 0),
   };
 
+  const statCards = [
+    {
+      name: "Total Stylists",
+      value: stats.total,
+      icon: Users,
+      iconBg: "bg-gradient-to-br from-rose-500 to-pink-600",
+      glowColor: "shadow-rose-500/20 hover:shadow-rose-500/30",
+      accentColor: "from-rose-500/10 via-transparent to-transparent",
+    },
+    {
+      name: "Active",
+      value: stats.active,
+      icon: UserCircle,
+      iconBg: "bg-gradient-to-br from-pink-500 to-fuchsia-600",
+      glowColor: "shadow-pink-500/20 hover:shadow-pink-500/30",
+      accentColor: "from-pink-500/10 via-transparent to-transparent",
+    },
+    {
+      name: "Total Appointments",
+      value: stats.totalAppointments,
+      icon: Calendar,
+      iconBg: "bg-gradient-to-br from-violet-500 to-purple-600",
+      glowColor: "shadow-violet-500/20 hover:shadow-violet-500/30",
+      accentColor: "from-violet-500/10 via-transparent to-transparent",
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Stylists</h1>
-          <p className="text-muted-foreground">
-            Manage your team and their schedules
-          </p>
+    <div className="space-y-5 max-w-[1400px]">
+
+      {/* ═══════ GRADIENT BANNER ═══════ */}
+      <div className="animate-in stagger-1 relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#4a0525] via-[#831843] to-[#be185d] p-8 lg:p-10 shadow-2xl shadow-rose-900/20 ring-1 ring-white/10">
+        <div className="absolute inset-0 shimmer pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-rose-400/15 blur-3xl animate-float" />
+          <div className="absolute -bottom-32 -left-16 w-96 h-96 rounded-full bg-pink-400/10 blur-3xl animate-float-delayed" />
+          <div className="absolute top-1/2 right-1/4 w-48 h-48 rounded-full bg-fuchsia-400/10 blur-2xl animate-float-slow" />
+          <div className="absolute top-8 right-16 w-16 h-16 border border-white/[0.08] rounded-2xl rotate-12 animate-float" />
+          <div className="absolute top-1/2 right-8 w-10 h-10 border border-white/[0.06] rounded-xl rotate-45 animate-float-delayed" />
+          <div className="absolute bottom-8 right-1/3 w-20 h-20 border border-white/[0.05] rounded-full animate-float-slow" />
+          <div className="absolute inset-0 opacity-[0.03]" style={{
+            backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)",
+            backgroundSize: "20px 20px",
+          }} />
         </div>
-        <Button onClick={() => setAddDialogOpen(true)} className="bg-teal-600 hover:bg-teal-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Stylist
-        </Button>
+
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
+              <p className="text-rose-200/60 text-xs font-semibold tracking-widest uppercase">Team</p>
+            </div>
+            <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight text-glow leading-[1.1]">
+              Stylists
+            </h1>
+            <p className="text-rose-100/50 mt-3 text-[15px] leading-relaxed max-w-lg">
+              Manage your team members, their schedules, and performance.
+            </p>
+          </div>
+          <Button
+            onClick={() => setAddDialogOpen(true)}
+            size="lg"
+            className="glow-button bg-white text-rose-700 hover:bg-white/95 font-bold shadow-2xl shadow-black/20 h-12 px-8 text-[15px] rounded-xl border-0 shrink-0"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Add Stylist
+          </Button>
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="border-l-4 border-l-teal-500 hover:shadow-md hover:-translate-y-0.5">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-teal-50">
-                <Users className="w-6 h-6 text-teal-600" />
+      {/* ═══════ STAT CARDS ═══════ */}
+      <div className="grid gap-5 grid-cols-2 lg:grid-cols-3">
+        {statCards.map((stat, index) => (
+          <div
+            key={stat.name}
+            className={cn(
+              "animate-in glass-card glow-border group cursor-default p-6",
+              stat.glowColor,
+              `stagger-${index + 2}`
+            )}
+          >
+            <div className={cn("absolute top-0 left-0 right-0 h-24 bg-gradient-to-b pointer-events-none", stat.accentColor)} />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className={cn(
+                  "w-11 h-11 rounded-xl flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110",
+                  stat.iconBg
+                )}>
+                  <stat.icon className="w-5 h-5 text-white" />
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.total}</p>
-                <p className="text-sm text-muted-foreground">Total Stylists</p>
-              </div>
+              {isLoading ? (
+                <div className="h-10 w-24 skeleton-shimmer" />
+              ) : (
+                <p className="text-4xl font-black text-gray-900 tracking-tight leading-none number-display">
+                  {stat.value}
+                </p>
+              )}
+              <p className="text-[13px] text-gray-500 mt-2 font-semibold">{stat.name}</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-emerald-500 hover:shadow-md hover:-translate-y-0.5">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-emerald-50">
-                <UserCircle className="w-6 h-6 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.active}</p>
-                <p className="text-sm text-muted-foreground">Active Stylists</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-purple-500 hover:shadow-md hover:-translate-y-0.5">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-purple-50">
-                <Calendar className="w-6 h-6 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.totalAppointments}</p>
-                <p className="text-sm text-muted-foreground">Total Appointments</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        ))}
       </div>
 
-      {/* Search */}
-      <Card>
-        <CardContent className="p-4">
+      {/* ═══════ SEARCH ═══════ */}
+      <div className="animate-in stagger-5 bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+        <div className="h-[3px] bg-gradient-to-r from-rose-500 via-pink-500 to-fuchsia-500" />
+        <div className="p-4 sm:p-5">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
               placeholder="Search stylists..."
-              className="pl-10"
+              className="w-full pl-11 pr-4 py-2.5 text-sm bg-gray-50/80 border border-gray-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 transition-all font-medium placeholder:text-gray-400"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Stylists Grid */}
-      {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-64 bg-muted animate-pulse rounded-xl" />
-          ))}
         </div>
-      ) : filteredStylists.length === 0 ? (
-        <Card>
-          <CardContent className="py-12">
-            <div className="text-center">
-              <UserCircle className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No stylists found</h3>
-              <p className="text-muted-foreground mb-4">
-                {searchQuery ? "Try a different search" : "Add your first stylist to get started"}
-              </p>
-              {!searchQuery && (
-                <Button onClick={() => setAddDialogOpen(true)} className="bg-teal-600 hover:bg-teal-700">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Stylist
-                </Button>
-              )}
+      </div>
+
+      {/* ═══════ STYLISTS GRID ═══════ */}
+      <div className="animate-in stagger-6">
+        {isLoading ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 space-y-4">
+                <div className="flex gap-4">
+                  <div className="w-16 h-16 rounded-2xl skeleton-shimmer" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 skeleton-shimmer w-2/3" />
+                    <div className="h-3 skeleton-shimmer w-1/2" />
+                  </div>
+                </div>
+                <div className="h-3 skeleton-shimmer w-full" />
+                <div className="h-3 skeleton-shimmer w-3/4" />
+              </div>
+            ))}
+          </div>
+        ) : filteredStylists.length === 0 ? (
+          <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+            <div className="text-center py-16 px-4">
+              <div className="inline-flex flex-col items-center border-2 border-dashed border-rose-200/60 rounded-2xl px-12 py-10 bg-gradient-to-br from-rose-50/30 to-slate-50/50">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center mb-5 ring-1 ring-rose-200/50 shadow-lg shadow-rose-500/10">
+                  <UserCircle className="w-10 h-10 text-rose-500" />
+                </div>
+                <p className="text-gray-900 font-black text-lg tracking-tight">
+                  {searchQuery ? "No stylists found" : "No stylists yet"}
+                </p>
+                <p className="text-sm text-gray-400 mt-1.5 max-w-xs mx-auto leading-relaxed">
+                  {searchQuery ? "Try a different search" : "Add your first stylist to get started"}
+                </p>
+                {!searchQuery && (
+                  <Button
+                    onClick={() => setAddDialogOpen(true)}
+                    className="mt-5 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white font-bold shadow-lg shadow-rose-600/20 h-10 px-6 text-sm"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Stylist
+                  </Button>
+                )}
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredStylists.map((stylist) => (
-            <motion.div
-              key={stylist.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <Card className="h-full hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  {/* Header */}
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
-                      {stylist.avatar ? (
-                        <img
-                          src={stylist.avatar}
-                          alt={stylist.firstName}
-                          className="w-16 h-16 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-xl font-semibold text-teal-700">
-                          {stylist.firstName[0]}{stylist.lastName[0]}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold truncate">
-                          {stylist.firstName} {stylist.lastName}
-                        </h3>
-                        {!stylist.isActive && (
-                          <Badge variant="secondary">Inactive</Badge>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filteredStylists.map((stylist, i) => {
+              const initials = `${stylist.firstName[0]}${stylist.lastName[0]}`;
+              const workingDays = stylist.schedules?.length > 0
+                ? getWorkingDays(stylist.schedules) || "No working days"
+                : "Schedule not set";
+
+              return (
+                <motion.div
+                  key={stylist.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05, duration: 0.3 }}
+                >
+                  <div className="glass-card group p-6 h-full hover:shadow-xl transition-all duration-300">
+                    {/* Header */}
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg shadow-rose-500/15 shrink-0 group-hover:scale-105 transition-transform">
+                        {stylist.avatar ? (
+                          <img
+                            src={stylist.avatar}
+                            alt={stylist.firstName}
+                            className="w-14 h-14 rounded-2xl object-cover"
+                          />
+                        ) : (
+                          <span className="text-lg font-bold text-white">{initials}</span>
                         )}
                       </div>
-                      {stylist.bio && (
-                        <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                          {stylist.bio}
-                        </p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-gray-900 text-sm tracking-tight truncate">
+                            {stylist.firstName} {stylist.lastName}
+                          </h3>
+                          {!stylist.isActive && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-100 text-gray-500 ring-1 ring-gray-200/50">Inactive</span>
+                          )}
+                        </div>
+                        {stylist.bio && (
+                          <p className="text-xs text-gray-400 line-clamp-2 mt-1 leading-relaxed">{stylist.bio}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Contact */}
+                    <div className="space-y-1.5 mb-3">
+                      {stylist.phone && (
+                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                          <Phone className="w-3.5 h-3.5" />
+                          {stylist.phone}
+                        </div>
+                      )}
+                      {stylist.email && (
+                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                          <Mail className="w-3.5 h-3.5" />
+                          <span className="truncate">{stylist.email}</span>
+                        </div>
                       )}
                     </div>
-                  </div>
 
-                  {/* Contact Info */}
-                  <div className="space-y-2 mb-4">
-                    {stylist.phone && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Phone className="w-4 h-4" />
-                        {stylist.phone}
-                      </div>
-                    )}
-                    {stylist.email && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Mail className="w-4 h-4" />
-                        <span className="truncate">{stylist.email}</span>
-                      </div>
-                    )}
-                  </div>
+                    {/* Schedule */}
+                    <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
+                      <Clock className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{workingDays}</span>
+                    </div>
 
-                  {/* Schedule */}
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                    <Clock className="w-4 h-4" />
-                    <span>
-                      {stylist.schedules?.length > 0
-                        ? getWorkingDays(stylist.schedules) || "No working days"
-                        : "Schedule not set"}
-                    </span>
-                  </div>
-
-                  {/* Stats */}
-                  {stylist._count && (
-                    <div className="flex items-center gap-4 text-sm mb-4 pt-4 border-t">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4 text-teal-600" />
-                        <span className="font-medium">{stylist._count.appointments}</span>
-                        <span className="text-muted-foreground">appointments</span>
+                    {/* Stats & Actions */}
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100/80">
+                      {stylist._count && (
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <Calendar className="w-3.5 h-3.5 text-rose-500" />
+                          <span className="font-bold text-gray-900 number-display">{stylist._count.appointments}</span>
+                          <span className="text-gray-400">appointments</span>
+                        </div>
+                      )}
+                      <div className="flex gap-0.5 ml-auto">
+                        <button
+                          onClick={() => handleSchedule(stylist)}
+                          title="Schedule"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-rose-500 hover:bg-rose-50 transition-colors"
+                        >
+                          <Clock className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleEdit(stylist)}
+                          title="Edit"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(stylist)}
+                          title="Delete"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex gap-2 pt-4 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => handleSchedule(stylist)}
-                    >
-                      <Clock className="w-4 h-4 mr-1" />
-                      Schedule
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(stylist)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(stylist)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      )}
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Dialogs */}
       <AddStylistDialog
