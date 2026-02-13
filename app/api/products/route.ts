@@ -1,12 +1,12 @@
 // app/api/products/route.ts
 import { NextResponse } from "next/server";
-import { requireAuth, requireRole } from "@/lib/rbac";
+import { requirePermission, getUserPermissions } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 // GET all products for the business
 export async function GET(request: Request) {
   try {
-    const { session, error } = await requireAuth();
+    const { session, error } = await requirePermission("viewShop");
     if (error) return error;
 
     const { searchParams } = new URL(request.url);
@@ -53,8 +53,14 @@ export async function GET(request: Request) {
       prisma.product.count({ where }),
     ]);
 
+    // Strip costPrice if user doesn't have viewProductCosts permission
+    const perms = await getUserPermissions(session.user.id, session.user.role);
+    const data = perms.viewProductCosts
+      ? products
+      : products.map(({ costPrice, ...rest }) => ({ ...rest, costPrice: null }));
+
     return NextResponse.json({
-      data: products,
+      data,
       pagination: {
         page,
         limit,
@@ -74,7 +80,7 @@ export async function GET(request: Request) {
 // POST create new product
 export async function POST(request: Request) {
   try {
-    const { session, error } = await requireRole("MANAGER");
+    const { session, error } = await requirePermission("manageShop");
     if (error) return error;
 
     const body = await request.json();

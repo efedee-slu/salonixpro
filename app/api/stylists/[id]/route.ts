@@ -1,6 +1,6 @@
 // app/api/stylists/[id]/route.ts
 import { NextResponse } from "next/server";
-import { requireAuth, requireRole } from "@/lib/rbac";
+import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 // GET single stylist
@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { session, error } = await requireAuth();
+    const { session, error } = await requirePermission("manageTeam");
     if (error) return error;
 
     const stylist = await prisma.stylist.findFirst({
@@ -47,7 +47,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { session, error } = await requireRole("MANAGER");
+    const { session, error } = await requirePermission("manageTeam");
     if (error) return error;
 
     // Check if stylist exists and belongs to this business
@@ -104,7 +104,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { session, error } = await requireRole("MANAGER");
+    const { session, error } = await requirePermission("manageTeam");
     if (error) return error;
 
     // Check if stylist exists and belongs to this business

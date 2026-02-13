@@ -1,6 +1,6 @@
 // app/api/orders/route.ts
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/rbac";
+import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { sendOrderConfirmation } from "@/lib/email";
 
@@ -19,7 +19,7 @@ function generateOrderNumber() {
 // GET all orders for the business
 export async function GET(request: Request) {
   try {
-    const { session, error } = await requireAuth();
+    const { session, error } = await requirePermission("viewOrders");
     if (error) return error;
 
     const { searchParams } = new URL(request.url);
@@ -90,7 +90,7 @@ export async function GET(request: Request) {
 // POST create new order
 export async function POST(request: Request) {
   try {
-    const { session, error } = await requireAuth();
+    const { session, error } = await requirePermission("createOrders");
     if (error) return error;
 
     const body = await request.json();

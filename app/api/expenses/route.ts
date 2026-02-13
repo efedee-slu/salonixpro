@@ -1,12 +1,12 @@
 // app/api/expenses/route.ts
 import { NextResponse } from "next/server";
-import { requireAuth, requireRole } from "@/lib/rbac";
+import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 // GET all expenses with filtering and pagination
 export async function GET(request: Request) {
   try {
-    const { session, error } = await requireAuth();
+    const { session, error } = await requirePermission("viewExpenses");
     if (error) return error;
 
     const { searchParams } = new URL(request.url);
@@ -71,7 +71,7 @@ export async function GET(request: Request) {
 // POST create new expense
 export async function POST(request: Request) {
   try {
-    const { session, error } = await requireRole("MANAGER");
+    const { session, error } = await requirePermission("manageExpenses");
     if (error) return error;
 
     const body = await request.json();

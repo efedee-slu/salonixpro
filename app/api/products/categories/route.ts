@@ -1,17 +1,13 @@
 // app/api/products/categories/route.ts
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/permissions";
 
 // GET all product categories for the business
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requirePermission("viewShop");
+    if (error) return error;
 
     const categories = await prisma.productCategory.findMany({
       where: {
@@ -42,11 +38,8 @@ export async function GET(request: Request) {
 // POST create new product category
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requirePermission("manageShop");
+    if (error) return error;
 
     const body = await request.json();
     const { name, icon, description } = body;

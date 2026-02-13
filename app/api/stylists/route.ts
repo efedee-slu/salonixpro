@@ -1,12 +1,12 @@
 // app/api/stylists/route.ts
 import { NextResponse } from "next/server";
-import { requireAuth, requireRole } from "@/lib/rbac";
+import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 // GET all stylists for the business
 export async function GET(request: Request) {
   try {
-    const { session, error } = await requireAuth();
+    const { session, error } = await requirePermission("manageTeam");
     if (error) return error;
 
     const { searchParams } = new URL(request.url);
@@ -59,7 +59,7 @@ export async function GET(request: Request) {
 // POST create new stylist
 export async function POST(request: Request) {
   try {
-    const { session, error } = await requireRole("MANAGER");
+    const { session, error } = await requirePermission("manageTeam");
     if (error) return error;
 
     const body = await request.json();

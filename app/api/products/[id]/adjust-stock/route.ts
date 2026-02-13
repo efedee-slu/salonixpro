@@ -1,6 +1,6 @@
 // app/api/products/[id]/adjust-stock/route.ts
 import { NextResponse } from "next/server";
-import { requireRole } from "@/lib/rbac";
+import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 // POST manual stock adjustment
@@ -9,7 +9,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { session, error } = await requireRole("MANAGER");
+    const { session, error } = await requirePermission("manageShop");
     if (error) return error;
 
     const body = await request.json();

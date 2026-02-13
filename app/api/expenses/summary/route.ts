@@ -1,11 +1,11 @@
 // app/api/expenses/summary/route.ts
 import { NextResponse } from "next/server";
-import { requireRole } from "@/lib/rbac";
+import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const { session, error } = await requireRole("MANAGER");
+    const { session, error } = await requirePermission("viewExpenses");
     if (error) return error;
 
     const now = new Date();

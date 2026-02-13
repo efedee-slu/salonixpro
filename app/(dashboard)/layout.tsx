@@ -1,7 +1,7 @@
 // app/(dashboard)/layout.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
@@ -37,49 +37,39 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 
-// Role hierarchy levels for nav filtering
-const ROLE_LEVELS: Record<string, number> = {
-  OWNER: 4,
-  MANAGER: 3,
-  STYLIST: 2,
-  ASSISTANT: 1,
-};
-
-function hasMinRole(userRole: string, minRole: string): boolean {
-  return (ROLE_LEVELS[userRole] ?? 0) >= (ROLE_LEVELS[minRole] ?? 0);
-}
+type PermissionKey = string;
 
 const navigationGroups = [
   {
     label: "MAIN",
     items: [
-      { name: "Dashboard", href: "/", icon: LayoutDashboard, minRole: "ASSISTANT" },
-      { name: "Appointments", href: "/appointments", icon: Calendar, badge: 3, minRole: "ASSISTANT" },
-      { name: "Clients", href: "/clients", icon: Users, minRole: "ASSISTANT" },
-      { name: "Services", href: "/services", icon: Sparkles, minRole: "ASSISTANT" },
-      { name: "Stylists", href: "/stylists", icon: UserCircle, minRole: "MANAGER" },
+      { name: "Dashboard", href: "/", icon: LayoutDashboard, permission: null as PermissionKey | null },
+      { name: "Appointments", href: "/appointments", icon: Calendar, badge: 3, permission: null as PermissionKey | null },
+      { name: "Clients", href: "/clients", icon: Users, permission: null as PermissionKey | null },
+      { name: "Services", href: "/services", icon: Sparkles, permission: null as PermissionKey | null },
+      { name: "Stylists", href: "/stylists", icon: UserCircle, permission: "manageTeam" as PermissionKey | null },
     ],
   },
   {
     label: "SALES",
     items: [
-      { name: "Shop", href: "/shop", icon: ShoppingBag, minRole: "MANAGER" },
-      { name: "Orders", href: "/orders", icon: Package, badge: 5, minRole: "STYLIST" },
+      { name: "Shop", href: "/shop", icon: ShoppingBag, permission: "viewShop" as PermissionKey | null },
+      { name: "Orders", href: "/orders", icon: Package, badge: 5, permission: "viewOrders" as PermissionKey | null },
     ],
   },
   {
     label: "FINANCE",
     items: [
-      { name: "Expenses", href: "/expenses", icon: Wallet, minRole: "MANAGER" },
-      { name: "Payroll", href: "/payroll", icon: DollarSign, minRole: "OWNER" },
-      { name: "P&L Report", href: "/profit-loss", icon: TrendingUp, minRole: "MANAGER" },
-      { name: "Reports", href: "/reports", icon: BarChart3, minRole: "MANAGER" },
+      { name: "Expenses", href: "/expenses", icon: Wallet, permission: "viewExpenses" as PermissionKey | null },
+      { name: "Payroll", href: "/payroll", icon: DollarSign, permission: "viewPayroll" as PermissionKey | null },
+      { name: "P&L Report", href: "/profit-loss", icon: TrendingUp, permission: "viewProfitLoss" as PermissionKey | null },
+      { name: "Reports", href: "/reports", icon: BarChart3, permission: "viewReports" as PermissionKey | null },
     ],
   },
   {
     label: "SETTINGS",
     items: [
-      { name: "Settings", href: "/settings", icon: Settings, minRole: "MANAGER" },
+      { name: "Settings", href: "/settings", icon: Settings, permission: "manageSettings" as PermissionKey | null },
     ],
   },
 ];
@@ -90,9 +80,21 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [permissions, setPermissions] = useState<Record<string, boolean> | null>(null);
   const pathname = usePathname();
   const { data: session } = useSession();
   const user = session?.user;
+
+  // Fetch permissions for sidebar filtering
+  useEffect(() => {
+    if (!session?.user) return;
+    fetch("/api/me/permissions")
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.permissions) setPermissions(data.permissions);
+      })
+      .catch(() => {});
+  }, [session?.user]);
 
   // Get initials for avatar
   const initials = user?.name
@@ -146,10 +148,13 @@ export default function DashboardLayout({
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-4 space-y-6 mt-2 scrollbar-hide">
             {navigationGroups.map((group) => {
-              const userRole = user?.role || "ASSISTANT";
-              const visibleItems = group.items.filter((item) =>
-                hasMinRole(userRole, item.minRole)
-              );
+              const isOwner = user?.role === "OWNER";
+              const visibleItems = group.items.filter((item) => {
+                if (!item.permission) return true; // null = always visible
+                if (isOwner) return true; // OWNER sees everything
+                if (!permissions) return false; // still loading, hide restricted items
+                return permissions[item.permission] === true;
+              });
               if (visibleItems.length === 0) return null;
               return (
               <div key={group.label}>

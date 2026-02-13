@@ -1,6 +1,6 @@
 // app/api/products/[id]/route.ts
 import { NextResponse } from "next/server";
-import { requireAuth, requireRole } from "@/lib/rbac";
+import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 // GET single product
@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { session, error } = await requireAuth();
+    const { session, error } = await requirePermission("viewShop");
     if (error) return error;
 
     const product = await prisma.product.findFirst({
@@ -48,7 +48,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { session, error } = await requireRole("MANAGER");
+    const { session, error } = await requirePermission("manageShop");
     if (error) return error;
 
     // Check if product exists and belongs to this business
@@ -152,7 +152,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { session, error } = await requireRole("MANAGER");
+    const { session, error } = await requirePermission("manageShop");
     if (error) return error;
 
     // Check if product exists and belongs to this business

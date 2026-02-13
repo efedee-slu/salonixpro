@@ -14,6 +14,7 @@ import {
   Check,
   Zap,
   Coins,
+  Shield,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,13 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const tabs = [
   { id: "general", name: "General", icon: Building2 },
@@ -79,6 +87,14 @@ function SettingsContent() {
   const [teamMembers, setTeamMembers] = useState<
     { id: string; name: string; email: string; role: string }[]
   >([]);
+
+  // Permission editor state
+  const [permDialogOpen, setPermDialogOpen] = useState(false);
+  const [permMember, setPermMember] = useState<{ id: string; name: string; role: string } | null>(null);
+  const [permPreset, setPermPreset] = useState<string>("staff");
+  const [permFlags, setPermFlags] = useState<Record<string, boolean>>({});
+  const [permSaving, setPermSaving] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string>("");
 
   // Billing state
   const [billingStatus, setBillingStatus] = useState<{
@@ -208,6 +224,135 @@ function SettingsContent() {
       ...prev,
       [day]: { ...prev[day], [field]: value },
     }));
+  };
+
+  // Fetch current user role
+  useEffect(() => {
+    fetch("/api/me/permissions")
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.role) setCurrentUserRole(data.role);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Permission presets
+  const STAFF_DEFAULTS: Record<string, boolean> = {
+    manageTeam: false, manageServices: false, viewShop: false, manageShop: false,
+    viewProductCosts: false, viewOrders: true, createOrders: true, manageOrders: false,
+    viewExpenses: false, manageExpenses: false, viewPayroll: false, viewProfitLoss: false,
+    viewReports: false, manageSettings: false,
+  };
+  const MANAGER_DEFAULTS: Record<string, boolean> = {
+    manageTeam: true, manageServices: true, viewShop: true, manageShop: true,
+    viewProductCosts: true, viewOrders: true, createOrders: true, manageOrders: true,
+    viewExpenses: true, manageExpenses: true, viewPayroll: false, viewProfitLoss: true,
+    viewReports: true, manageSettings: true,
+  };
+  const FULL_DEFAULTS: Record<string, boolean> = {
+    manageTeam: true, manageServices: true, viewShop: true, manageShop: true,
+    viewProductCosts: true, viewOrders: true, createOrders: true, manageOrders: true,
+    viewExpenses: true, manageExpenses: true, viewPayroll: true, viewProfitLoss: true,
+    viewReports: true, manageSettings: true,
+  };
+
+  const PERMISSION_GROUPS = [
+    { label: "Team & Services", keys: [
+      { key: "manageTeam", label: "Manage Team" },
+      { key: "manageServices", label: "Manage Services" },
+    ]},
+    { label: "Shop & Products", keys: [
+      { key: "viewShop", label: "View Shop" },
+      { key: "manageShop", label: "Manage Shop" },
+      { key: "viewProductCosts", label: "View Product Costs" },
+    ]},
+    { label: "Orders", keys: [
+      { key: "viewOrders", label: "View Orders" },
+      { key: "createOrders", label: "Create Orders" },
+      { key: "manageOrders", label: "Manage Orders" },
+    ]},
+    { label: "Finance", keys: [
+      { key: "viewExpenses", label: "View Expenses" },
+      { key: "manageExpenses", label: "Manage Expenses" },
+      { key: "viewPayroll", label: "View Payroll" },
+      { key: "viewProfitLoss", label: "View P&L Report" },
+    ]},
+    { label: "Reports & Settings", keys: [
+      { key: "viewReports", label: "View Reports" },
+      { key: "manageSettings", label: "Manage Settings" },
+    ]},
+  ];
+
+  // Open permission dialog for a member
+  const openPermissions = async (member: { id: string; name: string; role: string }) => {
+    setPermMember(member);
+    setPermDialogOpen(true);
+    try {
+      const res = await fetch(`/api/staff/${member.id}/permissions`);
+      if (res.ok) {
+        const data = await res.json();
+        setPermFlags(data.permissions);
+        setPermPreset(data.preset);
+      }
+    } catch {
+      setPermFlags({ ...STAFF_DEFAULTS });
+      setPermPreset("staff");
+    }
+  };
+
+  // Handle preset change
+  const handlePresetChange = (preset: string) => {
+    setPermPreset(preset);
+    if (preset === "staff") setPermFlags({ ...STAFF_DEFAULTS });
+    else if (preset === "manager") setPermFlags({ ...MANAGER_DEFAULTS });
+    else if (preset === "full") setPermFlags({ ...FULL_DEFAULTS });
+  };
+
+  // Handle individual toggle
+  const handlePermToggle = (key: string, value: boolean) => {
+    const updated = { ...permFlags, [key]: value };
+    setPermFlags(updated);
+    // Check if it matches a preset
+    const matchesStaff = Object.keys(STAFF_DEFAULTS).every(k => updated[k] === STAFF_DEFAULTS[k]);
+    const matchesManager = Object.keys(MANAGER_DEFAULTS).every(k => updated[k] === MANAGER_DEFAULTS[k]);
+    const matchesFull = Object.keys(FULL_DEFAULTS).every(k => updated[k] === FULL_DEFAULTS[k]);
+    if (matchesFull) setPermPreset("full");
+    else if (matchesManager) setPermPreset("manager");
+    else if (matchesStaff) setPermPreset("staff");
+    else setPermPreset("custom");
+  };
+
+  // Save permissions
+  const handleSavePermissions = async () => {
+    if (!permMember) return;
+    setPermSaving(true);
+    try {
+      const body = permPreset !== "custom"
+        ? { preset: permPreset }
+        : { permissions: permFlags };
+      const res = await fetch(`/api/staff/${permMember.id}/permissions`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        toast({
+          title: "Permissions updated",
+          description: `${permMember.name}'s permissions have been saved.`,
+        });
+        setPermDialogOpen(false);
+      } else {
+        throw new Error("Failed");
+      }
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to save permissions.",
+        variant: "destructive",
+      });
+    } finally {
+      setPermSaving(false);
+    }
   };
 
   if (isLoading) {
@@ -482,11 +627,105 @@ function SettingsContent() {
                           {member.email}
                         </p>
                       </div>
-                      <Badge>{member.role}</Badge>
+                      <div className="flex items-center gap-2">
+                        {currentUserRole === "OWNER" && member.role !== "OWNER" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openPermissions(member)}
+                          >
+                            <Shield className="w-3.5 h-3.5 mr-1.5" />
+                            Permissions
+                          </Button>
+                        )}
+                        <Badge>{member.role}</Badge>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
+
+              {/* Permission Editor Dialog */}
+              <Dialog open={permDialogOpen} onOpenChange={setPermDialogOpen}>
+                <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Shield className="w-5 h-5 text-teal-600" />
+                      Permissions — {permMember?.name}
+                    </DialogTitle>
+                    <DialogDescription>
+                      Control what this team member can access
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  {/* Preset Selector */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">Preset</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { id: "staff", label: "Staff" },
+                        { id: "manager", label: "Manager" },
+                        { id: "full", label: "Full Access" },
+                        { id: "custom", label: "Custom" },
+                      ].map((p) => (
+                        <button
+                          key={p.id}
+                          onClick={() => p.id !== "custom" && handlePresetChange(p.id)}
+                          className={`px-3 py-2 text-xs font-medium rounded-lg border transition-colors ${
+                            permPreset === p.id
+                              ? "bg-teal-50 border-teal-300 text-teal-700"
+                              : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                          } ${p.id === "custom" ? "cursor-default" : "cursor-pointer"}`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Permission Toggles */}
+                  <div className="space-y-4 mt-2">
+                    {PERMISSION_GROUPS.map((group) => (
+                      <div key={group.label}>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                          {group.label}
+                        </p>
+                        <div className="space-y-2">
+                          {group.keys.map(({ key, label }) => (
+                            <div
+                              key={key}
+                              className="flex items-center justify-between py-1.5"
+                            >
+                              <span className="text-sm">{label}</span>
+                              <Switch
+                                checked={permFlags[key] ?? false}
+                                onCheckedChange={(val) => handlePermToggle(key, val)}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Save Button */}
+                  <div className="flex justify-end pt-4 border-t">
+                    <Button onClick={handleSavePermissions} disabled={permSaving}>
+                      {permSaving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Save Permissions
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         </motion.div>

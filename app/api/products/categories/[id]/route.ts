@@ -1,8 +1,7 @@
 // app/api/products/categories/[id]/route.ts
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/permissions";
 
 // PUT update a product category
 export async function PUT(
@@ -10,11 +9,8 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requirePermission("manageShop");
+    if (error) return error;
 
     const body = await request.json();
     const { name, icon, description } = body;
@@ -87,11 +83,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requirePermission("manageShop");
+    if (error) return error;
 
     // Verify category belongs to this business
     const category = await prisma.productCategory.findFirst({

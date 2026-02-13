@@ -1,6 +1,6 @@
 // app/api/products/[id]/stock-movements/route.ts
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/rbac";
+import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 // GET stock movement history for a product
@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { session, error } = await requireAuth();
+    const { session, error } = await requirePermission("viewShop");
     if (error) return error;
 
     const { searchParams } = new URL(request.url);

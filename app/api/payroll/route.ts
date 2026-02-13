@@ -1,6 +1,6 @@
 // app/api/payroll/route.ts
 import { NextResponse } from "next/server";
-import { requireRole } from "@/lib/rbac";
+import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { getDateRange } from "@/lib/date-ranges";
 
@@ -11,7 +11,7 @@ const MONTH_NAMES = [
 
 export async function GET(request: Request) {
   try {
-    const { session, error } = await requireRole("OWNER");
+    const { session, error } = await requirePermission("viewPayroll");
     if (error) return error;
 
     const businessId = session.user.businessId;

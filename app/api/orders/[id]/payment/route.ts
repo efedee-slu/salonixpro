@@ -1,8 +1,7 @@
 // app/api/orders/[id]/payment/route.ts
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/permissions";
 
 // POST process payment
 export async function POST(
@@ -10,11 +9,8 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { session, error } = await requirePermission("manageOrders");
+    if (error) return error;
 
     const body = await request.json();
     const { paymentMethod } = body;

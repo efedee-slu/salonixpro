@@ -133,11 +133,52 @@ model User {
   // Relations
   business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   stylist       Stylist?
+  permissions   StaffPermission?
 
   @@unique([businessId, email])
   @@unique([businessId, username])
   @@index([businessId])
   @@index([email])
+}
+
+// ============================================
+// STAFF PERMISSIONS
+// ============================================
+
+model StaffPermission {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+
+  // Team & Services
+  manageTeam       Boolean  @default(false)
+  manageServices   Boolean  @default(false)
+
+  // Products / Shop
+  viewShop         Boolean  @default(false)
+  manageShop       Boolean  @default(false)
+  viewProductCosts Boolean  @default(false)
+
+  // Orders
+  viewOrders       Boolean  @default(true)
+  createOrders     Boolean  @default(true)
+  manageOrders     Boolean  @default(false)
+
+  // Finance
+  viewExpenses     Boolean  @default(false)
+  manageExpenses   Boolean  @default(false)
+  viewPayroll      Boolean  @default(false)
+  viewProfitLoss   Boolean  @default(false)
+
+  // Reports & Settings
+  viewReports      Boolean  @default(false)
+  manageSettings   Boolean  @default(false)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 enum Role {

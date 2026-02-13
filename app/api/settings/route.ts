@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/permissions";
 
 export async function GET() {
   try {
@@ -92,16 +93,8 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.businessId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check if user is owner or manager
-    if (session.user.role !== "OWNER" && session.user.role !== "MANAGER") {
-      return NextResponse.json({ error: "Permission denied" }, { status: 403 });
-    }
+    const { session, error } = await requirePermission("manageSettings");
+    if (error) return error;
 
     const businessId = session.user.businessId;
     const body = await request.json();
