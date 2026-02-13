@@ -15,6 +15,8 @@ import {
   Zap,
   Coins,
   Shield,
+  UserPlus,
+  Mail,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -95,6 +97,11 @@ function SettingsContent() {
   const [permFlags, setPermFlags] = useState<Record<string, boolean>>({});
   const [permSaving, setPermSaving] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState<string>("");
+
+  // Invite team member state
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [inviteForm, setInviteForm] = useState({ firstName: "", lastName: "", email: "", role: "STYLIST", phone: "" });
+  const [inviteSaving, setInviteSaving] = useState(false);
 
   // Billing state
   const [billingStatus, setBillingStatus] = useState<{
@@ -360,6 +367,42 @@ function SettingsContent() {
     }
   };
 
+  // Invite team member
+  const handleInvite = async () => {
+    if (!inviteForm.firstName || !inviteForm.email) {
+      toast({ title: "Error", description: "First name and email are required.", variant: "destructive" });
+      return;
+    }
+    setInviteSaving(true);
+    try {
+      const res = await fetch("/api/staff/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(inviteForm),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast({
+          title: "Team member invited",
+          description: `${data.name} has been added and will receive a login email.`,
+        });
+        setTeamMembers((prev) => [...prev, data]);
+        setInviteDialogOpen(false);
+        setInviteForm({ firstName: "", lastName: "", email: "", role: "STYLIST", phone: "" });
+      } else {
+        throw new Error(data.error || "Failed");
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to invite team member.",
+        variant: "destructive",
+      });
+    } finally {
+      setInviteSaving(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -604,11 +647,19 @@ function SettingsContent() {
           className="space-y-6"
         >
           <Card>
-            <CardHeader>
-              <CardTitle>Team Members</CardTitle>
-              <CardDescription>
-                Manage staff access to SalonixPro
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Team Members</CardTitle>
+                <CardDescription>
+                  Manage staff access to SalonixPro
+                </CardDescription>
+              </div>
+              {currentUserRole === "OWNER" && (
+                <Button onClick={() => setInviteDialogOpen(true)} size="sm">
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Invite Member
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               {teamMembers.length === 0 ? (
@@ -652,8 +703,8 @@ function SettingsContent() {
 
               {/* Permission Editor Dialog */}
               <Dialog open={permDialogOpen} onOpenChange={setPermDialogOpen}>
-                <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-                  <DialogHeader>
+                <DialogContent className="max-w-lg max-h-[80vh] flex flex-col p-0">
+                  <DialogHeader className="px-6 pt-6 pb-2">
                     <DialogTitle className="flex items-center gap-2">
                       <Shield className="w-5 h-5 text-teal-600" />
                       Permissions — {permMember?.name}
@@ -663,58 +714,60 @@ function SettingsContent() {
                     </DialogDescription>
                   </DialogHeader>
 
-                  {/* Preset Selector */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium">Preset</Label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {[
-                        { id: "staff", label: "Staff" },
-                        { id: "manager", label: "Manager" },
-                        { id: "full", label: "Full Access" },
-                        { id: "custom", label: "Custom" },
-                      ].map((p) => (
-                        <button
-                          key={p.id}
-                          onClick={() => p.id !== "custom" && handlePresetChange(p.id)}
-                          className={`px-3 py-2 text-xs font-medium rounded-lg border transition-colors ${
-                            permPreset === p.id
-                              ? "bg-teal-50 border-teal-300 text-teal-700"
-                              : "border-gray-200 text-gray-600 hover:bg-gray-50"
-                          } ${p.id === "custom" ? "cursor-default" : "cursor-pointer"}`}
-                        >
-                          {p.label}
-                        </button>
+                  <div className="flex-1 overflow-y-auto px-6 pb-2">
+                    {/* Preset Selector */}
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">Preset</Label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {[
+                          { id: "staff", label: "Staff" },
+                          { id: "manager", label: "Manager" },
+                          { id: "full", label: "Full Access" },
+                          { id: "custom", label: "Custom" },
+                        ].map((p) => (
+                          <button
+                            key={p.id}
+                            onClick={() => p.id !== "custom" && handlePresetChange(p.id)}
+                            className={`px-3 py-2 text-xs font-medium rounded-lg border transition-colors ${
+                              permPreset === p.id
+                                ? "bg-teal-50 border-teal-300 text-teal-700"
+                                : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                            } ${p.id === "custom" ? "cursor-default" : "cursor-pointer"}`}
+                          >
+                            {p.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Permission Toggles */}
+                    <div className="space-y-4 mt-4">
+                      {PERMISSION_GROUPS.map((group) => (
+                        <div key={group.label}>
+                          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                            {group.label}
+                          </p>
+                          <div className="space-y-2">
+                            {group.keys.map(({ key, label }) => (
+                              <div
+                                key={key}
+                                className="flex items-center justify-between py-1.5"
+                              >
+                                <span className="text-sm">{label}</span>
+                                <Switch
+                                  checked={permFlags[key] ?? false}
+                                  onCheckedChange={(val) => handlePermToggle(key, val)}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Permission Toggles */}
-                  <div className="space-y-4 mt-2">
-                    {PERMISSION_GROUPS.map((group) => (
-                      <div key={group.label}>
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                          {group.label}
-                        </p>
-                        <div className="space-y-2">
-                          {group.keys.map(({ key, label }) => (
-                            <div
-                              key={key}
-                              className="flex items-center justify-between py-1.5"
-                            >
-                              <span className="text-sm">{label}</span>
-                              <Switch
-                                checked={permFlags[key] ?? false}
-                                onCheckedChange={(val) => handlePermToggle(key, val)}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Save Button */}
-                  <div className="flex justify-end pt-4 border-t">
+                  {/* Save Button - sticky at bottom */}
+                  <div className="flex justify-end px-6 py-4 border-t bg-white rounded-b-lg">
                     <Button onClick={handleSavePermissions} disabled={permSaving}>
                       {permSaving ? (
                         <>
@@ -725,6 +778,99 @@ function SettingsContent() {
                         <>
                           <Save className="mr-2 h-4 w-4" />
                           Save Permissions
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              {/* Invite Team Member Dialog */}
+              <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <UserPlus className="w-5 h-5 text-teal-600" />
+                      Invite Team Member
+                    </DialogTitle>
+                    <DialogDescription>
+                      They'll receive an email with login credentials
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="space-y-4">
+                    <div className="grid gap-4 grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="inv-first">First Name *</Label>
+                        <Input
+                          id="inv-first"
+                          value={inviteForm.firstName}
+                          onChange={(e) => setInviteForm({ ...inviteForm, firstName: e.target.value })}
+                          placeholder="Jane"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="inv-last">Last Name</Label>
+                        <Input
+                          id="inv-last"
+                          value={inviteForm.lastName}
+                          onChange={(e) => setInviteForm({ ...inviteForm, lastName: e.target.value })}
+                          placeholder="Doe"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="inv-email">Email *</Label>
+                      <Input
+                        id="inv-email"
+                        type="email"
+                        value={inviteForm.email}
+                        onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                        placeholder="jane@example.com"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="inv-phone">Phone</Label>
+                      <Input
+                        id="inv-phone"
+                        value={inviteForm.phone}
+                        onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value })}
+                        placeholder="+1 (758) 123-4567"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="inv-role">Role *</Label>
+                      <select
+                        id="inv-role"
+                        value={inviteForm.role}
+                        onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
+                        className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        <option value="STYLIST">Staff</option>
+                        <option value="MANAGER">Manager</option>
+                      </select>
+                      <p className="text-xs text-muted-foreground">
+                        {inviteForm.role === "MANAGER"
+                          ? "Managers can access most features except payroll."
+                          : "Staff can view and create orders only. Customize via Permissions after inviting."}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleInvite} disabled={inviteSaving}>
+                      {inviteSaving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="mr-2 h-4 w-4" />
+                          Send Invite
                         </>
                       )}
                     </Button>

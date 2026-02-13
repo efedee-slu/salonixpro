@@ -559,3 +559,33 @@ export async function sendPortalVerificationCode(params: {
 
   return resend.emails.send({ from: FROM_EMAIL, to, subject: `${code} - Your SalonixPro Verification Code`, html });
 }
+
+// 14. Team Member Invite
+export async function sendTeamInvite(params: {
+  to: string;
+  firstName: string;
+  businessName: string;
+  username: string;
+  tempPassword: string;
+  role: string;
+}) {
+  const { to, firstName, businessName, username, tempPassword, role } = params;
+
+  const roleLabel = role.charAt(0) + role.slice(1).toLowerCase();
+
+  const html = baseTemplate(
+    `${heading("You're invited to SalonixPro!")}
+    ${paragraph(`Hi ${firstName},<br>You've been added as a <strong>${roleLabel}</strong> at <strong>${businessName}</strong>. Use the credentials below to sign in:`, true)}
+    ${detailsTable([
+      { label: "Username", value: username },
+      { label: "Temporary Password", value: tempPassword },
+      { label: "Role", value: roleLabel },
+    ])}
+    ${warningBox("&#9888;&#65039; You will be asked to change your password on first login.")}
+    ${button("Sign In Now", `${APP_URL}/login`)}
+    ${footer("If you weren't expecting this invite, you can safely ignore this email.")}`,
+    `You've been invited to join ${businessName} on SalonixPro.`
+  );
+
+  return resend.emails.send({ from: FROM_EMAIL, to, subject: `You're invited to ${businessName} on SalonixPro`, html });
+}
