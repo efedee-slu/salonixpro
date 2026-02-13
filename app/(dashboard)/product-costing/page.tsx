@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { motion } from "framer-motion";
 import {
   Calculator,
   Plus,
@@ -27,6 +26,7 @@ import {
   Printer,
   Tag,
   Check,
+  Pencil,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { cn, formatCurrency } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 
 // ============================================
@@ -188,6 +188,7 @@ export default function ProductCostingPage() {
   const [printDateFrom, setPrintDateFrom] = useState("");
   const [printDateTo, setPrintDateTo] = useState("");
   const [printSupplier, setPrintSupplier] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
   const { toast } = useToast();
 
   // Fetch business settings, history, templates, products, and next SKU
@@ -626,6 +627,42 @@ export default function ProductCostingPage() {
     }
   };
 
+  // Edit from history - load record back into form
+  const editCosting = (record: CostingRecord) => {
+    fetch(`/api/product-costing/${record.id}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setForm((prev) => ({
+          ...prev,
+          sku: data.sku || "",
+          productName: data.productName,
+          supplier: data.supplier || "",
+          quantity: data.quantity,
+          unitPrice: Number(data.unitPrice),
+          purchaseCurrency: data.purchaseCurrency,
+          exchangeRate: Number(data.exchangeRate),
+          shippingCost: Number(data.shippingCost),
+          freightCost: Number(data.freightCost),
+          dutyRate: Number(data.dutyRate),
+          exciseTax: Number(data.exciseTax),
+          vatRate: Number(data.vatRate),
+          hslRate: Number(data.hslRate),
+          customsFee: Number(data.customsFee),
+          insurance: Number(data.insurance),
+          handlingFee: Number(data.handlingFee),
+          otherCosts: Number(data.otherCosts),
+          otherDescription: data.otherDescription || "",
+          customTaxes: data.customTaxes || [],
+          markupPercent: Number(data.markupPercent),
+          linkedProductId: data.linkedProductId || "",
+        }));
+        setEditingId(record.id);
+        setSkuAvailable(null);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        toast({ title: "Editing costing", description: `Loaded "${record.productName}" for editing` });
+      });
+  };
+
   // Duplicate from history
   const duplicateCosting = (record: CostingRecord) => {
     // Fetch the full record and next available SKU
@@ -663,14 +700,19 @@ export default function ProductCostingPage() {
     });
   };
 
-  // Delete costing
+  // Delete costing (with confirmation)
   const deleteCosting = async (id: string) => {
     try {
       await fetch(`/api/product-costing/${id}`, { method: "DELETE" });
       setHistory((prev) => prev.filter((h) => h.id !== id));
+      if (editingId === id) {
+        resetForm();
+      }
       toast({ title: "Costing deleted" });
     } catch {
       toast({ title: "Error", description: "Failed to delete", variant: "destructive" });
+    } finally {
+      setDeleteConfirm(null);
     }
   };
 
@@ -792,6 +834,10 @@ export default function ProductCostingPage() {
   // RENDER HELPERS
   // ============================================
 
+  // HTML escape helper to prevent XSS in print window
+  const escapeHtml = (str: string) =>
+    str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
   // Print report handler
   const handlePrintReport = () => {
     // Filter history by date range and supplier
@@ -855,14 +901,14 @@ export default function ProductCostingPage() {
               .map(
                 (r) => `
               <tr>
-                <td class="sku">${r.sku || "-"}</td>
-                <td>${r.productName}</td>
-                <td>${r.supplier || "-"}</td>
+                <td class="sku">${escapeHtml(r.sku || "-")}</td>
+                <td>${escapeHtml(r.productName)}</td>
+                <td>${escapeHtml(r.supplier || "-")}</td>
                 <td class="right">${r.quantity}</td>
                 <td class="right mono">${localSym} ${Number(r.landedCostPerUnit).toFixed(2)}</td>
                 <td class="right mono bold">${localSym} ${Number(r.sellingPrice).toFixed(2)}</td>
                 <td class="right">${Number(r.markupPercent).toFixed(0)}%</td>
-                <td>${r.linkedProduct ? r.linkedProduct.name : "-"}</td>
+                <td>${r.linkedProduct ? escapeHtml(r.linkedProduct.name) : "-"}</td>
                 <td>${new Date(r.createdAt).toLocaleDateString()}</td>
               </tr>`
               )
@@ -922,7 +968,7 @@ export default function ProductCostingPage() {
 <body>
   <div class="header">
     <h1>Product Costing Report</h1>
-    <p>Period: ${dateRange}${printSupplier ? " | Supplier: " + printSupplier : ""}</p>
+    <p>Period: ${dateRange}${printSupplier ? " | Supplier: " + escapeHtml(printSupplier) : ""}</p>
     <p>Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</p>
   </div>
   <div class="summary">
@@ -1255,14 +1301,11 @@ export default function ProductCostingPage() {
                       className="h-9 text-sm"
                     />
                   </div>
-                  <div className="w-24 space-y-1.5">
-                    <Label className="text-xs">Rate</Label>
-                    <Input
-                      type="number"
-                      step="any"
-                      value={ct.rate || ""}
-                      onChange={(e) => updateCustomTax(idx, "rate", parseFloat(e.target.value) || 0)}
-                      className="h-9 text-sm"
+                  <div className="w-24">
+                    <NumInput
+                      label="Rate"
+                      value={ct.rate}
+                      onChange={(v) => updateCustomTax(idx, "rate", parseFloat(v) || 0)}
                     />
                   </div>
                   <div className="w-24 space-y-1.5">
@@ -1360,16 +1403,13 @@ export default function ProductCostingPage() {
                   onChange={(v) => updateNumberField("markupPercent", v)}
                   suffix="%"
                 />
-                <div className="space-y-1.5">
-                  <Label className="text-sm font-medium">OR target selling price</Label>
-                  <Input
-                    type="number"
-                    step="any"
-                    value={form.targetSellingPrice || ""}
-                    onChange={(e) => handleTargetPriceChange(e.target.value)}
-                    placeholder="Reverse calculate markup"
-                  />
-                </div>
+                <NumInput
+                  label="OR target selling price"
+                  value={form.targetSellingPrice}
+                  onChange={(v) => handleTargetPriceChange(v)}
+                  prefix={form.localCurrencySymbol}
+                  placeholder="Reverse calculate"
+                />
                 <div className="space-y-1.5">
                   <Label className="text-sm font-medium">Round to .99</Label>
                   <button
@@ -1438,13 +1478,8 @@ export default function ProductCostingPage() {
                   )}
                   {editingId ? "Update Costing" : form.linkedProductId ? "Save & Update Product" : "Save Costing"}
                 </Button>
-                {editingId && (
-                  <Button variant="outline" onClick={resetForm}>
-                    Cancel Edit
-                  </Button>
-                )}
                 <Button variant="outline" onClick={resetForm}>
-                  Clear Form
+                  {editingId ? "Cancel Edit" : "Clear Form"}
                 </Button>
               </div>
             </CardContent>
@@ -1701,7 +1736,7 @@ export default function ProductCostingPage() {
                   </thead>
                   <tbody className="divide-y">
                     {filteredHistory.map((record) => (
-                      <tr key={record.id} className="hover:bg-gray-50/50">
+                      <tr key={record.id} className={cn("hover:bg-gray-50/50", editingId === record.id && "bg-teal-50/60 ring-1 ring-inset ring-teal-200")}>
                         <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{record.sku || "-"}</td>
                         <td className="px-4 py-3 font-medium">{record.productName}</td>
                         <td className="px-4 py-3 text-muted-foreground">{record.supplier || "-"}</td>
@@ -1730,6 +1765,15 @@ export default function ProductCostingPage() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => editCosting(record)}
+                              className="h-7 w-7 p-0"
+                              title="Edit"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => duplicateCosting(record)}
                               className="h-7 w-7 p-0"
                               title="Duplicate"
@@ -1739,7 +1783,7 @@ export default function ProductCostingPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => deleteCosting(record.id)}
+                              onClick={() => setDeleteConfirm({ id: record.id, name: record.productName })}
                               className="h-7 w-7 p-0 text-red-500 hover:text-red-700"
                               title="Delete"
                             >
@@ -1823,6 +1867,30 @@ export default function ProductCostingPage() {
               ))
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Costing</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground py-4">
+            Are you sure you want to delete the costing for <strong>{deleteConfirm?.name}</strong>? This action cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteConfirm && deleteCosting(deleteConfirm.id)}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
