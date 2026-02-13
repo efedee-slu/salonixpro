@@ -2,13 +2,12 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { uploadImage, deleteImage } from "@/lib/cloudinary";
 
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.businessId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -39,48 +38,67 @@ export async function POST(request: Request) {
       );
     }
 
-    // Determine upload directory
-    let uploadDir: string;
+    // Determine upload folder
+    let folder: string;
     switch (type) {
       case "product":
-        uploadDir = "products";
+        folder = "products";
         break;
       case "stylist":
-        uploadDir = "stylists";
+        folder = "stylists";
         break;
       case "logo":
-        uploadDir = "logos";
+        folder = "logos";
         break;
       default:
         return NextResponse.json({ error: "Invalid upload type" }, { status: 400 });
     }
 
-    // Create unique filename
-    const ext = path.extname(file.name) || ".jpg";
-    const filename = `${session.user.businessId}-${Date.now()}${ext}`;
-    
-    // Ensure directory exists
-    const dirPath = path.join(process.cwd(), "public", "uploads", uploadDir);
-    await mkdir(dirPath, { recursive: true });
-
-    // Write file
+    // Upload to Cloudinary
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const filePath = path.join(dirPath, filename);
-    await writeFile(filePath, buffer);
+    const { url, publicId } = await uploadImage(buffer, folder);
 
-    // Return public URL
-    const publicUrl = `/uploads/${uploadDir}/${filename}`;
-
-    return NextResponse.json({ 
-      success: true, 
-      url: publicUrl,
-      filename 
+    return NextResponse.json({
+      success: true,
+      url,
+      publicId,
     });
   } catch (error) {
     console.error("Error uploading file:", error);
     return NextResponse.json(
       { error: "Failed to upload file" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.businessId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { publicId } = await request.json();
+
+    if (!publicId || typeof publicId !== "string") {
+      return NextResponse.json({ error: "publicId is required" }, { status: 400 });
+    }
+
+    // Only allow deleting images within the salonixpro folder
+    if (!publicId.startsWith("salonixpro/")) {
+      return NextResponse.json({ error: "Invalid publicId" }, { status: 400 });
+    }
+
+    await deleteImage(publicId);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    return NextResponse.json(
+      { error: "Failed to delete file" },
       { status: 500 }
     );
   }
