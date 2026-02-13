@@ -703,7 +703,7 @@ function SettingsContent() {
 
               {/* Permission Editor Dialog */}
               <Dialog open={permDialogOpen} onOpenChange={setPermDialogOpen}>
-                <DialogContent className="max-w-lg max-h-[80vh] flex flex-col p-0">
+                <DialogContent className="max-w-lg flex flex-col overflow-hidden p-0">
                   <DialogHeader className="px-6 pt-6 pb-2">
                     <DialogTitle className="flex items-center gap-2">
                       <Shield className="w-5 h-5 text-teal-600" />
