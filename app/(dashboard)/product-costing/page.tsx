@@ -24,6 +24,9 @@ import {
   History,
   Loader2,
   AlertTriangle,
+  Printer,
+  Tag,
+  Check,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,6 +56,7 @@ interface CustomTax {
 }
 
 interface CostingForm {
+  sku: string;
   productName: string;
   supplier: string;
   quantity: number;
@@ -81,6 +85,7 @@ interface CostingForm {
 
 interface CostingRecord {
   id: string;
+  sku: string | null;
   productName: string;
   supplier: string | null;
   quantity: number;
@@ -133,6 +138,7 @@ const PURCHASE_CURRENCIES = [
 ];
 
 const DEFAULT_FORM: CostingForm = {
+  sku: "",
   productName: "",
   supplier: "",
   quantity: 1,
@@ -176,22 +182,32 @@ export default function ProductCostingPage() {
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [linkProductDialogOpen, setLinkProductDialogOpen] = useState(false);
+  const [skuChecking, setSkuChecking] = useState(false);
+  const [skuAvailable, setSkuAvailable] = useState<boolean | null>(null);
+  const [printDialogOpen, setPrintDialogOpen] = useState(false);
+  const [printDateFrom, setPrintDateFrom] = useState("");
+  const [printDateTo, setPrintDateTo] = useState("");
+  const [printSupplier, setPrintSupplier] = useState("");
   const { toast } = useToast();
 
-  // Fetch business settings, history, templates, and products
+  // Fetch business settings, history, templates, products, and next SKU
   useEffect(() => {
     Promise.all([
       fetch("/api/settings").then((r) => r.ok ? r.json() : null),
       fetch("/api/product-costing?limit=50").then((r) => r.ok ? r.json() : null),
       fetch("/api/product-costing/templates").then((r) => r.ok ? r.json() : null),
       fetch("/api/products?limit=100").then((r) => r.ok ? r.json() : null),
-    ]).then(([settings, costings, tpls, prods]) => {
+      fetch("/api/product-costing/next-sku").then((r) => r.ok ? r.json() : null),
+    ]).then(([settings, costings, tpls, prods, nextSku]) => {
       if (settings) {
         setForm((prev) => ({
           ...prev,
           localCurrency: settings.currency || "XCD",
           localCurrencySymbol: settings.currencySymbol || "EC$",
+          ...(nextSku?.sku ? { sku: nextSku.sku } : {}),
         }));
+      } else if (nextSku?.sku) {
+        setForm((prev) => ({ ...prev, sku: nextSku.sku }));
       }
       if (costings?.data) setHistory(costings.data);
       if (tpls) setTemplates(tpls);
@@ -382,6 +398,41 @@ export default function ProductCostingPage() {
     }
   }, [calc.landedCostPerUnit]);
 
+  // Check if SKU is available
+  const checkSkuAvailability = useCallback(async (sku: string) => {
+    if (!sku.trim()) {
+      setSkuAvailable(null);
+      return;
+    }
+    setSkuChecking(true);
+    try {
+      const url = editingId
+        ? `/api/product-costing/check-sku?sku=${encodeURIComponent(sku)}&excludeId=${editingId}`
+        : `/api/product-costing/check-sku?sku=${encodeURIComponent(sku)}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setSkuAvailable(data.available);
+      }
+    } catch {
+      setSkuAvailable(null);
+    } finally {
+      setSkuChecking(false);
+    }
+  }, [editingId]);
+
+  // Fetch next available SKU
+  const fetchNextSku = useCallback(async () => {
+    try {
+      const res = await fetch("/api/product-costing/next-sku");
+      if (res.ok) {
+        const data = await res.json();
+        setForm((prev) => ({ ...prev, sku: data.sku }));
+        setSkuAvailable(true);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
   const addCustomTax = useCallback(() => {
     setForm((prev) => ({
       ...prev,
@@ -414,10 +465,15 @@ export default function ProductCostingPage() {
       toast({ title: "Error", description: "Unit price must be greater than 0", variant: "destructive" });
       return;
     }
+    if (skuAvailable === false) {
+      toast({ title: "Error", description: "SKU already exists. Please use a unique SKU.", variant: "destructive" });
+      return;
+    }
 
     setIsSaving(true);
     try {
       const payload = {
+        sku: form.sku.trim() || null,
         productName: form.productName,
         supplier: form.supplier || null,
         quantity: form.quantity,
@@ -479,8 +535,9 @@ export default function ProductCostingPage() {
         setHistory(data.data || []);
       }
 
-      // Reset form
+      // Reset form and get next SKU
       resetForm();
+      fetchNextSku();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -493,8 +550,10 @@ export default function ProductCostingPage() {
       ...DEFAULT_FORM,
       localCurrency: prev.localCurrency,
       localCurrencySymbol: prev.localCurrencySymbol,
+      sku: prev.sku, // Keep current SKU until fetchNextSku updates it
     }));
     setEditingId(null);
+    setSkuAvailable(null);
   };
 
   // Load template
@@ -569,37 +628,39 @@ export default function ProductCostingPage() {
 
   // Duplicate from history
   const duplicateCosting = (record: CostingRecord) => {
-    // Fetch the full record first
-    fetch(`/api/product-costing/${record.id}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setForm((prev) => ({
-          ...prev,
-          productName: data.productName + " (copy)",
-          supplier: data.supplier || "",
-          quantity: data.quantity,
-          unitPrice: Number(data.unitPrice),
-          purchaseCurrency: data.purchaseCurrency,
-          exchangeRate: Number(data.exchangeRate),
-          shippingCost: Number(data.shippingCost),
-          freightCost: Number(data.freightCost),
-          dutyRate: Number(data.dutyRate),
-          exciseTax: Number(data.exciseTax),
-          vatRate: Number(data.vatRate),
-          hslRate: Number(data.hslRate),
-          customsFee: Number(data.customsFee),
-          insurance: Number(data.insurance),
-          handlingFee: Number(data.handlingFee),
-          otherCosts: Number(data.otherCosts),
-          otherDescription: data.otherDescription || "",
-          customTaxes: data.customTaxes || [],
-          markupPercent: Number(data.markupPercent),
-          linkedProductId: "",
-        }));
-        setEditingId(null);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        toast({ title: "Costing duplicated", description: "Edit and save as a new costing" });
-      });
+    // Fetch the full record and next available SKU
+    Promise.all([
+      fetch(`/api/product-costing/${record.id}`).then((r) => r.json()),
+      fetch("/api/product-costing/next-sku").then((r) => r.ok ? r.json() : null),
+    ]).then(([data, skuData]) => {
+      setForm((prev) => ({
+        ...prev,
+        sku: skuData?.sku || "",
+        productName: data.productName + " (copy)",
+        supplier: data.supplier || "",
+        quantity: data.quantity,
+        unitPrice: Number(data.unitPrice),
+        purchaseCurrency: data.purchaseCurrency,
+        exchangeRate: Number(data.exchangeRate),
+        shippingCost: Number(data.shippingCost),
+        freightCost: Number(data.freightCost),
+        dutyRate: Number(data.dutyRate),
+        exciseTax: Number(data.exciseTax),
+        vatRate: Number(data.vatRate),
+        hslRate: Number(data.hslRate),
+        customsFee: Number(data.customsFee),
+        insurance: Number(data.insurance),
+        handlingFee: Number(data.handlingFee),
+        otherCosts: Number(data.otherCosts),
+        otherDescription: data.otherDescription || "",
+        customTaxes: data.customTaxes || [],
+        markupPercent: Number(data.markupPercent),
+        linkedProductId: "",
+      }));
+      setEditingId(null);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      toast({ title: "Costing duplicated", description: "Edit and save as a new costing" });
+    });
   };
 
   // Delete costing
@@ -641,6 +702,7 @@ export default function ProductCostingPage() {
         startY: 46,
         head: [["Field", "Value"]],
         body: [
+          ["SKU", form.sku || "-"],
           ["Product Name", form.productName || "-"],
           ["Supplier", form.supplier || "-"],
           ["Quantity", String(form.quantity)],
@@ -721,7 +783,8 @@ export default function ProductCostingPage() {
     return history.filter(
       (h) =>
         h.productName.toLowerCase().includes(q) ||
-        (h.supplier && h.supplier.toLowerCase().includes(q))
+        (h.supplier && h.supplier.toLowerCase().includes(q)) ||
+        (h.sku && h.sku.toLowerCase().includes(q))
     );
   }, [history, historySearch]);
 
@@ -729,53 +792,173 @@ export default function ProductCostingPage() {
   // RENDER HELPERS
   // ============================================
 
-  const NumInput = ({
-    label,
-    value,
-    onChange,
-    suffix,
-    prefix,
-    placeholder,
-    helpText,
-    className,
-  }: {
-    label: string;
-    value: number;
-    onChange: (v: string) => void;
-    suffix?: string;
-    prefix?: string;
-    placeholder?: string;
-    helpText?: string;
-    className?: string;
-  }) => (
-    <div className={cn("space-y-1.5", className)}>
-      <Label className="text-sm font-medium flex items-center gap-1.5">
-        {label}
-        {helpText && <HelpTooltip text={helpText} />}
-      </Label>
-      <div className="relative">
-        {prefix && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-            {prefix}
-          </span>
-        )}
-        <Input
-          type="number"
-          step="any"
-          min="0"
-          value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder || "0"}
-          className={cn(prefix && "pl-10", suffix && "pr-8")}
-        />
-        {suffix && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-            {suffix}
-          </span>
-        )}
-      </div>
+  // Print report handler
+  const handlePrintReport = () => {
+    // Filter history by date range and supplier
+    let filtered = [...history];
+
+    if (printDateFrom) {
+      const from = new Date(printDateFrom);
+      from.setHours(0, 0, 0, 0);
+      filtered = filtered.filter((h) => new Date(h.createdAt) >= from);
+    }
+    if (printDateTo) {
+      const to = new Date(printDateTo);
+      to.setHours(23, 59, 59, 999);
+      filtered = filtered.filter((h) => new Date(h.createdAt) <= to);
+    }
+    if (printSupplier) {
+      const q = printSupplier.toLowerCase();
+      filtered = filtered.filter(
+        (h) => h.supplier && h.supplier.toLowerCase().includes(q)
+      );
+    }
+
+    if (filtered.length === 0) {
+      toast({ title: "No data", description: "No costings match your filters", variant: "destructive" });
+      return;
+    }
+
+    // Build print-friendly HTML
+    const localSym = form.localCurrencySymbol;
+    const dateRange = [
+      printDateFrom ? new Date(printDateFrom).toLocaleDateString() : "Start",
+      printDateTo ? new Date(printDateTo).toLocaleDateString() : "Present",
+    ].join(" - ");
+
+    const ROWS_PER_PAGE = 25;
+    const pages = [];
+    for (let i = 0; i < filtered.length; i += ROWS_PER_PAGE) {
+      pages.push(filtered.slice(i, i + ROWS_PER_PAGE));
+    }
+
+    const tablePages = pages
+      .map(
+        (pageRows, pageIdx) => `
+      <div class="print-page${pageIdx > 0 ? " page-break" : ""}">
+        <table>
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Product</th>
+              <th>Supplier</th>
+              <th class="right">Qty</th>
+              <th class="right">Landed Cost/Unit</th>
+              <th class="right">Selling Price</th>
+              <th class="right">Markup</th>
+              <th>Linked Product</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${pageRows
+              .map(
+                (r) => `
+              <tr>
+                <td class="sku">${r.sku || "-"}</td>
+                <td>${r.productName}</td>
+                <td>${r.supplier || "-"}</td>
+                <td class="right">${r.quantity}</td>
+                <td class="right mono">${localSym} ${Number(r.landedCostPerUnit).toFixed(2)}</td>
+                <td class="right mono bold">${localSym} ${Number(r.sellingPrice).toFixed(2)}</td>
+                <td class="right">${Number(r.markupPercent).toFixed(0)}%</td>
+                <td>${r.linkedProduct ? r.linkedProduct.name : "-"}</td>
+                <td>${new Date(r.createdAt).toLocaleDateString()}</td>
+              </tr>`
+              )
+              .join("")}
+          </tbody>
+        </table>
+        <div class="page-footer">Page ${pageIdx + 1} of ${pages.length}</div>
+      </div>`
+      )
+      .join("");
+
+    // Summary
+    const totalItems = filtered.length;
+    const totalQty = filtered.reduce((s, r) => s + r.quantity, 0);
+    const totalLandedCost = filtered.reduce(
+      (s, r) => s + Number(r.landedCostPerUnit) * r.quantity,
+      0
+    );
+    const totalSellingValue = filtered.reduce(
+      (s, r) => s + Number(r.sellingPrice) * r.quantity,
+      0
+    );
+    const totalProfit = totalSellingValue - totalLandedCost;
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <title>Product Costing Report</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px; color: #1a1a1a; padding: 20px; }
+    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #0d9488; padding-bottom: 15px; }
+    .header h1 { font-size: 22px; color: #0d9488; margin-bottom: 4px; }
+    .header p { color: #666; font-size: 12px; }
+    .summary { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+    .summary-card { flex: 1; min-width: 140px; padding: 10px 14px; background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px; }
+    .summary-card .label { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+    .summary-card .value { font-size: 16px; font-weight: 700; color: #0d9488; margin-top: 2px; }
+    table { width: 100%; border-collapse: collapse; font-size: 10px; }
+    thead tr { background: #0d9488; color: white; }
+    th { padding: 8px 10px; text-align: left; font-weight: 600; font-size: 10px; }
+    th.right, td.right { text-align: right; }
+    td { padding: 6px 10px; border-bottom: 1px solid #e5e7eb; }
+    tbody tr:nth-child(even) { background: #f9fafb; }
+    .mono { font-family: 'SF Mono', 'Consolas', monospace; }
+    .bold { font-weight: 600; color: #0d9488; }
+    .sku { font-family: 'SF Mono', 'Consolas', monospace; color: #6b7280; font-size: 9px; }
+    .page-footer { text-align: center; margin-top: 10px; font-size: 9px; color: #9ca3af; }
+    .page-break { page-break-before: always; padding-top: 20px; }
+    @media print {
+      body { padding: 0; }
+      .page-break { page-break-before: always; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Product Costing Report</h1>
+    <p>Period: ${dateRange}${printSupplier ? " | Supplier: " + printSupplier : ""}</p>
+    <p>Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</p>
+  </div>
+  <div class="summary">
+    <div class="summary-card">
+      <div class="label">Total Items</div>
+      <div class="value">${totalItems}</div>
     </div>
-  );
+    <div class="summary-card">
+      <div class="label">Total Units</div>
+      <div class="value">${totalQty}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Total Landed Cost</div>
+      <div class="value">${localSym} ${totalLandedCost.toFixed(2)}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Total Selling Value</div>
+      <div class="value">${localSym} ${totalSellingValue.toFixed(2)}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Total Profit</div>
+      <div class="value">${localSym} ${totalProfit.toFixed(2)}</div>
+    </div>
+  </div>
+  ${tablePages}
+  <script>window.onload = function() { window.print(); }</script>
+</body>
+</html>`;
+
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+    }
+    setPrintDialogOpen(false);
+  };
 
   if (isLoading) {
     return (
@@ -840,6 +1023,15 @@ export default function ProductCostingPage() {
             <FileDown className="w-4 h-4 mr-1.5" />
             Export PDF
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPrintDialogOpen(true)}
+            disabled={history.length === 0}
+          >
+            <Printer className="w-4 h-4 mr-1.5" />
+            Print Report
+          </Button>
         </div>
       </div>
 
@@ -855,7 +1047,45 @@ export default function ProductCostingPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium flex items-center gap-1.5">
+                    SKU
+                    <HelpTooltip text="Auto-generated product code (SP-0001). You can customize it." />
+                  </Label>
+                  <div className="relative">
+                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                    <Input
+                      value={form.sku}
+                      onChange={(e) => {
+                        const val = e.target.value.toUpperCase();
+                        updateField("sku", val);
+                        setSkuAvailable(null);
+                      }}
+                      onBlur={() => {
+                        if (form.sku.trim()) checkSkuAvailability(form.sku);
+                      }}
+                      placeholder="SP-0001"
+                      className={cn(
+                        "pl-9 pr-8 font-mono text-sm",
+                        skuAvailable === false && "border-red-400 focus-visible:ring-red-400",
+                        skuAvailable === true && "border-emerald-400 focus-visible:ring-emerald-400"
+                      )}
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {skuChecking ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+                      ) : skuAvailable === true ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-500" />
+                      ) : skuAvailable === false ? (
+                        <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
+                      ) : null}
+                    </span>
+                  </div>
+                  {skuAvailable === false && (
+                    <p className="text-xs text-red-500">SKU already exists</p>
+                  )}
+                </div>
                 <div className="space-y-1.5">
                   <Label className="text-sm font-medium">Product Name *</Label>
                   <Input
@@ -1457,6 +1687,7 @@ export default function ProductCostingPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-t bg-gray-50/80">
+                      <th className="text-left px-4 py-3 font-medium text-muted-foreground">SKU</th>
                       <th className="text-left px-4 py-3 font-medium text-muted-foreground">Product</th>
                       <th className="text-left px-4 py-3 font-medium text-muted-foreground">Supplier</th>
                       <th className="text-right px-4 py-3 font-medium text-muted-foreground">Qty</th>
@@ -1471,6 +1702,7 @@ export default function ProductCostingPage() {
                   <tbody className="divide-y">
                     {filteredHistory.map((record) => (
                       <tr key={record.id} className="hover:bg-gray-50/50">
+                        <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{record.sku || "-"}</td>
                         <td className="px-4 py-3 font-medium">{record.productName}</td>
                         <td className="px-4 py-3 text-muted-foreground">{record.supplier || "-"}</td>
                         <td className="px-4 py-3 text-right">{record.quantity}</td>
@@ -1593,6 +1825,135 @@ export default function ProductCostingPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Print Report Dialog */}
+      <Dialog open={printDialogOpen} onOpenChange={setPrintDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Printer className="w-5 h-5 text-teal-600" />
+              Print Costing Report
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">Date From</Label>
+                <Input
+                  type="date"
+                  value={printDateFrom}
+                  onChange={(e) => setPrintDateFrom(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">Date To</Label>
+                <Input
+                  type="date"
+                  value={printDateTo}
+                  onChange={(e) => setPrintDateTo(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Supplier Filter (optional)</Label>
+              <Input
+                value={printSupplier}
+                onChange={(e) => setPrintSupplier(e.target.value)}
+                placeholder="Filter by supplier name..."
+              />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Leave dates empty to include all records. The report will open in a new window for printing.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPrintDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handlePrintReport} className="bg-teal-600 hover:bg-teal-700">
+              <Printer className="w-4 h-4 mr-2" />
+              Print
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// ============================================
+// Number Input Component (local state to prevent cursor jumping)
+// ============================================
+
+function NumInput({
+  label,
+  value,
+  onChange,
+  suffix,
+  prefix,
+  placeholder,
+  helpText,
+  className,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: string) => void;
+  suffix?: string;
+  prefix?: string;
+  placeholder?: string;
+  helpText?: string;
+  className?: string;
+}) {
+  const [localValue, setLocalValue] = useState<string>(value ? String(value) : "");
+  const [isFocused, setIsFocused] = useState(false);
+
+  // Sync from parent when not focused
+  useEffect(() => {
+    if (!isFocused) {
+      setLocalValue(value ? String(value) : "");
+    }
+  }, [value, isFocused]);
+
+  return (
+    <div className={cn("space-y-1.5", className)}>
+      <Label className="text-sm font-medium flex items-center gap-1.5">
+        {label}
+        {helpText && <HelpTooltip text={helpText} />}
+      </Label>
+      <div className="relative">
+        {prefix && (
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+            {prefix}
+          </span>
+        )}
+        <Input
+          type="number"
+          step="any"
+          min="0"
+          value={localValue}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => {
+            setIsFocused(false);
+            onChange(localValue);
+          }}
+          onChange={(e) => {
+            setLocalValue(e.target.value);
+            // Also update parent on each keystroke for live calculations,
+            // but only the numeric value - don't reset cursor
+            const num = e.target.value === "" ? 0 : parseFloat(e.target.value);
+            if (!isNaN(num)) {
+              onChange(e.target.value);
+            }
+          }}
+          placeholder={placeholder || "0"}
+          className={cn(prefix && "pl-10", suffix && "pr-8")}
+        />
+        {suffix && (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+            {suffix}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

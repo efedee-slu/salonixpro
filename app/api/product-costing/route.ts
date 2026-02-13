@@ -20,6 +20,7 @@ export async function GET(request: Request) {
       where.OR = [
         { productName: { contains: search, mode: "insensitive" } },
         { supplier: { contains: search, mode: "insensitive" } },
+        { sku: { contains: search, mode: "insensitive" } },
       ];
     }
 
@@ -82,6 +83,7 @@ export async function POST(request: Request) {
     const costing = await prisma.productCosting.create({
       data: {
         businessId,
+        sku: body.sku || null,
         productName: body.productName,
         supplier: body.supplier || null,
         quantity: body.quantity || 1,

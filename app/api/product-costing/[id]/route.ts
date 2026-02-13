@@ -61,6 +61,7 @@ export async function PUT(
     const updated = await prisma.productCosting.update({
       where: { id: params.id },
       data: {
+        sku: body.sku,
         productName: body.productName,
         supplier: body.supplier,
         quantity: body.quantity,

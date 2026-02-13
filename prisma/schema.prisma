@@ -720,6 +720,7 @@ model Expense {
 model ProductCosting {
   id               String  @id @default(cuid())
   businessId       String
+  sku              String? // Auto-generated: SP-0001, SP-0002, etc.
   productName      String
   supplier         String?
   quantity         Int     @default(1)
@@ -773,6 +774,7 @@ model ProductCosting {
   business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   linkedProduct Product? @relation(fields: [linkedProductId], references: [id], onDelete: SetNull)
 
+  @@unique([businessId, sku])
   @@index([businessId])
   @@index([linkedProductId])
   @@index([createdAt])
