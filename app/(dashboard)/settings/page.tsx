@@ -110,30 +110,35 @@ function SettingsContent() {
     const loadSettings = async () => {
       setIsLoading(true);
       try {
-        // Load business settings
-        const businessRes = await fetch("/api/settings/business");
-        if (businessRes.ok) {
-          const data = await businessRes.json();
-          setFormData({
-            name: data.name || "",
-            email: data.email || "",
-            phone: data.phone || "",
-            address: data.address || "",
-            description: data.description || "",
-            logo: data.logo || "",
-            currency: data.currency || "XCD",
-            currencySymbol: data.currencySymbol || "EC$",
-          });
-          if (data.businessHours) {
-            setBusinessHours(data.businessHours);
+        // Load all settings from single endpoint
+        const settingsRes = await fetch("/api/settings");
+        if (settingsRes.ok) {
+          const data = await settingsRes.json();
+          if (data.business) {
+            setFormData({
+              name: data.business.name || "",
+              email: data.business.email || "",
+              phone: data.business.phone || "",
+              address: data.business.address || "",
+              description: data.business.description || "",
+              logo: data.business.logo || "",
+              currency: data.business.currency || "XCD",
+              currencySymbol: data.business.currencySymbol || "EC$",
+            });
           }
-        }
-
-        // Load team members
-        const teamRes = await fetch("/api/settings/team");
-        if (teamRes.ok) {
-          const data = await teamRes.json();
-          setTeamMembers(data.members || []);
+          if (data.hours) {
+            setBusinessHours(data.hours);
+          }
+          if (data.users) {
+            setTeamMembers(
+              data.users.map((u: any) => ({
+                id: u.id,
+                name: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.username,
+                email: u.email,
+                role: u.role,
+              }))
+            );
+          }
         }
 
         // Load billing status
@@ -145,7 +150,7 @@ function SettingsContent() {
       } catch (error) {
         toast({
           title: "Error",
-          description: "Failed to save settings",
+          description: "Failed to load settings",
           variant: "destructive",
         });
       } finally {
@@ -160,10 +165,10 @@ function SettingsContent() {
   const handleSaveGeneral = async () => {
     setIsSaving(true);
     try {
-      const res = await fetch("/api/settings/business", {
+      const res = await fetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ type: "business", data: formData }),
       });
 
       if (res.ok) {
@@ -189,10 +194,10 @@ function SettingsContent() {
   const handleSaveHours = async () => {
     setIsSaving(true);
     try {
-      const res = await fetch("/api/settings/hours", {
+      const res = await fetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ businessHours }),
+        body: JSON.stringify({ type: "hours", data: businessHours }),
       });
 
       if (res.ok) {
