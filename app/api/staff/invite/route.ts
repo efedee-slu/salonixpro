@@ -94,15 +94,32 @@ export async function POST(request: Request) {
       select: { name: true },
     });
 
-    // Send invite email (non-blocking)
-    sendTeamInvite({
+    // Send invite email — await so we can report failures
+    const emailResult = await sendTeamInvite({
       to: normalizedEmail,
       firstName: firstName.trim(),
       businessName: business?.name || "your salon",
       username,
       tempPassword,
       role,
-    }).catch((err) => console.error("Failed to send invite email:", err));
+    });
+
+    if (emailResult.error) {
+      console.error("Resend email error:", JSON.stringify(emailResult.error));
+      // User was created but email failed — return success with warning
+      return NextResponse.json(
+        {
+          id: user.id,
+          name: [user.firstName, user.lastName].filter(Boolean).join(" "),
+          email: user.email,
+          role: user.role,
+          warning: `Account created but invite email failed to send. Username: ${username}, Temp password: ${tempPassword}`,
+        },
+        { status: 201 }
+      );
+    }
+
+    console.log("Invite email sent:", emailResult.data?.id, "to:", normalizedEmail);
 
     return NextResponse.json(
       {

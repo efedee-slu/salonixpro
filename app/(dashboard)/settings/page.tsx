@@ -382,10 +382,18 @@ function SettingsContent() {
       });
       const data = await res.json();
       if (res.ok) {
-        toast({
-          title: "Team member invited",
-          description: `${data.name} has been added and will receive a login email.`,
-        });
+        if (data.warning) {
+          toast({
+            title: "Account created — email failed",
+            description: data.warning,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Team member invited",
+            description: `${data.name} has been added and will receive a login email.`,
+          });
+        }
         setTeamMembers((prev) => [...prev, data]);
         setInviteDialogOpen(false);
         setInviteForm({ firstName: "", lastName: "", email: "", role: "STYLIST", phone: "" });
