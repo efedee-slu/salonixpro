@@ -1,7 +1,7 @@
 {
   "name": "SalonixPro",
   "short_name": "SalonixPro",
-  "description": "Professional Salon Management Software - One system. One salon. Total control.",
+  "description": "All-in-one salon management platform for Caribbean salons. Online booking, POS, inventory, staff scheduling, client portal & reports.",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#ffffff",

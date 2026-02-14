@@ -2,7 +2,8 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "SalonixPro — Professional Salon Management for the Caribbean";
+export const alt =
+  "SalonixPro — Professional Salon Management Software for the Caribbean";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -17,7 +18,8 @@ export default async function OGImage() {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          background: "linear-gradient(135deg, #0c4a6e 0%, #0f766e 50%, #064e3b 100%)",
+          background:
+            "linear-gradient(135deg, #0f172a 0%, #0d3d38 50%, #0f766e 100%)",
           position: "relative",
           overflow: "hidden",
         }}
@@ -46,7 +48,7 @@ export default async function OGImage() {
             width: 350,
             height: 350,
             borderRadius: "50%",
-            background: "rgba(255,255,255,0.05)",
+            background: "rgba(20, 184, 166, 0.15)",
           }}
         />
 
@@ -59,7 +61,7 @@ export default async function OGImage() {
             width: 400,
             height: 400,
             borderRadius: "50%",
-            background: "rgba(255,255,255,0.04)",
+            background: "rgba(16, 185, 129, 0.1)",
           }}
         />
 
@@ -83,7 +85,7 @@ export default async function OGImage() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 8px 30px rgba(0,0,0,0.2)",
+              boxShadow: "0 20px 40px rgba(20, 184, 166, 0.3)",
             }}
           >
             <span style={{ fontSize: 42, color: "white" }}>&#9986;</span>
@@ -92,7 +94,7 @@ export default async function OGImage() {
           {/* Brand name */}
           <span
             style={{
-              fontSize: 56,
+              fontSize: 64,
               fontWeight: 900,
               color: "white",
               letterSpacing: "-1px",
@@ -104,42 +106,46 @@ export default async function OGImage() {
           {/* Tagline */}
           <span
             style={{
-              fontSize: 24,
-              color: "rgba(255,255,255,0.7)",
+              fontSize: 26,
+              color: "rgba(148, 163, 184, 1)",
               maxWidth: 700,
               textAlign: "center",
               lineHeight: 1.4,
             }}
           >
-            Professional Salon Management for the Caribbean
+            Professional Salon Management Software
           </span>
 
           {/* Feature pills */}
           <div
             style={{
               display: "flex",
-              gap: "12px",
+              gap: "14px",
               marginTop: "8px",
             }}
           >
-            {["Appointments", "Clients", "Inventory", "Finances"].map(
-              (label) => (
-                <div
-                  key={label}
-                  style={{
-                    padding: "8px 20px",
-                    borderRadius: 999,
-                    background: "rgba(255,255,255,0.1)",
-                    border: "1px solid rgba(255,255,255,0.15)",
-                    color: "rgba(255,255,255,0.85)",
-                    fontSize: 15,
-                    fontWeight: 600,
-                  }}
-                >
-                  {label}
-                </div>
-              )
-            )}
+            {[
+              "Online Booking",
+              "POS & Inventory",
+              "Staff Scheduling",
+              "Client Portal",
+              "Reports",
+            ].map((label) => (
+              <div
+                key={label}
+                style={{
+                  padding: "10px 22px",
+                  borderRadius: 999,
+                  background: "rgba(20, 184, 166, 0.15)",
+                  border: "1px solid rgba(20, 184, 166, 0.3)",
+                  color: "#5eead4",
+                  fontSize: 16,
+                  fontWeight: 600,
+                }}
+              >
+                {label}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -151,7 +157,7 @@ export default async function OGImage() {
             left: 0,
             right: 0,
             height: 50,
-            background: "rgba(0,0,0,0.15)",
+            background: "rgba(0,0,0,0.2)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -159,13 +165,13 @@ export default async function OGImage() {
         >
           <span
             style={{
-              color: "rgba(255,255,255,0.5)",
-              fontSize: 15,
+              color: "rgba(148, 163, 184, 0.7)",
+              fontSize: 16,
               fontWeight: 600,
               letterSpacing: "0.5px",
             }}
           >
-            salonixpro.com
+            Built for Caribbean Salons &bull; salonixpro.com
           </span>
         </div>
       </div>

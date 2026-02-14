@@ -20,11 +20,22 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL("https://salonixpro.com"),
   title: {
-    default: "SalonixPro — Professional Salon Management for the Caribbean",
+    default:
+      "SalonixPro — Professional Salon Management Software | Caribbean",
     template: "%s — SalonixPro",
   },
   description:
-    "The all-in-one platform for Caribbean salons, barbershops, and nail studios. Appointments, clients, inventory, finances — everything in one place.",
+    "All-in-one salon management platform for Caribbean salons. Online booking, POS, inventory, staff scheduling, client portal & reports. Built for Saint Lucia and the Caribbean.",
+  keywords: [
+    "salon management software",
+    "salon booking system",
+    "Caribbean salon software",
+    "Saint Lucia salon",
+    "appointment scheduling",
+    "salon POS",
+    "salon inventory management",
+    "beauty salon software",
+  ],
   manifest: "/manifest.json",
   icons: {
     icon: "/favicon.svg",
@@ -35,27 +46,49 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "SalonixPro",
   },
+  applicationName: "SalonixPro",
   formatDetection: {
     telephone: false,
+  },
+  alternates: {
+    canonical: "https://salonixpro.com",
   },
   openGraph: {
     type: "website",
     url: "https://salonixpro.com",
-    title: "SalonixPro — Professional Salon Management for the Caribbean",
+    title:
+      "SalonixPro — Professional Salon Management Software | Caribbean",
     description:
-      "The all-in-one platform for Caribbean salons, barbershops, and nail studios. Appointments, clients, inventory, finances — everything in one place.",
+      "All-in-one salon management platform for Caribbean salons. Online booking, POS, inventory, staff scheduling, client portal & reports. Built for Saint Lucia and the Caribbean.",
     siteName: "SalonixPro",
     locale: "en_US",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "SalonixPro — Professional Salon Management Software for the Caribbean",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SalonixPro — Professional Salon Management for the Caribbean",
+    title:
+      "SalonixPro — Professional Salon Management Software | Caribbean",
     description:
-      "The all-in-one platform for Caribbean salons, barbershops, and nail studios. Appointments, clients, inventory, finances — everything in one place.",
+      "All-in-one salon management platform for Caribbean salons. Online booking, POS, inventory, staff scheduling, client portal & reports. Built for Saint Lucia and the Caribbean.",
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 
@@ -83,6 +116,46 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="msapplication-TileColor" content="#0D9488" />
         <meta name="msapplication-tap-highlight" content="no" />
+        {/* JSON-LD Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  name: "SalonixPro",
+                  url: "https://salonixpro.com",
+                  logo: "https://salonixpro.com/icons/icon-512x512.svg",
+                  description:
+                    "Professional salon management software for Caribbean salons, barbershops, and nail studios.",
+                  sameAs: [],
+                },
+                {
+                  "@type": "SoftwareApplication",
+                  name: "SalonixPro",
+                  applicationCategory: "BusinessApplication",
+                  operatingSystem: "Web",
+                  description:
+                    "All-in-one salon management platform for Caribbean salons. Online booking, POS, inventory, staff scheduling, client portal & reports.",
+                  url: "https://salonixpro.com",
+                  offers: {
+                    "@type": "Offer",
+                    price: "0",
+                    priceCurrency: "USD",
+                    description: "14-day free trial",
+                  },
+                  aggregateRating: {
+                    "@type": "AggregateRating",
+                    ratingValue: "5",
+                    ratingCount: "1",
+                  },
+                },
+              ],
+            }),
+          }}
+        />
       </head>
       <body className={`${inter.variable} ${outfit.variable} font-sans`}>
         <NextTopLoader color="#0d9488" showSpinner={false} />
