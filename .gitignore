@@ -6,3 +6,8 @@ node_modules/
 tsconfig.tsbuildinfo
 public/uploads/
 backups/
+backup.sql
+SESSION-REPORT.md
+*.docx
+~$*
+generate-infra-report.py
