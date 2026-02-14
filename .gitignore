@@ -5,3 +5,4 @@ node_modules/
 .env.backup
 tsconfig.tsbuildinfo
 public/uploads/
+backups/
