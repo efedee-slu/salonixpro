@@ -37,4 +37,5 @@ jobs:
           DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
           NEXTAUTH_SECRET: "dummy-secret-for-ci"
           NEXTAUTH_URL: "http://localhost:3000"
+          RESEND_API_KEY: "re_dummy_key_for_ci"
         run: npm run build

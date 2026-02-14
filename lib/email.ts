@@ -3,7 +3,7 @@
 
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResend = () => new Resend(process.env.RESEND_API_KEY!);
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://salonixpro.com";
 const FROM_EMAIL = "SalonixPro <noreply@salonixpro.com>";
@@ -147,7 +147,7 @@ export async function sendWelcomeEmail(params: {
     `Welcome to SalonixPro! Your salon ${businessName} is ready.`
   );
 
-  return resend.emails.send({ from: FROM_EMAIL, to, subject: `Welcome to SalonixPro, ${firstName}!`, html });
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `Welcome to SalonixPro, ${firstName}!`, html });
 }
 
 // 2. Appointment Confirmation (to client)
@@ -184,7 +184,7 @@ export async function sendAppointmentConfirmation(params: {
     `Your appointment at ${businessName} on ${fmtDate(date)} is confirmed.`
   );
 
-  return resend.emails.send({ from: FROM_EMAIL, to, subject: `Appointment Confirmed - ${businessName}`, html });
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `Appointment Confirmed - ${businessName}`, html });
 }
 
 // 3. Appointment Reminder (24hrs before)
@@ -220,7 +220,7 @@ export async function sendAppointmentReminder(params: {
     `Reminder: Your appointment at ${businessName} is tomorrow at ${fmtTime(date)}.`
   );
 
-  return resend.emails.send({ from: FROM_EMAIL, to, subject: `Reminder: Appointment Tomorrow - ${businessName}`, html });
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `Reminder: Appointment Tomorrow - ${businessName}`, html });
 }
 
 // 4. Appointment Cancellation (to client)
@@ -252,7 +252,7 @@ export async function sendAppointmentCancellation(params: {
     `Your appointment at ${businessName} on ${fmtDate(date)} has been cancelled.`
   );
 
-  return resend.emails.send({ from: FROM_EMAIL, to, subject: `Appointment Cancelled - ${businessName}`, html });
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `Appointment Cancelled - ${businessName}`, html });
 }
 
 // 5. New Booking Notification (to salon owner/staff)
@@ -291,7 +291,7 @@ export async function sendNewBookingNotification(params: {
     `New booking from ${clientName} on ${fmtDate(date)}.`
   );
 
-  return resend.emails.send({ from: FROM_EMAIL, to, subject: `New Booking: ${clientName} - ${fmtDate(date)}`, html });
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `New Booking: ${clientName} - ${fmtDate(date)}`, html });
 }
 
 // 6. Deposit Submitted (to salon - client says they paid)
@@ -321,7 +321,7 @@ export async function sendDepositSubmittedNotification(params: {
     `${clientName} submitted deposit payment for ${bookingReference}.`
   );
 
-  return resend.emails.send({ from: FROM_EMAIL, to, subject: `Payment Submitted: ${bookingReference} - Review Required`, html });
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `Payment Submitted: ${bookingReference} - Review Required`, html });
 }
 
 // 7. Deposit Confirmed (to client)
@@ -350,7 +350,7 @@ export async function sendDepositConfirmed(params: {
     `Your deposit for ${bookingReference} has been confirmed.`
   );
 
-  return resend.emails.send({ from: FROM_EMAIL, to, subject: `Payment Confirmed - ${businessName}`, html });
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `Payment Confirmed - ${businessName}`, html });
 }
 
 // 8. Deposit Rejected (to client)
@@ -381,7 +381,7 @@ export async function sendDepositRejected(params: {
     `Your deposit for ${bookingReference} could not be verified.`
   );
 
-  return resend.emails.send({ from: FROM_EMAIL, to, subject: `Payment Issue - ${businessName}`, html });
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `Payment Issue - ${businessName}`, html });
 }
 
 // 9. Deposit Expired / Auto-Cancelled (to client)
@@ -408,7 +408,7 @@ export async function sendDepositExpired(params: {
     `Your booking ${bookingReference} was cancelled due to missed payment deadline.`
   );
 
-  return resend.emails.send({ from: FROM_EMAIL, to, subject: `Booking Cancelled - Payment Deadline Passed`, html });
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `Booking Cancelled - Payment Deadline Passed`, html });
 }
 
 // 10. Payment Deadline Warning (to client)
@@ -455,7 +455,7 @@ export async function sendPaymentDeadlineWarning(params: {
     `Urgent: Payment deadline approaching for your ${businessName} booking.`
   );
 
-  return resend.emails.send({ from: FROM_EMAIL, to, subject: `Urgent: Payment Due Soon - ${businessName}`, html });
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `Urgent: Payment Due Soon - ${businessName}`, html });
 }
 
 // 11. Order Confirmation (to customer)
@@ -509,7 +509,7 @@ export async function sendOrderConfirmation(params: {
     `Order #${orderNumber} confirmed at ${businessName}.`
   );
 
-  return resend.emails.send({ from: FROM_EMAIL, to, subject: `Order Confirmed #${orderNumber} - ${businessName}`, html });
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `Order Confirmed #${orderNumber} - ${businessName}`, html });
 }
 
 // 12. Password Reset (refactored from inline)
@@ -533,7 +533,7 @@ export async function sendPasswordReset(params: {
     `Your temporary password for SalonixPro.`
   );
 
-  return resend.emails.send({ from: FROM_EMAIL, to, subject: "Your temporary password - SalonixPro", html });
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: "Your temporary password - SalonixPro", html });
 }
 
 // 13. Portal Verification Code (to client)
@@ -557,7 +557,7 @@ export async function sendPortalVerificationCode(params: {
     `Your SalonixPro verification code is ${code}.`
   );
 
-  return resend.emails.send({ from: FROM_EMAIL, to, subject: `${code} - Your SalonixPro Verification Code`, html });
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `${code} - Your SalonixPro Verification Code`, html });
 }
 
 // 14. Team Member Invite
@@ -587,5 +587,5 @@ export async function sendTeamInvite(params: {
     `You've been invited to join ${businessName} on SalonixPro.`
   );
 
-  return resend.emails.send({ from: FROM_EMAIL, to, subject: `You're invited to ${businessName} on SalonixPro`, html });
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `You're invited to ${businessName} on SalonixPro`, html });
 }
