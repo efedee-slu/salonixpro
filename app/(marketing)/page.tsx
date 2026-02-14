@@ -290,9 +290,10 @@ export default function LandingPage() {
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
-            <Link href="/login">
-              <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white w-full sm:w-auto">
-                Sign In
+            <Link href="/beta">
+              <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-teal-500/50 text-teal-300 hover:bg-teal-500/10 hover:text-teal-200 w-full sm:w-auto">
+                Join the Beta
+                <Sparkles className="ml-2 w-5 h-5" />
               </Button>
             </Link>
           </div>

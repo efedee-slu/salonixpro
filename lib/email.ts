@@ -589,3 +589,116 @@ export async function sendTeamInvite(params: {
 
   return getResend().emails.send({ from: FROM_EMAIL, to, subject: `You're invited to ${businessName} on SalonixPro`, html });
 }
+
+// 15. Beta Signup Confirmation (to applicant)
+export async function sendBetaConfirmation(params: {
+  to: string;
+  name: string;
+  salonName: string;
+}) {
+  const { to, name, salonName } = params;
+
+  const html = baseTemplate(
+    `${heading("Beta Application Received!")}
+    ${paragraph(`Hi ${name},`, true)}
+    ${successBox("Thank you for signing up for the SalonixPro beta program!")}
+    ${paragraph(`We've received your application for <strong>${salonName}</strong>. Our team will review it and get back to you shortly.`, true)}
+    ${detailsTable([
+      { label: "Salon", value: salonName },
+      { label: "Status", value: "Under Review" },
+    ])}
+    ${paragraph("As a beta tester, you'll get:", false)}
+    <ul style="color: #666; font-size: 14px; padding-left: 20px;">
+      <li style="margin-bottom: 8px;">Free access during the beta period</li>
+      <li style="margin-bottom: 8px;">Discounted pricing at launch</li>
+      <li style="margin-bottom: 8px;">Direct input on features</li>
+      <li style="margin-bottom: 8px;">Priority support</li>
+    </ul>
+    ${footer("We'll email you when your application is approved. Stay tuned!")}`,
+    `Thanks for signing up for the SalonixPro beta, ${name}!`
+  );
+
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: "Beta Application Received - SalonixPro", html });
+}
+
+// 16. Beta Admin Notification (to admin)
+export async function sendBetaAdminNotification(params: {
+  to: string;
+  applicantName: string;
+  applicantEmail: string;
+  salonName: string;
+  phone: string | null;
+  country: string | null;
+  salonSize: string | null;
+  message: string | null;
+}) {
+  const { to, applicantName, applicantEmail, salonName, phone, country, salonSize, message } = params;
+
+  const html = baseTemplate(
+    `${heading("New Beta Signup")}
+    ${warningBox("A new beta application has been submitted. Review and approve or reject.")}
+    ${detailsTable([
+      { label: "Name", value: applicantName },
+      { label: "Email", value: applicantEmail },
+      { label: "Salon", value: salonName },
+      ...(phone ? [{ label: "Phone", value: phone }] : []),
+      ...(country ? [{ label: "Country", value: country }] : []),
+      ...(salonSize ? [{ label: "Salon Size", value: `${salonSize} staff` }] : []),
+    ])}
+    ${message ? `${paragraph("<strong>Message:</strong>")}${paragraph(message)}` : ""}
+    ${button("Review Application", `${APP_URL}/admin/beta`)}
+    ${footer("You received this because a new beta signup was submitted.")}`,
+    `New beta signup from ${applicantName} (${salonName}).`
+  );
+
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `New Beta Signup: ${applicantName} - ${salonName}`, html });
+}
+
+// 17. Beta Approved (to applicant)
+export async function sendBetaApproved(params: {
+  to: string;
+  name: string;
+  salonName: string;
+}) {
+  const { to, name, salonName } = params;
+
+  const html = baseTemplate(
+    `${heading("You're In! Welcome to the Beta")}
+    ${paragraph(`Hi ${name},`, true)}
+    ${successBox("Your beta application has been approved! You now have access to the full SalonixPro platform.")}
+    ${paragraph(`Your salon <strong>${salonName}</strong> is ready to get started. Create your account to begin setting up your salon.`, true)}
+    ${button("Create Your Account", `${APP_URL}/signup`)}
+    ${paragraph("As a beta tester, you enjoy:", false)}
+    <ul style="color: #666; font-size: 14px; padding-left: 20px;">
+      <li style="margin-bottom: 8px;">Full access to all features — completely free</li>
+      <li style="margin-bottom: 8px;">Special pricing when we launch publicly</li>
+      <li style="margin-bottom: 8px;">Priority support from our team</li>
+    </ul>
+    ${footer("Questions? Reply to this email and we'll help you get started.")}`,
+    `You're approved for the SalonixPro beta, ${name}!`
+  );
+
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: "You're Approved! Welcome to SalonixPro Beta", html });
+}
+
+// 18. Beta Rejected (to applicant)
+export async function sendBetaRejected(params: {
+  to: string;
+  name: string;
+  salonName: string;
+}) {
+  const { to, name, salonName } = params;
+
+  const html = baseTemplate(
+    `${heading("Beta Application Update")}
+    ${paragraph(`Hi ${name},`, true)}
+    ${paragraph(`Thank you for your interest in SalonixPro for <strong>${salonName}</strong>.`, true)}
+    ${paragraph("Unfortunately, we're unable to include you in this round of our beta program. We have limited spots and had to make difficult decisions.", true)}
+    ${paragraph("Don't worry — we'll keep your information on file and notify you when SalonixPro launches publicly. You'll still be eligible for early-bird pricing.", true)}
+    ${button("Visit SalonixPro", `${APP_URL}`)}
+    ${footer("Thank you for your interest. We hope to welcome you soon!")}`,
+    `Update on your SalonixPro beta application.`
+  );
+
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: "Beta Application Update - SalonixPro", html });
+}
