@@ -5,11 +5,9 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  Calendar,
   Users,
   Sparkles,
   ShoppingBag,
-  BarChart3,
   Globe,
   Check,
   ArrowRight,
@@ -20,21 +18,23 @@ import {
   X,
   ChevronDown,
   HelpCircle,
-  Cloud,
-  HandHeart,
-  Coins,
   Mail,
-  UserCheck,
-  Lock,
-  MousePointerClick,
-  Twitter,
-  Facebook,
-  Instagram,
-  Linkedin,
   Camera,
   Repeat,
   Timer,
   CalendarCheck,
+  Twitter,
+  Facebook,
+  Instagram,
+  Linkedin,
+  Store,
+  UserPlus,
+  Clock,
+  Share2,
+  CalendarPlus,
+  Wallet,
+  ClipboardList,
+  Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -72,72 +72,62 @@ function FadeIn({ children, className = "", delay = 0 }: { children: React.React
 
 /* ──────────────────── data ──────────────────── */
 const navLinks = [
-  { label: "Features", href: "#features" },
+  { label: "Features", href: "/#features" },
   { label: "How It Works", href: "/how-it-works" },
-  { label: "Why Us", href: "#why-us" },
+  { label: "Why Us", href: "/#why-us" },
   { label: "Pricing", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
 ];
 
-const features = [
-  { icon: Calendar, title: "Appointment Scheduling", description: "Smart calendar with stylist availability, conflict detection, and drag-and-drop rescheduling." },
-  { icon: Users, title: "Client Management", description: "Complete client profiles with visit history, preferences, VIP status, and spending analytics." },
-  { icon: Sparkles, title: "Service Catalog", description: "130+ pre-loaded Caribbean salon, barber, and nail services. Customize pricing and duration." },
-  { icon: ShoppingBag, title: "Inventory & POS", description: "Stock tracking, low-stock alerts, product sales, and order management in one system." },
-  { icon: BarChart3, title: "Financial Reports", description: "P&L statements, expense tracking, payroll management with commission calculations." },
-  { icon: Globe, title: "Online Booking", description: "Your branded booking page where clients browse services and book appointments 24/7." },
+const betaSteps = [
+  { number: "1", title: "Visit the Beta Page", description: "Head to our beta signup page and fill in your salon details." },
+  { number: "2", title: "Check Your Email", description: "Once approved, you'll receive a welcome email with your login credentials." },
+  { number: "3", title: "Change Your Password", description: "Log in and set a new password to secure your account." },
+  { number: "4", title: "Enjoy 30 Days Free", description: "Explore every feature at no cost for a full month. No credit card required." },
 ];
 
-const advancedFeatures = [
-  { icon: UserCheck, title: "Customer Portal", description: "Clients view appointments and order history via secure email verification login." },
-  { icon: Coins, title: "Multi-Currency", description: "XCD, TTD, BBD, JMD, USD, and more. Built for Caribbean businesses from day one." },
-  { icon: Mail, title: "Email Notifications", description: "Automated booking confirmations, appointment reminders, and payment receipts." },
-  { icon: Star, title: "Client Reviews & Ratings", description: "Build trust with verified client reviews displayed on your booking page." },
-  { icon: Camera, title: "Before & After Gallery", description: "Showcase your best work with before/after photo pairs on your booking page." },
-  { icon: Repeat, title: "Recurring Appointments", description: "Set up weekly, biweekly, or monthly appointments that auto-schedule for your regular clients." },
-  { icon: Timer, title: "Smart Waitlist", description: "Clients join a waitlist for cancelled slots and get notified automatically when an opening becomes available." },
-  { icon: CalendarCheck, title: "Google Calendar Sync", description: "Sync appointments to your stylists' Google Calendars so they always know what's coming up." },
+const trialSteps = [
+  { number: "1", title: "Click Start Free Trial", description: "Hit the button below and you'll be on your way in seconds." },
+  { number: "2", title: "Fill In Business Details", description: "Tell us about your salon — name, location, and the services you offer." },
+  { number: "3", title: "14 Days Free Access", description: "Get full access to every feature for 14 days. No strings attached." },
+  { number: "4", title: "Subscribe via PayPal", description: "When you're ready, pick a plan and subscribe securely through PayPal." },
 ];
 
-const steps = [
-  { number: "1", title: "Create Your Account", description: "Sign up in under a minute. No credit card required to start your 14-day free trial." },
-  { number: "2", title: "Set Up Your Salon", description: "Choose services from the catalog, add your team, set working hours. We guide every step." },
-  { number: "3", title: "Start Booking", description: "Share your booking link. Accept appointments, manage clients, and track revenue instantly." },
+const setupSteps = [
+  { icon: Store, title: "Complete Your Profile", description: "Add your business name, address, phone, logo, and hours." },
+  { icon: Sparkles, title: "Add Your Services", description: "Choose from 122+ pre-loaded Caribbean salon services or create your own." },
+  { icon: UserPlus, title: "Add Your Staff", description: "Create staff accounts with role-based permissions and individual schedules." },
+  { icon: Share2, title: "Share Your Booking Link", description: "Get your unique booking page URL and share it with clients via WhatsApp or social media." },
+  { icon: CalendarPlus, title: "Start Receiving Appointments", description: "Clients book online 24/7. You manage everything from one dashboard." },
 ];
 
-const whyCards = [
-  { icon: HandHeart, title: "Caribbean-Built", description: "Designed for our region — XCD currency, local services, Caribbean business workflows.", color: "from-teal-500 to-emerald-600" },
-  { icon: Lock, title: "Secure & Private", description: "Role-based access control, encrypted data, and your business information stays protected.", color: "from-blue-500 to-indigo-600" },
-  { icon: MousePointerClick, title: "Easy to Use", description: "Clean interface your staff can learn in minutes, not weeks. No training manual needed.", color: "from-amber-500 to-orange-600" },
-  { icon: Cloud, title: "Cloud-Based", description: "Access your salon from anywhere — no installation, automatic updates, works on any device.", color: "from-purple-500 to-violet-600" },
-];
-
-const included = [
-  "Unlimited Clients",
-  "Unlimited Appointments",
-  "Full Financial Suite",
-  "Service Catalog (130+ services)",
-  "Online Booking Page",
-  "Reports & Analytics",
-  "Team Management & Roles",
-  "Customer Self-Service Portal",
-  "Email Notifications",
-  "Inventory Management",
+const includedFeatures = [
+  { icon: Globe, label: "Online Booking with AI Chatbot" },
+  { icon: Users, label: "Client Management (CRM)" },
+  { icon: Clock, label: "Staff Scheduling" },
+  { icon: ShoppingBag, label: "Point of Sale (POS)" },
+  { icon: Store, label: "Product Store" },
+  { icon: Wallet, label: "Expense Tracking" },
+  { icon: ClipboardList, label: "Payroll Management" },
+  { icon: Star, label: "Client Reviews" },
+  { icon: Camera, label: "Before & After Gallery" },
+  { icon: Repeat, label: "Recurring Appointments" },
+  { icon: Timer, label: "Smart Waitlist" },
+  { icon: CalendarCheck, label: "Google Calendar Sync" },
+  { icon: Mail, label: "Email Notifications" },
+  { icon: Smartphone, label: "Mobile Responsive" },
 ];
 
 const faqs = [
-  { q: "How does the 14-day free trial work?", a: "You get full access to all features for 14 days. No credit card required to start. At the end of your trial, simply choose a plan to continue." },
-  { q: "Can I cancel anytime?", a: "Yes! You can cancel your subscription at any time from your Settings page. No long-term contracts or cancellation fees." },
-  { q: "How do I get my online booking link?", a: "Once you sign up, you'll get a unique booking page at salonixpro.com/book/your-salon-name. Share this link with clients via WhatsApp, Instagram, or your website." },
-  { q: "Is my data secure?", a: "Absolutely. We use industry-standard encryption and secure servers. Your client data is private and never shared with third parties." },
-  { q: "Can I add multiple staff members?", a: "Yes! Add unlimited staff accounts. Each stylist gets their own schedule, services, and login with role-based permissions." },
-  { q: "Do I need to install anything?", a: "No installation needed. SalonixPro works in your web browser on any device — computer, tablet, or phone." },
-  { q: "What currencies are supported?", a: "We support XCD, USD, TTD, BBD, JMD, GYD, and more. Currency is set during onboarding and displayed throughout the app." },
-  { q: "What if I need help?", a: "We offer email support for all users. Just reach out and we'll help you get set up." },
+  { q: "How long does the beta last?", a: "Beta testers get 30 days of completely free access to every feature. After that, you can subscribe to continue using SalonixPro at our regular pricing." },
+  { q: "Do I need a credit card to start?", a: "No! Both the beta and the free trial are completely free to start. No credit card is required upfront." },
+  { q: "Can I cancel anytime?", a: "Yes. There are no long-term contracts or cancellation fees. You can cancel your subscription at any time from your Settings page." },
+  { q: "How do clients book appointments?", a: "You'll get a unique booking page at salonixpro.com/book/your-salon-name. Share this link with clients via WhatsApp, Instagram, or your website. Clients can browse your services and book 24/7." },
+  { q: "Is my data private and secure?", a: "Absolutely. We use industry-standard encryption and secure servers. Your client data is private and never shared with third parties. Role-based access control ensures your team only sees what they need." },
 ];
 
 /* ──────────────────── component ──────────────────── */
-export default function LandingPage() {
+export default function HowItWorksPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -185,21 +175,19 @@ export default function LandingPage() {
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-18">
-            {/* Logo */}
-            <div className="flex items-center gap-2.5">
+            <Link href="/" className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-teal-500/25">
                 <Scissors className="w-5 h-5 text-white" />
               </div>
               <span className={`text-xl font-bold transition-colors ${scrolled ? "text-gray-900" : "text-white"}`}>
                 SalonixPro
               </span>
-            </div>
+            </Link>
 
-            {/* Desktop Links */}
             <div className="hidden lg:flex items-center gap-8">
               {navLinks.map((l) => (
                 <a
-                  key={l.href}
+                  key={l.label}
                   href={l.href}
                   className={`text-sm font-medium transition-colors hover:text-teal-500 ${
                     scrolled ? "text-gray-600" : "text-white/80 hover:text-white"
@@ -210,7 +198,6 @@ export default function LandingPage() {
               ))}
             </div>
 
-            {/* Desktop CTA */}
             <div className="hidden lg:flex items-center gap-3">
               <Link href="/login">
                 <Button
@@ -228,7 +215,6 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            {/* Mobile Toggle */}
             <button
               className="lg:hidden p-2 rounded-lg"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -240,12 +226,11 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="lg:hidden bg-white border-b shadow-lg px-4 py-5 space-y-3">
             {navLinks.map((l) => (
               <a
-                key={l.href}
+                key={l.label}
                 href={l.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className="block py-2 text-gray-700 font-medium"
@@ -267,7 +252,6 @@ export default function LandingPage() {
 
       {/* ══════════════ HERO ══════════════ */}
       <section className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-teal-950 pt-32 pb-24 lg:pt-40 lg:pb-32">
-        {/* Background glow */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-teal-500/10 blur-3xl" />
           <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-emerald-500/10 blur-3xl" />
@@ -277,22 +261,22 @@ export default function LandingPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-500/10 border border-teal-500/20 mb-8">
             <Zap className="w-4 h-4 text-teal-400" />
-            <span className="text-sm font-medium text-teal-300">14-day free trial &middot; No credit card required</span>
+            <span className="text-sm font-medium text-teal-300">Get started in under 5 minutes</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white tracking-tight mb-6 max-w-5xl mx-auto leading-[1.1]">
-            Everything your salon needs.{" "}
+            How{" "}
             <span className="bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">
-              One platform.
-            </span>
+              SalonixPro
+            </span>{" "}
+            Works
           </h1>
 
           <p className="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            The all-in-one management system for Caribbean salons, barbershops, and nail studios.
-            Appointments, clients, inventory, and finances — finally organised.
+            From signup to your first appointment — here&rsquo;s everything you need to know to get your salon running on SalonixPro.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/signup">
               <Button size="lg" className="bg-teal-500 hover:bg-teal-600 text-white h-14 px-8 text-lg shadow-xl shadow-teal-500/25 w-full sm:w-auto">
                 Start Free Trial
@@ -306,123 +290,116 @@ export default function LandingPage() {
               </Button>
             </Link>
           </div>
-
-          <p className="text-sm text-slate-500">
-            Trusted by salon owners across the Caribbean
-          </p>
         </div>
       </section>
 
-      {/* ══════════════ FEATURES GRID ══════════════ */}
-      <section id="features" className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <FadeIn className="text-center mb-16">
-            <p className="text-sm font-semibold text-teal-600 uppercase tracking-wider mb-3">Core Features</p>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Everything your practice needs
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Built specifically for salons and barbershops. No bloat, no complexity, no learning curve.
-            </p>
-          </FadeIn>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((f, i) => (
-              <FadeIn key={f.title} delay={i * 100}>
-                <div className="group relative p-8 rounded-2xl border border-gray-100 bg-white hover:shadow-xl hover:shadow-gray-100/50 hover:-translate-y-1 transition-all duration-300">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-100 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                    <f.icon className="w-7 h-7 text-teal-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{f.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{f.description}</p>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════ ADVANCED FEATURES ══════════════ */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-teal-50/30">
-        <div className="max-w-7xl mx-auto">
-          <FadeIn className="text-center mb-16">
-            <p className="text-sm font-semibold text-teal-600 uppercase tracking-wider mb-3">And More</p>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Built for the way you work
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Advanced features that set SalonixPro apart from generic booking tools.
-            </p>
-          </FadeIn>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {advancedFeatures.map((f, i) => (
-              <FadeIn key={f.title} delay={i * 100}>
-                <div className="relative p-8 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300">
-                  <div className="w-12 h-12 rounded-xl bg-teal-600 flex items-center justify-center mb-5">
-                    <f.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{f.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{f.description}</p>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════ HOW IT WORKS ══════════════ */}
-      <section id="how-it-works" className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
+      {/* ══════════════ JOIN THE BETA ══════════════ */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-5xl mx-auto">
-          <FadeIn className="text-center mb-20">
-            <p className="text-sm font-semibold text-teal-600 uppercase tracking-wider mb-3">Getting Started</p>
+          <FadeIn className="text-center mb-16">
+            <p className="text-sm font-semibold text-teal-600 uppercase tracking-wider mb-3">Option 1</p>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Up and running in minutes
+              Join the Beta
             </h2>
-            <p className="text-lg text-gray-600">No complicated setup. No training required.</p>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Get 30 days free — no credit card, no commitment.
+            </p>
           </FadeIn>
 
           <div className="relative">
-            {/* Connecting line (desktop) */}
-            <div className="hidden md:block absolute top-10 left-[16.67%] right-[16.67%] h-0.5 bg-gradient-to-r from-teal-200 via-teal-300 to-teal-200" />
+            <div className="hidden md:block absolute top-10 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-teal-200 via-teal-300 to-teal-200" />
 
-            <div className="grid md:grid-cols-3 gap-12 md:gap-8">
-              {steps.map((s, i) => (
-                <FadeIn key={s.number} delay={i * 200} className="text-center">
+            <div className="grid md:grid-cols-4 gap-10 md:gap-6">
+              {betaSteps.map((s, i) => (
+                <FadeIn key={s.number} delay={i * 150} className="text-center">
                   <div className="relative inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 text-white text-2xl font-bold mb-6 shadow-xl shadow-teal-500/25">
                     {s.number}
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">{s.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{s.description}</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{s.title}</h3>
+                  <p className="text-gray-600 leading-relaxed text-sm">{s.description}</p>
                 </FadeIn>
               ))}
             </div>
           </div>
+
+          <FadeIn className="text-center mt-12">
+            <Link href="/beta">
+              <Button size="lg" className="bg-teal-600 hover:bg-teal-700 text-white h-12 px-8 shadow-lg shadow-teal-600/25">
+                Join the Beta
+                <Sparkles className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
+          </FadeIn>
         </div>
       </section>
 
-      {/* ══════════════ WHY US ══════════════ */}
-      <section id="why-us" className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-950 to-slate-900">
-        <div className="max-w-7xl mx-auto">
+      {/* ══════════════ START A FREE TRIAL ══════════════ */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-teal-50/30">
+        <div className="max-w-5xl mx-auto">
           <FadeIn className="text-center mb-16">
-            <p className="text-sm font-semibold text-teal-400 uppercase tracking-wider mb-3">Why SalonixPro</p>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
-              Why Caribbean salons choose us
+            <p className="text-sm font-semibold text-teal-600 uppercase tracking-wider mb-3">Option 2</p>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Start a Free Trial
             </h2>
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-              Purpose-built for the way beauty businesses operate in the Caribbean.
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Sign up yourself and explore every feature for 14 days.
             </p>
           </FadeIn>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {whyCards.map((c, i) => (
-              <FadeIn key={c.title} delay={i * 100}>
-                <div className="group p-8 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 transition-all duration-300 h-full">
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${c.color} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform shadow-lg`}>
-                    <c.icon className="w-7 h-7 text-white" />
+          <div className="relative">
+            <div className="hidden md:block absolute top-10 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-teal-200 via-teal-300 to-teal-200" />
+
+            <div className="grid md:grid-cols-4 gap-10 md:gap-6">
+              {trialSteps.map((s, i) => (
+                <FadeIn key={s.number} delay={i * 150} className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-2xl font-bold mb-6 shadow-xl shadow-blue-500/25">
+                    {s.number}
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{c.title}</h3>
-                  <p className="text-slate-400 leading-relaxed">{c.description}</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{s.title}</h3>
+                  <p className="text-gray-600 leading-relaxed text-sm">{s.description}</p>
+                </FadeIn>
+              ))}
+            </div>
+          </div>
+
+          <FadeIn className="text-center mt-12">
+            <Link href="/signup">
+              <Button size="lg" className="bg-teal-500 hover:bg-teal-600 text-white h-12 px-8 shadow-lg shadow-teal-500/25">
+                Start Free Trial
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* ══════════════ SET UP YOUR SALON ══════════════ */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <FadeIn className="text-center mb-16">
+            <p className="text-sm font-semibold text-teal-600 uppercase tracking-wider mb-3">Getting Started</p>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Set Up Your Salon
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Five simple steps to get your salon running on SalonixPro.
+            </p>
+          </FadeIn>
+
+          <div className="space-y-6 max-w-3xl mx-auto">
+            {setupSteps.map((s, i) => (
+              <FadeIn key={s.title} delay={i * 100}>
+                <div className="group flex items-start gap-6 p-6 rounded-2xl border border-gray-100 bg-white hover:shadow-lg hover:shadow-gray-100/50 hover:-translate-y-0.5 transition-all duration-300">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-teal-500/20 shrink-0 group-hover:scale-110 transition-transform">
+                    <s.icon className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="text-xs font-bold text-teal-600 bg-teal-50 px-2.5 py-0.5 rounded-full">Step {i + 1}</span>
+                      <h3 className="text-lg font-semibold text-gray-900">{s.title}</h3>
+                    </div>
+                    <p className="text-gray-600 leading-relaxed">{s.description}</p>
+                  </div>
                 </div>
               </FadeIn>
             ))}
@@ -430,27 +407,27 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════ EVERYTHING INCLUDED ══════════════ */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-4xl mx-auto">
+      {/* ══════════════ WHAT'S INCLUDED ══════════════ */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-950 to-slate-900">
+        <div className="max-w-7xl mx-auto">
           <FadeIn className="text-center mb-16">
-            <p className="text-sm font-semibold text-teal-600 uppercase tracking-wider mb-3">All-Inclusive</p>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Everything included. One price.
+            <p className="text-sm font-semibold text-teal-400 uppercase tracking-wider mb-3">All-Inclusive</p>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
+              What&rsquo;s Included
             </h2>
-            <p className="text-lg text-gray-600">
-              No hidden fees, no feature tiers, no per-user charges.
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+              Every plan includes every feature. No hidden fees, no feature tiers.
             </p>
           </FadeIn>
 
           <FadeIn>
-            <div className="grid sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
-              {included.map((item) => (
-                <div key={item} className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100">
-                  <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
-                    <Check className="w-4 h-4 text-teal-600" />
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-w-5xl mx-auto">
+              {includedFeatures.map((f, i) => (
+                <div key={f.label} className="flex items-center gap-3 p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 transition-all duration-200">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shrink-0">
+                    <f.icon className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-gray-800 font-medium">{item}</span>
+                  <span className="text-sm font-medium text-slate-200">{f.label}</span>
                 </div>
               ))}
             </div>
@@ -459,84 +436,111 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════ PRICING ══════════════ */}
-      <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-950 to-teal-950">
+      <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <FadeIn className="text-center mb-16">
-            <p className="text-sm font-semibold text-teal-400 uppercase tracking-wider mb-3">Pricing</p>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
+            <p className="text-sm font-semibold text-teal-600 uppercase tracking-wider mb-3">Pricing</p>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               Simple, transparent pricing
             </h2>
-            <p className="text-lg text-slate-400">One plan. All features. No surprises.</p>
+            <p className="text-lg text-gray-600">Every plan includes every feature. Pick what works for you.</p>
           </FadeIn>
 
-          <FadeIn className="max-w-lg mx-auto">
-            <div className="relative p-10 rounded-3xl bg-white shadow-2xl">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold shadow-lg">
-                  <Zap className="w-3.5 h-3.5" />
-                  Introductory Price
-                </span>
-              </div>
-
-              <div className="text-center mb-8 pt-4">
-                <div className="flex items-baseline justify-center gap-1 mb-2">
-                  <span className="text-6xl font-bold text-gray-900">$12</span>
-                  <span className="text-xl text-gray-500">USD/mo</span>
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Monthly */}
+            <FadeIn delay={0}>
+              <div className="relative p-8 rounded-3xl border border-gray-200 bg-white hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Monthly</h3>
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className="text-5xl font-bold text-gray-900">$12</span>
+                  <span className="text-gray-500">USD/mo</span>
                 </div>
-                <p className="text-sm text-gray-500">
-                  Or <span className="font-semibold text-teal-600">$100/year</span> (save $44)
-                </p>
+                <p className="text-sm text-gray-500 mb-6">Billed monthly</p>
+                <ul className="space-y-3 mb-8 flex-1">
+                  {["All features included", "Unlimited clients & staff", "Online booking page", "Email notifications", "Cancel anytime"].map((f) => (
+                    <li key={f} className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 text-teal-600" />
+                      </div>
+                      <span className="text-sm text-gray-700">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/signup" className="block">
+                  <Button variant="outline" className="w-full h-12 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold">
+                    Start Free Trial
+                  </Button>
+                </Link>
               </div>
+            </FadeIn>
 
-              <ul className="space-y-4 mb-8">
-                {[
-                  "Unlimited appointments",
-                  "Unlimited clients & staff",
-                  "Online booking page",
-                  "Point of sale & inventory",
-                  "Reports & analytics",
-                  "Customer portal",
-                  "Email notifications",
-                ].map((f) => (
-                  <li key={f} className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
-                      <Check className="w-3 h-3 text-teal-600" />
-                    </div>
-                    <span className="text-gray-700">{f}</span>
-                  </li>
-                ))}
-              </ul>
+            {/* Yearly — highlighted */}
+            <FadeIn delay={100}>
+              <div className="relative p-8 rounded-3xl bg-gradient-to-b from-teal-600 to-emerald-700 text-white shadow-2xl shadow-teal-600/20 h-full flex flex-col">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold shadow-lg">
+                    <Zap className="w-3.5 h-3.5" />
+                    Save $44/year
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold mb-2 pt-2">Yearly</h3>
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className="text-5xl font-bold">$100</span>
+                  <span className="text-teal-200">USD/yr</span>
+                </div>
+                <p className="text-sm text-teal-200 mb-6">~$8.33/month</p>
+                <ul className="space-y-3 mb-8 flex-1">
+                  {["All features included", "Unlimited clients & staff", "Online booking page", "Email notifications", "Best value — save $44"].map((f) => (
+                    <li key={f} className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-sm text-teal-50">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/signup" className="block">
+                  <Button className="w-full h-12 bg-white text-teal-700 hover:bg-white/90 font-bold shadow-lg">
+                    Start Free Trial
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
+            </FadeIn>
 
-              <Link href="/signup" className="block">
-                <Button className="w-full h-14 bg-teal-600 hover:bg-teal-700 text-lg shadow-lg shadow-teal-600/25">
-                  Start 14-Day Free Trial
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </Link>
-
-              <p className="text-center text-sm text-gray-500 mt-4">
-                No credit card required &middot; Cancel anytime
-              </p>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* ══════════════ TESTIMONIAL ══════════════ */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-4xl mx-auto">
-          <FadeIn className="text-center">
-            <div className="flex justify-center gap-1 mb-8">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-6 h-6 fill-amber-400 text-amber-400" />
-              ))}
-            </div>
-            <blockquote className="text-2xl sm:text-3xl font-medium text-gray-900 leading-relaxed mb-8">
-              &ldquo;SalonixPro transformed how we run our salon. Scheduling, inventory, reports &mdash;
-              it&rsquo;s all in one place. My team picked it up in a day.&rdquo;
-            </blockquote>
-            <p className="text-gray-500 font-medium">&mdash; SalonixPro Beta User</p>
-          </FadeIn>
+            {/* Beta */}
+            <FadeIn delay={200}>
+              <div className="relative p-8 rounded-3xl border border-gray-200 bg-white hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-violet-500 to-purple-600 text-white text-sm font-semibold shadow-lg">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Limited Time
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2 pt-2">Beta</h3>
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className="text-5xl font-bold text-gray-900">Free</span>
+                </div>
+                <p className="text-sm text-gray-500 mb-6">1 month, no card required</p>
+                <ul className="space-y-3 mb-8 flex-1">
+                  {["All features included", "Unlimited clients & staff", "Online booking page", "Email notifications", "30 days free access"].map((f) => (
+                    <li key={f} className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 text-teal-600" />
+                      </div>
+                      <span className="text-sm text-gray-700">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/beta" className="block">
+                  <Button variant="outline" className="w-full h-12 border-violet-300 text-violet-700 hover:bg-violet-50 font-semibold">
+                    Join the Beta
+                    <Sparkles className="ml-2 w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
+            </FadeIn>
+          </div>
         </div>
       </section>
 
@@ -550,7 +554,7 @@ export default function LandingPage() {
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
               Frequently Asked Questions
             </h2>
-            <p className="text-lg text-gray-600">Everything you need to know about SalonixPro</p>
+            <p className="text-lg text-gray-600">Everything you need to know about getting started</p>
           </FadeIn>
 
           <div className="space-y-3">
@@ -592,11 +596,10 @@ export default function LandingPage() {
         <div className="relative max-w-4xl mx-auto text-center">
           <FadeIn>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
-              Ready to modernize your salon?
+              Ready to get started?
             </h2>
             <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-10">
               Join salon owners across the Caribbean who&rsquo;ve simplified their business with SalonixPro.
-              Start your 14-day free trial today.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/signup">
@@ -605,9 +608,10 @@ export default function LandingPage() {
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
-              <Link href="/login">
-                <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white">
-                  Sign In
+              <Link href="/beta">
+                <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-teal-500/50 text-teal-300 hover:bg-teal-500/10 hover:text-teal-200">
+                  Join the Beta
+                  <Sparkles className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
             </div>
@@ -619,7 +623,6 @@ export default function LandingPage() {
       <footer className="bg-slate-950 border-t border-slate-800 pt-16 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
-            {/* Brand */}
             <div className="col-span-2">
               <div className="flex items-center gap-2.5 mb-4">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center">
@@ -643,17 +646,15 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Product */}
             <div>
               <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Product</h4>
               <ul className="space-y-3 text-sm">
-                <li><a href="#features" className="text-slate-400 hover:text-white transition-colors">Features</a></li>
+                <li><a href="/#features" className="text-slate-400 hover:text-white transition-colors">Features</a></li>
                 <li><a href="#pricing" className="text-slate-400 hover:text-white transition-colors">Pricing</a></li>
                 <li><a href="#" className="text-slate-400 hover:text-white transition-colors">System Status</a></li>
               </ul>
             </div>
 
-            {/* Resources */}
             <div>
               <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Resources</h4>
               <ul className="space-y-3 text-sm">
@@ -663,7 +664,6 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            {/* Legal */}
             <div>
               <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Legal</h4>
               <ul className="space-y-3 text-sm">

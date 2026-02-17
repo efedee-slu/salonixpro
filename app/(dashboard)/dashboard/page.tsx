@@ -31,6 +31,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn, formatCurrency, formatTime, formatDate } from "@/lib/utils";
 import { PendingConfirmations } from "@/components/dashboard/pending-confirmations";
+import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 
 interface DashboardData {
   stats: {
@@ -289,6 +290,9 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* ═══════ ONBOARDING CHECKLIST ═══════ */}
+      <OnboardingChecklist />
 
       {/* ═══════ STAT CARDS — GLASS MORPHISM ═══════ */}
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
