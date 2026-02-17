@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { processWaitlistForCancelledAppointment } from "@/lib/waitlist";
 
 // GET single appointment
 export async function GET(
@@ -168,6 +169,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
     }
 
+    // Capture details before deleting for waitlist processing
+    const { businessId, stylistId, requestedDate, duration } = existingAppointment;
+
     // Delete appointment services first (cascade should handle this but being explicit)
     await prisma.appointmentService.deleteMany({
       where: { appointmentId: params.id },
@@ -177,6 +181,16 @@ export async function DELETE(
     await prisma.appointment.delete({
       where: { id: params.id },
     });
+
+    // Trigger waitlist notification for the freed-up slot
+    if (stylistId) {
+      processWaitlistForCancelledAppointment({
+        businessId,
+        stylistId,
+        requestedDate,
+        duration,
+      }).catch((err) => console.error("Waitlist processing error:", err));
+    }
 
     return NextResponse.json({ message: "Appointment deleted successfully" });
   } catch (error) {
