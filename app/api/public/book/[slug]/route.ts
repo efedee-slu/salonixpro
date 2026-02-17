@@ -93,6 +93,35 @@ export async function GET(
       reviewCount: stylistRatingMap.get(s.id)?.count ?? 0,
     }));
 
+    // Get gallery data if enabled
+    let galleryData = null;
+    if (business.galleryShowOnBooking) {
+      const galleryItems = await prisma.galleryItem.findMany({
+        where: {
+          businessId: business.id,
+          isPublic: true,
+          isApproved: true,
+        },
+        include: {
+          stylist: { select: { id: true, firstName: true, lastName: true } },
+        },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+        take: 20,
+      });
+
+      galleryData = galleryItems.map((item) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        beforeImageUrl: item.beforeImageUrl,
+        afterImageUrl: item.afterImageUrl,
+        serviceCategory: item.serviceCategory,
+        stylistId: item.stylist?.id ?? null,
+        stylistName: item.stylist ? `${item.stylist.firstName} ${item.stylist.lastName}` : null,
+        createdAt: item.createdAt,
+      }));
+    }
+
     // Get review data if enabled
     let reviewData = null;
     if (business.reviewShowOnBooking) {
@@ -167,6 +196,7 @@ export async function GET(
       categories: formattedCategories,
       stylists: formattedStylists,
       reviews: reviewData,
+      gallery: galleryData,
     });
   } catch (error) {
     console.error("Error fetching booking data:", error);

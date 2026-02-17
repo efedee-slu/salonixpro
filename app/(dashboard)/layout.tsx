@@ -29,6 +29,7 @@ import {
   Search,
   Calculator,
   Star,
+  Camera,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -51,6 +52,7 @@ const navigationGroups = [
       { name: "Services", href: "/services", icon: Sparkles, permission: null as PermissionKey | null },
       { name: "Stylists", href: "/stylists", icon: UserCircle, permission: "manageTeam" as PermissionKey | null },
       { name: "Reviews", href: "/reviews", icon: Star, permission: null as PermissionKey | null },
+      { name: "Gallery", href: "/gallery", icon: Camera, permission: null as PermissionKey | null },
     ],
   },
   {

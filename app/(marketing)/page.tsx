@@ -31,6 +31,7 @@ import {
   Facebook,
   Instagram,
   Linkedin,
+  Camera,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -89,6 +90,7 @@ const advancedFeatures = [
   { icon: Coins, title: "Multi-Currency", description: "XCD, TTD, BBD, JMD, USD, and more. Built for Caribbean businesses from day one." },
   { icon: Mail, title: "Email Notifications", description: "Automated booking confirmations, appointment reminders, and payment receipts." },
   { icon: Star, title: "Client Reviews & Ratings", description: "Build trust with verified client reviews displayed on your booking page." },
+  { icon: Camera, title: "Before & After Gallery", description: "Showcase your best work with before/after photo pairs on your booking page." },
 ];
 
 const steps = [

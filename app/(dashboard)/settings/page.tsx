@@ -18,6 +18,7 @@ import {
   UserPlus,
   Mail,
   Star,
+  Camera,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ const tabs = [
   { id: "hours", name: "Hours", icon: Clock },
   { id: "team", name: "Team", icon: Users },
   { id: "reviews", name: "Reviews", icon: Star },
+  { id: "gallery", name: "Gallery", icon: Camera },
   { id: "billing", name: "Billing", icon: CreditCard },
 ];
 
@@ -113,6 +115,13 @@ function SettingsContent() {
     reviewRequireApproval: false,
   });
 
+  // Gallery settings state
+  const [gallerySettings, setGallerySettings] = useState({
+    galleryShowOnBooking: true,
+    galleryRequireApproval: false,
+    galleryMaxPhotos: 50,
+  });
+
   // Billing state
   const [billingStatus, setBillingStatus] = useState<{
     plan: string;
@@ -162,6 +171,11 @@ function SettingsContent() {
               reviewDelaySendHours: data.business.reviewDelaySendHours ?? 2,
               reviewShowOnBooking: data.business.reviewShowOnBooking ?? true,
               reviewRequireApproval: data.business.reviewRequireApproval ?? false,
+            });
+            setGallerySettings({
+              galleryShowOnBooking: data.business.galleryShowOnBooking ?? true,
+              galleryRequireApproval: data.business.galleryRequireApproval ?? false,
+              galleryMaxPhotos: data.business.galleryMaxPhotos ?? 50,
             });
           }
         }
@@ -272,6 +286,27 @@ function SettingsContent() {
       }
     } catch {
       toast({ title: "Error", description: "Failed to save review settings.", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Save gallery settings
+  const handleSaveGallery = async () => {
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "gallery", data: gallerySettings }),
+      });
+      if (res.ok) {
+        toast({ title: "Settings saved", description: "Gallery settings have been updated." });
+      } else {
+        throw new Error("Failed to save");
+      }
+    } catch {
+      toast({ title: "Error", description: "Failed to save gallery settings.", variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
@@ -996,6 +1031,68 @@ function SettingsContent() {
 
               <div className="pt-4 border-t flex justify-end">
                 <Button onClick={handleSaveReviews} disabled={isSaving} className="bg-teal-600 hover:bg-teal-700">
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                  Save Changes
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Gallery Tab */}
+      {activeTab === "gallery" && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-6"
+        >
+          <Card>
+            <CardContent className="pt-6 space-y-6">
+              {/* Show on booking page */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-medium">Show gallery on booking page</Label>
+                  <p className="text-xs text-muted-foreground">Display before/after photos on your public booking page</p>
+                </div>
+                <Switch
+                  checked={gallerySettings.galleryShowOnBooking}
+                  onCheckedChange={(checked) => setGallerySettings((p) => ({ ...p, galleryShowOnBooking: checked }))}
+                />
+              </div>
+
+              {/* Require approval */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-medium">Require approval before public</Label>
+                  <p className="text-xs text-muted-foreground">New gallery uploads will be hidden until you approve them</p>
+                </div>
+                <Switch
+                  checked={gallerySettings.galleryRequireApproval}
+                  onCheckedChange={(checked) => setGallerySettings((p) => ({ ...p, galleryRequireApproval: checked }))}
+                />
+              </div>
+
+              {/* Max photos */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-medium">Maximum gallery photos</Label>
+                  <p className="text-xs text-muted-foreground">Limit the number of before/after pairs in your gallery</p>
+                </div>
+                <select
+                  value={gallerySettings.galleryMaxPhotos}
+                  onChange={(e) => setGallerySettings((p) => ({ ...p, galleryMaxPhotos: Number(e.target.value) }))}
+                  className="px-3 py-2 border rounded-lg text-sm bg-white"
+                >
+                  <option value={20}>20 photos</option>
+                  <option value={50}>50 photos</option>
+                  <option value={100}>100 photos</option>
+                  <option value={200}>200 photos</option>
+                </select>
+              </div>
+
+              <div className="pt-4 border-t flex justify-end">
+                <Button onClick={handleSaveGallery} disabled={isSaving} className="bg-teal-600 hover:bg-teal-700">
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                   Save Changes
                 </Button>

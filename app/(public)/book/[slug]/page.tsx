@@ -25,6 +25,7 @@ import {
   CreditCard,
   AlertTriangle,
   Star,
+  Camera,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -110,6 +111,18 @@ interface ReviewData {
   recentReviews: ReviewInfo[];
 }
 
+interface GalleryItem {
+  id: string;
+  title: string | null;
+  description: string | null;
+  beforeImageUrl: string;
+  afterImageUrl: string;
+  serviceCategory: string | null;
+  stylistId: string | null;
+  stylistName: string | null;
+  createdAt: string;
+}
+
 interface TimeSlot {
   time: string;
   display: string;
@@ -128,6 +141,10 @@ export default function PublicBookingPage() {
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [stylists, setStylists] = useState<Stylist[]>([]);
   const [reviewData, setReviewData] = useState<ReviewData | null>(null);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [galleryFilter, setGalleryFilter] = useState<string>("all");
+  const [lightboxItem, setLightboxItem] = useState<GalleryItem | null>(null);
+  const [lightboxView, setLightboxView] = useState<"before" | "after">("after");
 
   const [currentStep, setCurrentStep] = useState<Step>("services");
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
@@ -194,6 +211,7 @@ export default function PublicBookingPage() {
       setCategories(data.categories);
       setStylists(data.stylists);
       if (data.reviews) setReviewData(data.reviews);
+      if (data.gallery) setGalleryItems(data.gallery);
       // Expand the first category by default
       if (data.categories.length > 0) {
         setExpandedCategories(new Set([data.categories[0].id]));
@@ -927,6 +945,19 @@ export default function PublicBookingPage() {
                                 {stylist.bio}
                               </p>
                             )}
+                            {/* Stylist gallery preview */}
+                            {(() => {
+                              const stylistGallery = galleryItems.filter((g) => g.stylistId === stylist.id).slice(0, 3);
+                              return stylistGallery.length > 0 ? (
+                                <div className="flex gap-1.5 mt-2">
+                                  {stylistGallery.map((g) => (
+                                    <div key={g.id} className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 border">
+                                      <img src={g.afterImageUrl} alt={g.title || "Work"} className="w-full h-full object-cover" />
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : null;
+                            })()}
                           </div>
                         </div>
                       </CardContent>
@@ -1320,6 +1351,137 @@ export default function PublicBookingPage() {
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Gallery Section */}
+        {galleryItems.length > 0 && !bookingComplete && (
+          <div className="max-w-4xl mx-auto px-4 py-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Camera className="w-5 h-5 text-teal-600" />
+              <h3 className="font-semibold text-lg">Our Work</h3>
+            </div>
+
+            {/* Filter tabs */}
+            {(() => {
+              const cats = Array.from(new Set(galleryItems.map((g) => g.serviceCategory).filter(Boolean))) as string[];
+              return cats.length > 1 ? (
+                <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+                  <button
+                    onClick={() => setGalleryFilter("all")}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                      galleryFilter === "all" ? "bg-teal-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    All
+                  </button>
+                  {cats.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setGalleryFilter(cat)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                        galleryFilter === cat ? "bg-teal-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              ) : null;
+            })()}
+
+            {/* Gallery grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {galleryItems
+                .filter((g) => galleryFilter === "all" || g.serviceCategory === galleryFilter)
+                .map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => { setLightboxItem(item); setLightboxView("after"); }}
+                    className="group relative aspect-square rounded-xl overflow-hidden border bg-gray-100 hover:shadow-lg transition-all"
+                  >
+                    <img
+                      src={item.afterImageUrl}
+                      alt={item.title || "After"}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {item.title && <p className="text-white text-xs font-medium truncate">{item.title}</p>}
+                      {item.stylistName && <p className="text-white/70 text-[10px]">by {item.stylistName}</p>}
+                    </div>
+                    <div className="absolute top-2 right-2 bg-black/50 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
+                      B/A
+                    </div>
+                  </button>
+                ))}
+            </div>
+          </div>
+        )}
+
+        {/* Gallery Lightbox */}
+        {lightboxItem && (
+          <div
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setLightboxItem(null)}
+          >
+            <div
+              className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Toggle */}
+              <div className="flex border-b">
+                <button
+                  onClick={() => setLightboxView("before")}
+                  className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                    lightboxView === "before" ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Before
+                </button>
+                <button
+                  onClick={() => setLightboxView("after")}
+                  className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                    lightboxView === "after" ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  After
+                </button>
+              </div>
+
+              {/* Image */}
+              <div className="aspect-square bg-gray-100">
+                <img
+                  src={lightboxView === "before" ? lightboxItem.beforeImageUrl : lightboxItem.afterImageUrl}
+                  alt={lightboxView === "before" ? "Before" : "After"}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+
+              {/* Info */}
+              <div className="p-4">
+                {lightboxItem.title && <p className="font-medium">{lightboxItem.title}</p>}
+                {lightboxItem.description && <p className="text-sm text-gray-600 mt-1">{lightboxItem.description}</p>}
+                <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                  {lightboxItem.stylistName && <span>by {lightboxItem.stylistName}</span>}
+                  {lightboxItem.serviceCategory && (
+                    <Badge variant="secondary" className="text-[10px]">{lightboxItem.serviceCategory}</Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Close */}
+              <div className="px-4 pb-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setLightboxItem(null)}
+                >
+                  Close
+                </Button>
+              </div>
             </div>
           </div>
         )}

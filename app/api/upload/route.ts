@@ -50,6 +50,9 @@ export async function POST(request: Request) {
       case "logo":
         folder = "logos";
         break;
+      case "gallery":
+        folder = "gallery";
+        break;
       default:
         return NextResponse.json({ error: "Invalid upload type" }, { status: 400 });
     }

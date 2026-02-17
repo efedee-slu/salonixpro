@@ -83,6 +83,10 @@ export async function GET() {
         reviewDelaySendHours: business.reviewDelaySendHours,
         reviewShowOnBooking: business.reviewShowOnBooking,
         reviewRequireApproval: business.reviewRequireApproval,
+        // Gallery settings
+        galleryShowOnBooking: business.galleryShowOnBooking,
+        galleryRequireApproval: business.galleryRequireApproval,
+        galleryMaxPhotos: business.galleryMaxPhotos,
       },
       hours: business.businessHours || defaultHours,
       users,
@@ -180,6 +184,19 @@ export async function PUT(request: Request) {
           reviewDelaySendHours: data.reviewDelaySendHours ?? 2,
           reviewShowOnBooking: data.reviewShowOnBooking ?? true,
           reviewRequireApproval: data.reviewRequireApproval ?? false,
+        },
+      });
+
+      return NextResponse.json({ success: true });
+    }
+
+    if (type === "gallery") {
+      await prisma.business.update({
+        where: { id: businessId },
+        data: {
+          galleryShowOnBooking: data.galleryShowOnBooking ?? true,
+          galleryRequireApproval: data.galleryRequireApproval ?? false,
+          galleryMaxPhotos: data.galleryMaxPhotos ?? 50,
         },
       });
 

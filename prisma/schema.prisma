@@ -91,6 +91,11 @@ model Business {
   reviewShowOnBooking    Boolean @default(true)
   reviewRequireApproval  Boolean @default(false)
 
+  // Gallery Settings
+  galleryShowOnBooking    Boolean @default(true)
+  galleryRequireApproval  Boolean @default(false)
+  galleryMaxPhotos        Int     @default(50)
+
   isPlatform Boolean @default(false) // true only for super admin platform business
 
   isActive  Boolean  @default(true)
@@ -109,6 +114,7 @@ model Business {
   orders            Order[]
   notifications     Notification[]
   reviews           Review[]
+  galleryItems      GalleryItem[]
   expenses          Expense[]
   stockMovements    StockMovement[]
   productCostings   ProductCosting[]
@@ -216,8 +222,9 @@ model ServiceCategory {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  services Service[]
+  business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  services     Service[]
+  galleryItems GalleryItem[]
 
   @@unique([businessId, name])
   @@index([businessId])
@@ -273,8 +280,9 @@ model Stylist {
   services     StylistService[]
   schedules    StylistSchedule[]
   timeOff      StylistTimeOff[]
-  appointments Appointment[]
-  reviews      Review[]
+  appointments  Appointment[]
+  reviews       Review[]
+  galleryItems  GalleryItem[]
 
   @@index([businessId])
 }
@@ -347,9 +355,10 @@ model Client {
 
   // Relations
   business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  appointments Appointment[]
-  reviews      Review[]
-  orders       Order[]
+  appointments  Appointment[]
+  reviews       Review[]
+  galleryItems  GalleryItem[]
+  orders        Order[]
 
   @@unique([businessId, phone])
   @@unique([businessId, email])
@@ -816,6 +825,39 @@ model CostingTemplate {
 
   @@unique([businessId, name])
   @@index([businessId])
+}
+
+// ============================================
+// GALLERY
+// ============================================
+
+model GalleryItem {
+  id                    String   @id @default(cuid())
+  businessId            String
+  stylistId             String?
+  categoryId            String?
+  clientId              String?
+  title                 String?
+  description           String?
+  beforeImageUrl        String
+  afterImageUrl         String
+  beforeImagePublicId   String
+  afterImagePublicId    String
+  serviceCategory       String?  // text label like "Colour", "Braids", "Cuts"
+  isPublic              Boolean  @default(true)
+  isApproved            Boolean  @default(true)
+  sortOrder             Int      @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  business Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  stylist  Stylist?          @relation(fields: [stylistId], references: [id], onDelete: SetNull)
+  category ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  client   Client?          @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@index([businessId])
+  @@index([stylistId])
+  @@index([businessId, isPublic, isApproved])
 }
 
 // ============================================
