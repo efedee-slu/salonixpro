@@ -17,6 +17,7 @@ import {
   Shield,
   UserPlus,
   Mail,
+  Star,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ const tabs = [
   { id: "general", name: "General", icon: Building2 },
   { id: "hours", name: "Hours", icon: Clock },
   { id: "team", name: "Team", icon: Users },
+  { id: "reviews", name: "Reviews", icon: Star },
   { id: "billing", name: "Billing", icon: CreditCard },
 ];
 
@@ -103,6 +105,14 @@ function SettingsContent() {
   const [inviteForm, setInviteForm] = useState({ firstName: "", lastName: "", email: "", role: "STYLIST", phone: "" });
   const [inviteSaving, setInviteSaving] = useState(false);
 
+  // Review settings state
+  const [reviewSettings, setReviewSettings] = useState({
+    reviewAutoSend: true,
+    reviewDelaySendHours: 2,
+    reviewShowOnBooking: true,
+    reviewRequireApproval: false,
+  });
+
   // Billing state
   const [billingStatus, setBillingStatus] = useState<{
     plan: string;
@@ -145,6 +155,14 @@ function SettingsContent() {
                 role: u.role,
               }))
             );
+          }
+          if (data.business) {
+            setReviewSettings({
+              reviewAutoSend: data.business.reviewAutoSend ?? true,
+              reviewDelaySendHours: data.business.reviewDelaySendHours ?? 2,
+              reviewShowOnBooking: data.business.reviewShowOnBooking ?? true,
+              reviewRequireApproval: data.business.reviewRequireApproval ?? false,
+            });
           }
         }
 
@@ -236,6 +254,27 @@ function SettingsContent() {
       ...prev,
       [day]: { ...prev[day], [field]: value },
     }));
+  };
+
+  // Save review settings
+  const handleSaveReviews = async () => {
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "reviews", data: reviewSettings }),
+      });
+      if (res.ok) {
+        toast({ title: "Settings saved", description: "Review settings have been updated." });
+      } else {
+        throw new Error("Failed to save");
+      }
+    } catch {
+      toast({ title: "Error", description: "Failed to save review settings.", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Fetch current user role
@@ -885,6 +924,82 @@ function SettingsContent() {
                   </div>
                 </DialogContent>
               </Dialog>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Reviews Tab */}
+      {activeTab === "reviews" && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-6"
+        >
+          <Card>
+            <CardContent className="pt-6 space-y-6">
+              {/* Auto-send */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-medium">Auto-send review requests</Label>
+                  <p className="text-xs text-muted-foreground">Automatically email clients after completed appointments</p>
+                </div>
+                <Switch
+                  checked={reviewSettings.reviewAutoSend}
+                  onCheckedChange={(checked) => setReviewSettings((p) => ({ ...p, reviewAutoSend: checked }))}
+                />
+              </div>
+
+              {/* Delay */}
+              {reviewSettings.reviewAutoSend && (
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-medium">Send delay</Label>
+                    <p className="text-xs text-muted-foreground">How long to wait after appointment completion</p>
+                  </div>
+                  <select
+                    value={reviewSettings.reviewDelaySendHours}
+                    onChange={(e) => setReviewSettings((p) => ({ ...p, reviewDelaySendHours: Number(e.target.value) }))}
+                    className="px-3 py-2 border rounded-lg text-sm bg-white"
+                  >
+                    <option value={0}>Immediately</option>
+                    <option value={1}>1 hour</option>
+                    <option value={2}>2 hours</option>
+                    <option value={24}>24 hours</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Show on booking page */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-medium">Show reviews on booking page</Label>
+                  <p className="text-xs text-muted-foreground">Display average rating and recent reviews to potential clients</p>
+                </div>
+                <Switch
+                  checked={reviewSettings.reviewShowOnBooking}
+                  onCheckedChange={(checked) => setReviewSettings((p) => ({ ...p, reviewShowOnBooking: checked }))}
+                />
+              </div>
+
+              {/* Require approval */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-medium">Require approval before public</Label>
+                  <p className="text-xs text-muted-foreground">New reviews will be hidden until you approve them</p>
+                </div>
+                <Switch
+                  checked={reviewSettings.reviewRequireApproval}
+                  onCheckedChange={(checked) => setReviewSettings((p) => ({ ...p, reviewRequireApproval: checked }))}
+                />
+              </div>
+
+              <div className="pt-4 border-t flex justify-end">
+                <Button onClick={handleSaveReviews} disabled={isSaving} className="bg-teal-600 hover:bg-teal-700">
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                  Save Changes
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </motion.div>

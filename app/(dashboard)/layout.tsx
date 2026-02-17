@@ -28,6 +28,7 @@ import {
   TrendingUp,
   Search,
   Calculator,
+  Star,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -49,6 +50,7 @@ const navigationGroups = [
       { name: "Clients", href: "/clients", icon: Users, permission: null as PermissionKey | null },
       { name: "Services", href: "/services", icon: Sparkles, permission: null as PermissionKey | null },
       { name: "Stylists", href: "/stylists", icon: UserCircle, permission: "manageTeam" as PermissionKey | null },
+      { name: "Reviews", href: "/reviews", icon: Star, permission: null as PermissionKey | null },
     ],
   },
   {

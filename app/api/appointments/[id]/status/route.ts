@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { sendAppointmentCancellation } from "@/lib/email";
+import { sendAppointmentCancellation, sendReviewRequest } from "@/lib/email";
 
 // PATCH update appointment status
 export async function PATCH(
@@ -68,7 +68,7 @@ export async function PATCH(
       },
     });
 
-    // If completed, update client stats
+    // If completed, update client stats and create review request
     if (status === "COMPLETED" && existingAppointment.status !== "COMPLETED") {
       await prisma.client.update({
         where: { id: appointment.clientId },
@@ -78,6 +78,50 @@ export async function PATCH(
           lastVisitAt: new Date(),
         },
       });
+
+      // Create review request if auto-send enabled and client has email
+      try {
+        const business = await prisma.business.findUnique({
+          where: { id: session.user.businessId },
+          select: { reviewAutoSend: true, reviewDelaySendHours: true, name: true },
+        });
+
+        if (business?.reviewAutoSend && appointment.client.email && appointment.stylistId) {
+          const now = new Date();
+          const delayHours = business.reviewDelaySendHours ?? 2;
+          const reviewSendAt = new Date(now.getTime() + delayHours * 60 * 60 * 1000);
+          const tokenExpiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+          const review = await prisma.review.create({
+            data: {
+              businessId: session.user.businessId,
+              appointmentId: appointment.id,
+              clientId: appointment.clientId,
+              stylistId: appointment.stylistId,
+              tokenExpiresAt,
+              reviewSendAt: delayHours === 0 ? null : reviewSendAt,
+              reviewSentAt: delayHours === 0 ? now : null,
+            },
+          });
+
+          // If delay is 0, send immediately
+          if (delayHours === 0) {
+            sendReviewRequest({
+              to: appointment.client.email,
+              clientName: `${appointment.client.firstName} ${appointment.client.lastName}`,
+              businessName: business.name,
+              stylistName: appointment.stylist
+                ? `${appointment.stylist.firstName} ${appointment.stylist.lastName}`
+                : "Your stylist",
+              services: appointment.services.map((s) => s.service.name),
+              date: appointment.requestedDate,
+              token: review.token,
+            }).catch((err) => console.error("Failed to send review request:", err));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to create review request:", err);
+      }
     }
 
     // Send cancellation email if status changed to CANCELLED

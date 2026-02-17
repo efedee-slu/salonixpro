@@ -78,6 +78,11 @@ export async function GET() {
         bankAccountName: business.bankAccountName,
         bankAccountNumber: business.bankAccountNumber,
         paymentInstructions: business.paymentInstructions,
+        // Review settings
+        reviewAutoSend: business.reviewAutoSend,
+        reviewDelaySendHours: business.reviewDelaySendHours,
+        reviewShowOnBooking: business.reviewShowOnBooking,
+        reviewRequireApproval: business.reviewRequireApproval,
       },
       hours: business.businessHours || defaultHours,
       users,
@@ -161,6 +166,20 @@ export async function PUT(request: Request) {
           bankAccountName: data.bankAccountName || null,
           bankAccountNumber: data.bankAccountNumber || null,
           paymentInstructions: data.paymentInstructions || null,
+        },
+      });
+
+      return NextResponse.json({ success: true });
+    }
+
+    if (type === "reviews") {
+      await prisma.business.update({
+        where: { id: businessId },
+        data: {
+          reviewAutoSend: data.reviewAutoSend ?? true,
+          reviewDelaySendHours: data.reviewDelaySendHours ?? 2,
+          reviewShowOnBooking: data.reviewShowOnBooking ?? true,
+          reviewRequireApproval: data.reviewRequireApproval ?? false,
         },
       });
 

@@ -791,7 +791,49 @@ export async function sendBetaInvite(params: {
   return getResend().emails.send({ from: FROM_EMAIL, to, subject: `You're invited to SalonixPro, ${name}!`, html });
 }
 
-// 21. Trial Extended Notification (to business owner)
+// 21. Review Request (to client after completed appointment)
+export async function sendReviewRequest(params: {
+  to: string;
+  clientName: string;
+  businessName: string;
+  stylistName: string;
+  services: string[];
+  date: Date | string;
+  token: string;
+}) {
+  const { to, clientName, businessName, stylistName, services, date, token } = params;
+  const reviewBaseUrl = `${APP_URL}/review/${token}`;
+
+  // Build 5 clickable star icons
+  const stars = [1, 2, 3, 4, 5]
+    .map(
+      (n) =>
+        `<a href="${reviewBaseUrl}?rating=${n}" style="text-decoration: none; font-size: 32px; color: #f59e0b; padding: 0 4px;">&#9733;</a>`
+    )
+    .join("");
+
+  const html = baseTemplate(
+    `${heading("How was your visit?")}
+    ${paragraph(`Hi ${clientName},`, true)}
+    ${paragraph(`Thank you for visiting <strong>${businessName}</strong>! We'd love to hear about your experience.`, true)}
+    ${detailsTable([
+      { label: "Date", value: fmtDate(date) },
+      { label: "Services", value: services.join(", ") },
+      { label: "Stylist", value: stylistName },
+    ])}
+    <div style="text-align: center; margin: 32px 0;">
+      <p style="color: #666; font-size: 14px; margin: 0 0 12px;">Tap a star to rate your experience:</p>
+      <div style="display: inline-block;">${stars}</div>
+    </div>
+    ${button("Leave a Review", reviewBaseUrl)}
+    ${footer(`Thank you for choosing ${businessName}! Your feedback helps us improve.`)}`,
+    `How was your visit to ${businessName}? Leave a quick review.`
+  );
+
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `How was your visit to ${businessName}?`, html });
+}
+
+// 22. Trial Extended Notification (to business owner)
 export async function sendTrialExtended(params: {
   to: string;
   name: string;

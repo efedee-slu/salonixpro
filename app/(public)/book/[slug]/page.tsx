@@ -24,6 +24,7 @@ import {
   Copy,
   CreditCard,
   AlertTriangle,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,6 +91,23 @@ interface Stylist {
   title: string | null;
   bio: string | null;
   photo: string | null;
+  averageRating: number | null;
+  reviewCount: number;
+}
+
+interface ReviewInfo {
+  rating: number;
+  comment: string | null;
+  ownerReply: string | null;
+  clientFirstName: string;
+  stylistName: string;
+  createdAt: string;
+}
+
+interface ReviewData {
+  averageRating: number | null;
+  totalReviews: number;
+  recentReviews: ReviewInfo[];
 }
 
 interface TimeSlot {
@@ -109,6 +127,7 @@ export default function PublicBookingPage() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [stylists, setStylists] = useState<Stylist[]>([]);
+  const [reviewData, setReviewData] = useState<ReviewData | null>(null);
 
   const [currentStep, setCurrentStep] = useState<Step>("services");
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
@@ -174,6 +193,7 @@ export default function PublicBookingPage() {
       setBusiness(data.business);
       setCategories(data.categories);
       setStylists(data.stylists);
+      if (data.reviews) setReviewData(data.reviews);
       // Expand the first category by default
       if (data.categories.length > 0) {
         setExpandedCategories(new Set([data.categories[0].id]));
@@ -654,7 +674,15 @@ export default function PublicBookingPage() {
                 )}
               </div>
               <div>
-                <h1 className="font-bold text-lg">{business.name}</h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="font-bold text-lg">{business.name}</h1>
+                  {reviewData && reviewData.averageRating && (
+                    <span className="flex items-center gap-1 text-sm text-amber-600 font-medium">
+                      {reviewData.averageRating} <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      <span className="text-muted-foreground font-normal">({reviewData.totalReviews})</span>
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   {business.city}, {business.country}
                 </p>
@@ -886,6 +914,13 @@ export default function PublicBookingPage() {
                               <Badge variant="secondary" className="mt-1">
                                 {stylist.title}
                               </Badge>
+                            )}
+                            {stylist.averageRating && (
+                              <div className="flex items-center gap-1 mt-1">
+                                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                                <span className="text-xs font-medium text-amber-600">{stylist.averageRating}</span>
+                                <span className="text-xs text-muted-foreground">({stylist.reviewCount})</span>
+                              </div>
                             )}
                             {stylist.bio && (
                               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
@@ -1255,6 +1290,39 @@ export default function PublicBookingPage() {
             </div>
           </div>
         </div>
+
+        {/* Recent Reviews Section */}
+        {reviewData && reviewData.recentReviews.length > 0 && !bookingComplete && (
+          <div className="max-w-4xl mx-auto px-4 py-8">
+            <h3 className="font-semibold text-lg mb-4">Recent Reviews</h3>
+            <div className="space-y-3">
+              {reviewData.recentReviews.map((review, idx) => (
+                <div key={idx} className="bg-white rounded-xl p-4 border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          className={`w-3.5 h-3.5 ${s <= review.rating ? "fill-amber-400 text-amber-400" : "text-gray-300"}`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-sm font-medium">{review.clientFirstName}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(review.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </span>
+                  </div>
+                  {review.comment && <p className="text-sm text-gray-700 mb-2">{review.comment}</p>}
+                  {review.ownerReply && (
+                    <div className="pl-3 border-l-2 border-teal-200 mt-2">
+                      <p className="text-sm text-gray-600">{review.ownerReply}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Spacer for fixed bottom bar */}
         <div className="h-24" />

@@ -65,6 +65,23 @@ export async function GET(
       orderBy: { firstName: "asc" },
     });
 
+    // Get per-stylist average ratings
+    const stylistRatings = await prisma.review.groupBy({
+      by: ["stylistId"],
+      where: {
+        businessId: business.id,
+        rating: { not: null },
+        isPublic: true,
+        isFlagged: false,
+      },
+      _avg: { rating: true },
+      _count: { rating: true },
+    });
+
+    const stylistRatingMap = new Map(
+      stylistRatings.map((sr) => [sr.stylistId, { avg: Number((sr._avg.rating ?? 0).toFixed(1)), count: sr._count.rating }])
+    );
+
     const formattedStylists = stylists.map((s) => ({
       id: s.id,
       firstName: s.firstName,
@@ -72,7 +89,52 @@ export async function GET(
       title: null, // Not in schema yet
       bio: s.bio,
       photo: s.avatar, // Map avatar to photo for frontend
+      averageRating: stylistRatingMap.get(s.id)?.avg ?? null,
+      reviewCount: stylistRatingMap.get(s.id)?.count ?? 0,
     }));
+
+    // Get review data if enabled
+    let reviewData = null;
+    if (business.reviewShowOnBooking) {
+      const reviewStats = await prisma.review.aggregate({
+        where: {
+          businessId: business.id,
+          rating: { not: null },
+          isPublic: true,
+          isFlagged: false,
+        },
+        _avg: { rating: true },
+        _count: { rating: true },
+      });
+
+      const recentReviews = await prisma.review.findMany({
+        where: {
+          businessId: business.id,
+          rating: { not: null },
+          isPublic: true,
+          isFlagged: false,
+        },
+        include: {
+          client: { select: { firstName: true } },
+          stylist: { select: { firstName: true, lastName: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      });
+
+      reviewData = {
+        averageRating: reviewStats._avg.rating ? Number(reviewStats._avg.rating.toFixed(1)) : null,
+        totalReviews: reviewStats._count.rating,
+        recentReviews: recentReviews.map((r) => ({
+          rating: r.rating!,
+          comment: r.comment,
+          ownerReply: r.ownerReply,
+          clientFirstName: r.client.firstName,
+          stylistName: `${r.stylist.firstName} ${r.stylist.lastName}`,
+          createdAt: r.createdAt,
+        })),
+      };
+    }
 
     return NextResponse.json({
       business: {
@@ -104,6 +166,7 @@ export async function GET(
       },
       categories: formattedCategories,
       stylists: formattedStylists,
+      reviews: reviewData,
     });
   } catch (error) {
     console.error("Error fetching booking data:", error);

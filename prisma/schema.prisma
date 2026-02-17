@@ -85,6 +85,12 @@ model Business {
   businessType       BusinessType @default(MULTI_SERVICE)
   onboardingComplete Boolean      @default(false)
 
+  // Review Settings
+  reviewAutoSend         Boolean @default(true)
+  reviewDelaySendHours   Int     @default(2)
+  reviewShowOnBooking    Boolean @default(true)
+  reviewRequireApproval  Boolean @default(false)
+
   isPlatform Boolean @default(false) // true only for super admin platform business
 
   isActive  Boolean  @default(true)
@@ -102,6 +108,7 @@ model Business {
   productCategories ProductCategory[]
   orders            Order[]
   notifications     Notification[]
+  reviews           Review[]
   expenses          Expense[]
   stockMovements    StockMovement[]
   productCostings   ProductCosting[]
@@ -267,6 +274,7 @@ model Stylist {
   schedules    StylistSchedule[]
   timeOff      StylistTimeOff[]
   appointments Appointment[]
+  reviews      Review[]
 
   @@index([businessId])
 }
@@ -340,6 +348,7 @@ model Client {
   // Relations
   business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
   appointments Appointment[]
+  reviews      Review[]
   orders       Order[]
 
   @@unique([businessId, phone])
@@ -383,6 +392,7 @@ model Appointment {
   stylist  Stylist?             @relation(fields: [stylistId], references: [id], onDelete: SetNull)
   services AppointmentService[]
   order    Order?
+  review   Review?
 
   @@index([businessId])
   @@index([clientId])
@@ -806,6 +816,40 @@ model CostingTemplate {
 
   @@unique([businessId, name])
   @@index([businessId])
+}
+
+// ============================================
+// REVIEWS
+// ============================================
+
+model Review {
+  id              String    @id @default(cuid())
+  businessId      String
+  appointmentId   String    @unique
+  clientId        String
+  stylistId       String
+  rating          Int?      // 1-5, null until client submits
+  comment         String?
+  ownerReply      String?
+  ownerRepliedAt  DateTime?
+  isPublic        Boolean   @default(true)
+  isFlagged       Boolean   @default(false)
+  token           String    @unique @default(cuid())
+  tokenExpiresAt  DateTime
+  reviewSendAt    DateTime? // when to send the email (delayed)
+  reviewSentAt    DateTime? // when email was actually sent
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  business    Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  client      Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  stylist     Stylist     @relation(fields: [stylistId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@index([stylistId])
+  @@index([token])
+  @@index([reviewSendAt, reviewSentAt])
 }
 
 // ─── Beta Signup ──────────────────────────────────────────────────────────────
