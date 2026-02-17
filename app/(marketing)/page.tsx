@@ -32,6 +32,7 @@ import {
   Instagram,
   Linkedin,
   Camera,
+  Repeat,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -91,6 +92,7 @@ const advancedFeatures = [
   { icon: Mail, title: "Email Notifications", description: "Automated booking confirmations, appointment reminders, and payment receipts." },
   { icon: Star, title: "Client Reviews & Ratings", description: "Build trust with verified client reviews displayed on your booking page." },
   { icon: Camera, title: "Before & After Gallery", description: "Showcase your best work with before/after photo pairs on your booking page." },
+  { icon: Repeat, title: "Recurring Appointments", description: "Set up weekly, biweekly, or monthly appointments that auto-schedule for your regular clients." },
 ];
 
 const steps = [

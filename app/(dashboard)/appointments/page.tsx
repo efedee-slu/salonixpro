@@ -15,6 +15,7 @@ import {
   Check,
   X,
   Play,
+  Repeat,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +25,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { AddAppointmentDialog } from "./add-appointment-dialog";
 import { EditAppointmentDialog } from "./edit-appointment-dialog";
 import { DeleteAppointmentDialog } from "./delete-appointment-dialog";
+import { RecurringSeriesDialog } from "./recurring-series-dialog";
 
 interface Appointment {
   id: string;
@@ -32,6 +34,7 @@ interface Appointment {
   status: string;
   notes: string | null;
   totalPrice: number;
+  recurringSeriesId: string | null;
   client: {
     id: string;
     firstName: string;
@@ -96,6 +99,7 @@ export default function AppointmentsPage() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [recurringDialogOpen, setRecurringDialogOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const { toast } = useToast();
 
@@ -237,10 +241,16 @@ export default function AppointmentsPage() {
             Manage bookings and schedules
           </p>
         </div>
-        <Button onClick={() => setAddDialogOpen(true)} className="bg-teal-600 hover:bg-teal-700">
-          <Plus className="w-4 h-4 mr-2" />
-          New Appointment
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setRecurringDialogOpen(true)}>
+            <Repeat className="w-4 h-4 mr-2" />
+            Recurring Series
+          </Button>
+          <Button onClick={() => setAddDialogOpen(true)} className="bg-teal-600 hover:bg-teal-700">
+            <Plus className="w-4 h-4 mr-2" />
+            New Appointment
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -403,6 +413,11 @@ export default function AppointmentsPage() {
                         <p className="font-semibold">
                           {appointment.client.firstName} {appointment.client.lastName}
                         </p>
+                        {appointment.recurringSeriesId && (
+                          <span title="Part of recurring series">
+                            <Repeat className="w-3.5 h-3.5 text-teal-500" />
+                          </span>
+                        )}
                         <Badge variant={getStatusColor(appointment.status) as any}>
                           {statusOptions.find((s) => s.value === appointment.status)?.label}
                         </Badge>
@@ -515,6 +530,12 @@ export default function AppointmentsPage() {
           />
         </>
       )}
+
+      <RecurringSeriesDialog
+        open={recurringDialogOpen}
+        onOpenChange={setRecurringDialogOpen}
+        onSuccess={handleSuccess}
+      />
     </div>
   );
 }

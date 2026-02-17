@@ -833,7 +833,115 @@ export async function sendReviewRequest(params: {
   return getResend().emails.send({ from: FROM_EMAIL, to, subject: `How was your visit to ${businessName}?`, html });
 }
 
-// 22. Trial Extended Notification (to business owner)
+// 22. Recurring Series Created (to client)
+export async function sendRecurringSeriesCreated(params: {
+  to: string;
+  clientName: string;
+  businessName: string;
+  stylistName: string;
+  frequency: string;
+  services: string[];
+  scheduledDates: Date[];
+  currencySymbol: string;
+  totalPerAppointment: number;
+}) {
+  const { to, clientName, businessName, stylistName, frequency, services, scheduledDates, currencySymbol, totalPerAppointment } = params;
+
+  const freqLabel = frequency === "WEEKLY" ? "Weekly" : frequency === "BIWEEKLY" ? "Biweekly" : "Monthly";
+
+  const dateList = scheduledDates
+    .map((d, i) => `<li style="margin-bottom: 4px; color: #666; font-size: 14px;">${i + 1}. ${fmtDate(d)} at ${fmtTime(d)}</li>`)
+    .join("");
+
+  const html = baseTemplate(
+    `${heading("Your Recurring Appointments")}
+    ${paragraph(`Hi ${clientName},`, true)}
+    ${paragraph(`A recurring appointment series has been set up for you at <strong>${businessName}</strong>.`, true)}
+    ${detailsTable([
+      { label: "Frequency", value: freqLabel },
+      { label: "Stylist", value: stylistName },
+      { label: "Services", value: services.join(", ") },
+      { label: "Per Appointment", value: fmtCurrency(totalPerAppointment, currencySymbol) },
+      { label: "Total Appointments", value: String(scheduledDates.length) },
+    ])}
+    ${paragraph("<strong>Scheduled Dates:</strong>")}
+    <ol style="padding-left: 20px; margin: 8px 0 16px;">${dateList}</ol>
+    ${footer(`Need to make changes? Contact ${businessName} directly.`)}`,
+    `Your recurring appointments at ${businessName} have been scheduled.`
+  );
+
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `Your Recurring Appointments - ${businessName}`, html });
+}
+
+// 23. Recurring Series Modified (to client)
+export async function sendRecurringSeriesModified(params: {
+  to: string;
+  clientName: string;
+  businessName: string;
+  changeType: "paused" | "resumed" | "extended";
+  additionalInfo?: string;
+}) {
+  const { to, clientName, businessName, changeType, additionalInfo } = params;
+
+  const changeMessages: Record<string, { title: string; body: string }> = {
+    paused: {
+      title: "Series Paused",
+      body: "Your recurring appointment series has been paused. No new appointments will be scheduled until it is resumed.",
+    },
+    resumed: {
+      title: "Series Resumed",
+      body: "Your recurring appointment series has been resumed. Appointments will continue as scheduled.",
+    },
+    extended: {
+      title: "Series Extended",
+      body: `Your recurring appointment series has been extended.${additionalInfo ? ` ${additionalInfo}` : ""}`,
+    },
+  };
+
+  const change = changeMessages[changeType];
+
+  const html = baseTemplate(
+    `${heading("Recurring Series Updated")}
+    ${paragraph(`Hi ${clientName},`, true)}
+    ${successBox(change.body)}
+    ${paragraph(`If you have any questions, please contact <strong>${businessName}</strong> directly.`, true)}
+    ${footer(`This update was made by ${businessName}.`)}`,
+    `Your recurring series at ${businessName} has been updated.`
+  );
+
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `${change.title} - ${businessName}`, html });
+}
+
+// 24. Recurring Series Cancelled (to client)
+export async function sendRecurringSeriesCancelled(params: {
+  to: string;
+  clientName: string;
+  businessName: string;
+  cancelledDates: Date[];
+  bookingSlug: string;
+}) {
+  const { to, clientName, businessName, cancelledDates, bookingSlug } = params;
+
+  const dateList = cancelledDates
+    .map((d) => `<li style="margin-bottom: 4px; color: #666; font-size: 14px;">${fmtDate(d)} at ${fmtTime(d)}</li>`)
+    .join("");
+
+  const html = baseTemplate(
+    `${heading("Recurring Appointments Cancelled")}
+    ${paragraph(`Hi ${clientName},`, true)}
+    ${warningBox("Your recurring appointment series has been cancelled.")}
+    ${cancelledDates.length > 0 ? `${paragraph("<strong>The following upcoming appointments have been cancelled:</strong>")}
+    <ul style="padding-left: 20px; margin: 8px 0 16px;">${dateList}</ul>` : ""}
+    ${paragraph("Would you like to rebook? Visit our booking page to schedule a new appointment.", true)}
+    ${button("Book Again", `${APP_URL}/book/${bookingSlug}`)}
+    ${footer(`We hope to see you again! - ${businessName}`)}`,
+    `Your recurring appointments at ${businessName} have been cancelled.`
+  );
+
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `Recurring Appointments Cancelled - ${businessName}`, html });
+}
+
+// 25. Trial Extended Notification (to business owner)
 export async function sendTrialExtended(params: {
   to: string;
   name: string;

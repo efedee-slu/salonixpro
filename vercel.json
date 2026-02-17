@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/send-review-requests?secret=${CRON_SECRET}",
       "schedule": "0 */1 * * *"
+    },
+    {
+      "path": "/api/cron/extend-recurring-series?secret=${CRON_SECRET}",
+      "schedule": "0 2 * * 0"
     }
   ]
 }

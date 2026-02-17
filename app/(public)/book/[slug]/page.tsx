@@ -26,6 +26,7 @@ import {
   AlertTriangle,
   Star,
   Camera,
+  Repeat,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -163,6 +164,9 @@ export default function PublicBookingPage() {
   });
 
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringFrequency, setRecurringFrequency] = useState("WEEKLY");
+  const [recurringOccurrences, setRecurringOccurrences] = useState(4);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
   const [bookingReference, setBookingReference] = useState<string | null>(null);
@@ -298,6 +302,11 @@ export default function PublicBookingPage() {
           date: selectedDate.toISOString().split("T")[0],
           time: selectedTime,
           customer: customerInfo,
+          ...(isRecurring && {
+            recurring: true,
+            frequency: recurringFrequency,
+            occurrences: recurringOccurrences,
+          }),
         }),
       });
 
@@ -1254,11 +1263,72 @@ export default function PublicBookingPage() {
 
                   <hr />
 
+                  {/* Recurring Option */}
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Repeat className="w-4 h-4 text-teal-600" />
+                        <span className="font-medium text-sm">Make this a recurring appointment</span>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={isRecurring}
+                        onClick={() => setIsRecurring(!isRecurring)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          isRecurring ? "bg-teal-600" : "bg-gray-200"
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            isRecurring ? "translate-x-6" : "translate-x-1"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    {isRecurring && (
+                      <div className="mt-3 p-3 bg-teal-50 rounded-lg space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs font-medium text-muted-foreground mb-1 block">Frequency</label>
+                            <select
+                              value={recurringFrequency}
+                              onChange={(e) => setRecurringFrequency(e.target.value)}
+                              className="w-full h-9 px-3 rounded-lg border border-input bg-white text-sm"
+                            >
+                              <option value="WEEKLY">Weekly</option>
+                              <option value="BIWEEKLY">Every 2 Weeks</option>
+                              <option value="MONTHLY">Monthly</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-muted-foreground mb-1 block">How many times?</label>
+                            <select
+                              value={recurringOccurrences}
+                              onChange={(e) => setRecurringOccurrences(parseInt(e.target.value))}
+                              className="w-full h-9 px-3 rounded-lg border border-input bg-white text-sm"
+                            >
+                              {[2, 3, 4, 6, 8, 12].map((n) => (
+                                <option key={n} value={n}>{n} appointments</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          This will schedule {recurringOccurrences} appointments ({recurringFrequency === "WEEKLY" ? "weekly" : recurringFrequency === "BIWEEKLY" ? "every 2 weeks" : "monthly"}) starting from your selected date.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <hr />
+
                   {/* Total */}
                   <div className="flex justify-between items-center text-lg">
                     <span className="font-bold">Total</span>
                     <span className="font-bold text-teal-600">
                       {formatCurrency(getTotalPrice())}
+                      {isRecurring && <span className="text-sm font-normal text-muted-foreground"> x {recurringOccurrences}</span>}
                     </span>
                   </div>
                 </CardContent>

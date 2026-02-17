@@ -7,7 +7,8 @@ import {
   calculatePaymentDeadline,
   createNotification
 } from "@/lib/booking";
-import { sendAppointmentConfirmation, sendNewBookingNotification } from "@/lib/email";
+import { sendAppointmentConfirmation, sendNewBookingNotification, sendRecurringSeriesCreated } from "@/lib/email";
+import { generateRecurringDates } from "@/lib/recurring";
 
 export async function GET(
   request: Request,
@@ -425,6 +426,146 @@ export async function POST(
       }).catch((err) => console.error("Failed to send new booking notification:", err));
     }
 
+    // Handle recurring appointment creation
+    let recurringInfo = null;
+    if (body.recurring && body.frequency && body.occurrences > 1) {
+      try {
+        const [h, m] = time.split(":").map(Number);
+        const remainingOccurrences = body.occurrences - 1;
+
+        // Generate dates for remaining occurrences (first one is already created)
+        const allDates = generateRecurringDates(
+          requestedDate,
+          body.frequency,
+          time,
+          body.occurrences,
+          requestedDate.getDay(),
+          requestedDate.getDate()
+        );
+        const futureDates = allDates.slice(1); // Skip the first (already created)
+
+        // Create series + link first appointment + create remaining appointments
+        const series = await prisma.recurringSeries.create({
+          data: {
+            businessId: business.id,
+            clientId: client.id,
+            stylistId: stylistId,
+            frequency: body.frequency,
+            dayOfWeek: requestedDate.getDay(),
+            dayOfMonth: requestedDate.getDate(),
+            timeOfDay: time,
+            totalOccurrences: body.occurrences,
+            generatedCount: 1, // Will increment as we create
+            startDate: requestedDate,
+            services: {
+              create: serviceRecords.map((svc) => ({ serviceId: svc.id })),
+            },
+          },
+        });
+
+        // Link first appointment to series
+        await prisma.appointment.update({
+          where: { id: appointment.id },
+          data: { recurringSeriesId: series.id, recurringIndex: 1 },
+        });
+
+        let createdCount = 1;
+        const skippedDates: Date[] = [];
+
+        for (let i = 0; i < futureDates.length; i++) {
+          const futureDate = futureDates[i];
+          const futureEnd = new Date(futureDate.getTime() + totalDuration * 60000);
+
+          // Conflict check
+          const dayStart = new Date(futureDate);
+          dayStart.setHours(0, 0, 0, 0);
+          const dayEnd = new Date(futureDate);
+          dayEnd.setHours(23, 59, 59, 999);
+
+          const conflicts = await prisma.appointment.findMany({
+            where: {
+              businessId: business.id,
+              stylistId,
+              status: { notIn: ["CANCELLED", "NO_SHOW"] },
+              requestedDate: { gte: dayStart, lte: dayEnd },
+            },
+          });
+
+          const hasConflict = conflicts.some((apt) => {
+            const aptStart = new Date(apt.requestedDate);
+            const aptEnd = new Date(aptStart.getTime() + apt.duration * 60000);
+            return (
+              (futureDate >= aptStart && futureDate < aptEnd) ||
+              (futureEnd > aptStart && futureEnd <= aptEnd) ||
+              (futureDate <= aptStart && futureEnd >= aptEnd)
+            );
+          });
+
+          if (hasConflict) {
+            skippedDates.push(futureDate);
+            continue;
+          }
+
+          await prisma.appointment.create({
+            data: {
+              businessId: business.id,
+              clientId: client.id,
+              stylistId,
+              requestedDate: futureDate,
+              duration: totalDuration,
+              totalPrice,
+              status: appointmentStatus as any,
+              notes: customer.notes || null,
+              recurringSeriesId: series.id,
+              recurringIndex: createdCount + 1,
+              depositAmount: depositAmount,
+              depositStatus: depositStatus as any,
+              services: {
+                create: serviceRecords.map((svc) => ({
+                  serviceId: svc.id,
+                  serviceName: svc.name,
+                  duration: svc.duration,
+                  price: svc.price,
+                })),
+              },
+            },
+          });
+          createdCount++;
+        }
+
+        // Update generated count
+        await prisma.recurringSeries.update({
+          where: { id: series.id },
+          data: { generatedCount: createdCount },
+        });
+
+        recurringInfo = {
+          seriesId: series.id,
+          totalCreated: createdCount,
+          skipped: skippedDates.length,
+        };
+
+        // Send recurring series email
+        if (client.email) {
+          const scheduledDates = [requestedDate, ...futureDates.filter((d) => !skippedDates.includes(d))];
+          sendRecurringSeriesCreated({
+            to: client.email,
+            clientName: `${client.firstName} ${client.lastName}`,
+            businessName: business.name,
+            stylistName: `${stylist.firstName} ${stylist.lastName}`,
+            frequency: body.frequency,
+            services: serviceRecords.map((s) => s.name),
+            scheduledDates,
+            currencySymbol: business.currencySymbol || "EC$",
+            totalPerAppointment: totalPrice,
+          }).catch((err) => console.error("Failed to send recurring series email:", err));
+        }
+      } catch (recurringErr) {
+        console.error("Error creating recurring series:", recurringErr);
+        // Don't fail the whole request - first appointment was already created
+      }
+    }
+
     return NextResponse.json({
       success: true,
       reference: bookingReference,
@@ -438,6 +579,7 @@ export async function POST(
         bankAccountNumber: business.bankAccountNumber,
         paymentInstructions: business.paymentInstructions,
       } : null,
+      recurring: recurringInfo,
     });
   } catch (error) {
     console.error("Error creating booking:", error);

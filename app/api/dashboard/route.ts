@@ -26,6 +26,7 @@ export async function GET() {
       readyOrderCount,
       recentOrders,
       lowStockProducts,
+      recurringClientCount,
       recentClients,
       recentCompletedAppointments,
     ] = await Promise.all([
@@ -102,6 +103,12 @@ export async function GET() {
         LIMIT 10
       ` as Promise<any[]>,
 
+      prisma.recurringSeries.findMany({
+        where: { businessId, status: "ACTIVE" },
+        select: { clientId: true },
+        distinct: ["clientId"],
+      }).then((r) => r.length),
+
       prisma.client.findMany({
         where: { businessId },
         orderBy: { createdAt: "desc" },
@@ -171,6 +178,7 @@ export async function GET() {
         todayRevenue,
         pendingOrders: pendingOrderCount,
         readyOrders: readyOrderCount,
+        recurringClients: recurringClientCount,
       },
       todayAppointments,
       recentOrders,
