@@ -98,6 +98,12 @@ model Business {
 
   isPlatform Boolean @default(false) // true only for super admin platform business
 
+  // Google Calendar Integration
+  googleCalendarEnabled Boolean @default(false)
+  googleCalSyncAuto     Boolean @default(false)
+  googleCalIncludePhone Boolean @default(false)
+  googleCalIncludeNotes Boolean @default(false)
+
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -121,6 +127,7 @@ model Business {
   costingTemplates  CostingTemplate[]
   recurringSeries   RecurringSeries[]
   waitlistEntries   WaitlistEntry[]
+  calendarSyncs     CalendarSync[]
 
   @@index([slug])
 }
@@ -277,6 +284,13 @@ model Stylist {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  // Google Calendar Integration
+  googleAccessToken    String?
+  googleRefreshToken   String?
+  googleTokenExpiresAt DateTime?
+  googleCalendarSync   Boolean  @default(false)
+  googleCalendarId     String?
+
   // Relations
   business        Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
   user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -288,6 +302,7 @@ model Stylist {
   galleryItems    GalleryItem[]
   recurringSeries RecurringSeries[]
   waitlistEntries WaitlistEntry[]
+  calendarSyncs   CalendarSync[]
 
   @@index([businessId])
 }
@@ -414,6 +429,7 @@ model Appointment {
   services        AppointmentService[]
   order           Order?
   review          Review?
+  calendarSyncs   CalendarSync[]
 
   @@index([businessId])
   @@index([clientId])
@@ -1026,4 +1042,32 @@ enum WaitlistStatus {
   BOOKED
   EXPIRED
   CANCELLED
+}
+
+model CalendarSync {
+  id            String          @id @default(cuid())
+  businessId    String
+  stylistId     String
+  appointmentId String
+  googleEventId String?
+  syncStatus    CalendarSyncStatus @default(PENDING)
+  lastSyncedAt  DateTime?
+  errorMessage  String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  business    Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  stylist     Stylist     @relation(fields: [stylistId], references: [id], onDelete: Cascade)
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@unique([appointmentId, stylistId])
+  @@index([syncStatus])
+  @@index([stylistId])
+}
+
+enum CalendarSyncStatus {
+  PENDING
+  SYNCED
+  FAILED
+  DELETED
 }

@@ -11,3 +11,4 @@ SESSION-REPORT.md
 *.docx
 ~$*
 generate-infra-report.py
+.vercel
