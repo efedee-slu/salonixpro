@@ -149,19 +149,19 @@ export default function DashboardPage() {
     fetchDashboard();
   }, []);
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
-  };
+  const [todayStr, setTodayStr] = useState("");
+  const [greeting, setGreeting] = useState("");
 
-  const todayStr = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
+  useEffect(() => {
+    setTodayStr(new Date().toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    }));
+    const hour = new Date().getHours();
+    setGreeting(hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening");
+  }, []);
 
   const userName = session?.user?.name?.split(" ")[0] || "there";
   const stats = dashboardData?.stats;
@@ -267,7 +267,7 @@ export default function DashboardPage() {
               <p className="text-teal-200/60 text-xs font-semibold tracking-widest uppercase">{todayStr}</p>
             </div>
             <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight text-glow leading-[1.1]">
-              {getGreeting()}, {userName}
+              {greeting}{greeting ? ", " : ""}{userName}
             </h1>
             {!isLoading && stats && (
               <p className="text-teal-100/60 mt-3 text-[15px] leading-relaxed max-w-lg">
