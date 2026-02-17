@@ -9,9 +9,9 @@ const redis =
       })
     : null;
 
-// 5 requests per 60 seconds — login, signup, password reset
+// 20 requests per 60 seconds — login, signup, password reset
 export const authLimiter = redis
-  ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(5, "60 s"), prefix: "rl:auth" })
+  ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(20, "60 s"), prefix: "rl:auth" })
   : null;
 
 // 30 requests per 60 seconds — general authenticated API routes

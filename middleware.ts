@@ -67,29 +67,35 @@ export async function middleware(request: NextRequest) {
     const limiter = selectLimiter(pathname);
 
     if (limiter) {
-      const ip = getClientIp(request);
-      const { success, limit, remaining, reset } = await limiter.limit(ip);
+      try {
+        const ip = getClientIp(request);
+        const { success, limit, remaining, reset } = await limiter.limit(ip);
 
-      if (!success) {
-        return NextResponse.json(
-          { error: "Too many requests. Please try again later." },
-          {
-            status: 429,
-            headers: {
-              "X-RateLimit-Limit": limit.toString(),
-              "X-RateLimit-Remaining": remaining.toString(),
-              "X-RateLimit-Reset": reset.toString(),
-            },
-          }
-        );
+        if (!success) {
+          return NextResponse.json(
+            { error: "Too many requests. Please try again later." },
+            {
+              status: 429,
+              headers: {
+                "X-RateLimit-Limit": limit.toString(),
+                "X-RateLimit-Remaining": remaining.toString(),
+                "X-RateLimit-Reset": reset.toString(),
+              },
+            }
+          );
+        }
+
+        // Attach rate limit headers to successful responses
+        const response = NextResponse.next();
+        response.headers.set("X-RateLimit-Limit", limit.toString());
+        response.headers.set("X-RateLimit-Remaining", remaining.toString());
+        response.headers.set("X-RateLimit-Reset", reset.toString());
+        return response;
+      } catch (rateLimitError) {
+        // If rate limiter fails (e.g. Redis connection issue), allow the request through
+        console.error("Rate limiter error, allowing request:", rateLimitError);
+        return NextResponse.next();
       }
-
-      // Attach rate limit headers to successful responses
-      const response = NextResponse.next();
-      response.headers.set("X-RateLimit-Limit", limit.toString());
-      response.headers.set("X-RateLimit-Remaining", remaining.toString());
-      response.headers.set("X-RateLimit-Reset", reset.toString());
-      return response;
     }
 
     // No limiter (Upstash not configured) — pass through

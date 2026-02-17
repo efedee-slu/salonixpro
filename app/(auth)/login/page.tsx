@@ -53,19 +53,29 @@ function LoginForm() {
         }
         setError(result.error);
       } else {
-        // Check if user needs to change password
-        const checkResponse = await fetch("/api/auth/check-password-status");
+        // Check if user needs to change password and get role
+        const [checkResponse, sessionResponse] = await Promise.all([
+          fetch("/api/auth/check-password-status"),
+          fetch("/api/auth/session"),
+        ]);
         const checkData = await checkResponse.json();
-        
+
         if (checkData.mustChangePassword) {
           router.push("/change-password?required=true");
         } else {
-          router.push("/dashboard");
+          // Redirect SUPER_ADMIN to platform, others to dashboard
+          const sessionData = await sessionResponse.json();
+          if (sessionData?.user?.role === "SUPER_ADMIN") {
+            router.push("/platform");
+          } else {
+            router.push("/dashboard");
+          }
           router.refresh();
         }
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      console.error("Login error:", err);
+      setError(err instanceof Error ? err.message : "An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
