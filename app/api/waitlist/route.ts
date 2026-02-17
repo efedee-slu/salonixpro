@@ -75,10 +75,27 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { clientId, stylistId, requestedDate, serviceIds } = body;
 
-    if (!clientId || !stylistId || !requestedDate || !serviceIds?.length) {
+    if (!clientId || !stylistId || !requestedDate || !Array.isArray(serviceIds)) {
       return NextResponse.json(
         { error: "clientId, stylistId, requestedDate, and serviceIds are required" },
         { status: 400 }
+      );
+    }
+
+    // Prevent duplicate waitlist entries for the same client + slot
+    const existing = await prisma.waitlistEntry.findFirst({
+      where: {
+        businessId,
+        stylistId,
+        clientId,
+        requestedDate: new Date(requestedDate),
+        status: "ACTIVE",
+      },
+    });
+    if (existing) {
+      return NextResponse.json(
+        { error: "Client is already on the waitlist for this slot" },
+        { status: 409 }
       );
     }
 

@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { businessId, stylistId, requestedDate, duration, serviceIds, guestName, guestEmail, guestPhone } = body;
 
-    if (!businessId || !stylistId || !requestedDate || !serviceIds?.length) {
+    if (!businessId || !stylistId || !requestedDate || !Array.isArray(serviceIds)) {
       return NextResponse.json(
         { error: "businessId, stylistId, requestedDate, and serviceIds are required" },
         { status: 400 }
@@ -19,6 +19,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "guestName, guestEmail, and guestPhone are required" },
         { status: 400 }
+      );
+    }
+
+    // Prevent duplicate waitlist entries for the same guest + slot
+    const existing = await prisma.waitlistEntry.findFirst({
+      where: {
+        businessId,
+        stylistId,
+        requestedDate: new Date(requestedDate),
+        guestEmail,
+        status: "ACTIVE",
+      },
+    });
+    if (existing) {
+      return NextResponse.json(
+        { error: "You're already on the waitlist for this slot" },
+        { status: 409 }
       );
     }
 
@@ -41,13 +58,14 @@ export async function POST(request: NextRequest) {
 
     // Calculate duration from services if not provided
     let finalDuration = duration;
-    if (!finalDuration) {
+    if (!finalDuration && serviceIds.length > 0) {
       const services = await prisma.service.findMany({
         where: { id: { in: serviceIds }, businessId },
         select: { duration: true },
       });
       finalDuration = services.reduce((sum, s) => sum + s.duration, 0);
     }
+    if (!finalDuration) finalDuration = 30; // default 30 min
 
     const entry = await prisma.waitlistEntry.create({
       data: {
