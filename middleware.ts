@@ -18,6 +18,9 @@ const protectedPaths = [
   "/profit-loss",
   "/reports",
   "/settings",
+  "/reviews",
+  "/gallery",
+  "/product-costing",
   "/onboarding",
 ];
 
@@ -35,6 +38,9 @@ const salonPaths = [
   "/profit-loss",
   "/reports",
   "/settings",
+  "/reviews",
+  "/gallery",
+  "/product-costing",
 ];
 
 // Routes only for unauthenticated users
@@ -80,7 +86,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api/reports") ||
     pathname.startsWith("/api/profit-loss") ||
     pathname.startsWith("/api/billing") ||
-    pathname.startsWith("/api/product-costing");
+    pathname.startsWith("/api/product-costing") ||
+    pathname.startsWith("/api/gallery");
 
   if (pathname.startsWith("/api/") && !skipRateLimit) {
     const limiter = selectLimiter(pathname);
