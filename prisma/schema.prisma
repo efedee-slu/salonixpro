@@ -818,8 +818,9 @@ model BetaSignup {
   phone         String?
   country       String?
   salonSize     String?  // e.g., "1-3", "4-10", "11+"
-  message       String?
-  status        String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  message        String?
+  referralSource String?  // e.g., "organic", "admin-invite"
+  status         String   @default("PENDING") // PENDING | APPROVED | REJECTED
   approvedAt    DateTime?
   rejectedAt    DateTime?
   createdAt     DateTime @default(now())

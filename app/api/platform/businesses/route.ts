@@ -56,6 +56,7 @@ export async function GET(request: Request) {
       subscriptionPlan: b.subscriptionPlan,
       trialEndsAt: b.trialEndsAt,
       isActive: b.isActive,
+      isPlatform: b.isPlatform,
       onboardingComplete: b.onboardingComplete,
       createdAt: b.createdAt,
       userCount: b._count.users,

@@ -38,6 +38,7 @@ export async function GET(request: Request) {
       subscriptionEndDate: true,
       paypalSubscriptionId: true,
       isActive: true,
+      isPlatform: true,
       createdAt: true,
       users: {
         where: { role: "OWNER" },

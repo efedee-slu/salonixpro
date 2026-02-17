@@ -743,3 +743,76 @@ export async function sendBetaRejected(params: {
 
   return getResend().emails.send({ from: FROM_EMAIL, to, subject: "Beta Application Update - SalonixPro", html });
 }
+
+// 20. Beta Admin Invite (to new salon owner - invited by admin)
+export async function sendBetaInvite(params: {
+  to: string;
+  name: string;
+  salonName: string;
+  username: string;
+  tempPassword: string;
+  bookingUrl: string;
+  trialEndsAt: Date;
+  betaDays: number;
+  personalMessage: string | null;
+}) {
+  const { to, name, salonName, username, tempPassword, bookingUrl, trialEndsAt, betaDays, personalMessage } = params;
+
+  const html = baseTemplate(
+    `${heading("You've Been Invited to SalonixPro!")}
+    ${paragraph(`Hi ${name},`, true)}
+    ${successBox("You've been personally invited to try SalonixPro — the all-in-one salon management platform.")}
+    ${personalMessage ? `<div style="background: #f0f9ff; border-left: 4px solid #0d9488; border-radius: 0 8px 8px 0; padding: 16px; margin: 16px 0;">
+      <p style="color: #666; font-size: 14px; margin: 0; font-style: italic;">"${personalMessage}"</p>
+      <p style="color: #999; font-size: 12px; margin: 8px 0 0;">— SalonixPro Team</p>
+    </div>` : ""}
+    ${paragraph(`Your salon <strong>${salonName}</strong> has been set up with <strong>${betaDays} days of free access</strong>. Here are your login credentials:`, true)}
+    ${detailsTable([
+      { label: "Login URL", value: `<a href="${APP_URL}/login" style="color: #0d9488;">${APP_URL}/login</a>` },
+      { label: "Username", value: username },
+      { label: "Temporary Password", value: tempPassword },
+      { label: "Booking Page", value: `<a href="${bookingUrl}" style="color: #0d9488;">${bookingUrl}</a>` },
+      { label: "Free Access Until", value: fmtDate(trialEndsAt) },
+    ])}
+    ${warningBox("&#9888;&#65039; You must change your password on first login.")}
+    ${button("Sign In Now", `${APP_URL}/login`)}
+    ${paragraph("What's included:", false)}
+    <ul style="color: #666; font-size: 14px; padding-left: 20px;">
+      <li style="margin-bottom: 8px;"><strong>All features unlocked</strong> — appointments, clients, services, team management</li>
+      <li style="margin-bottom: 8px;">Online booking page for your clients</li>
+      <li style="margin-bottom: 8px;">Financial reporting (expenses, payroll, P&L)</li>
+      <li style="margin-bottom: 8px;">Product inventory and POS</li>
+      <li style="margin-bottom: 8px;">Priority support from our team</li>
+    </ul>
+    ${footer("Questions? Reply to this email and we'll help you get started.")}`,
+    `You've been invited to try SalonixPro! Your salon ${salonName} is ready.`
+  );
+
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `You're invited to SalonixPro, ${name}!`, html });
+}
+
+// 21. Trial Extended Notification (to business owner)
+export async function sendTrialExtended(params: {
+  to: string;
+  name: string;
+  salonName: string;
+  newTrialEnd: Date;
+}) {
+  const { to, name, salonName, newTrialEnd } = params;
+
+  const html = baseTemplate(
+    `${heading("Your Trial Has Been Extended!")}
+    ${paragraph(`Hi ${name},`, true)}
+    ${successBox(`Great news! Your free trial for <strong>${salonName}</strong> has been extended.`)}
+    ${detailsTable([
+      { label: "Salon", value: salonName },
+      { label: "New Trial End Date", value: fmtDate(newTrialEnd) },
+    ])}
+    ${paragraph("You continue to have full access to all SalonixPro features. Make the most of your extended trial!", true)}
+    ${button("Go to Dashboard", `${APP_URL}/dashboard`)}
+    ${footer("Questions? Reply to this email and we'll help you out.")}`,
+    `Your SalonixPro trial for ${salonName} has been extended.`
+  );
+
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `Trial Extended - ${salonName}`, html });
+}
