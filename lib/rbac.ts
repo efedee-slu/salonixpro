@@ -5,8 +5,9 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 
-// Role hierarchy: OWNER > MANAGER > STYLIST > ASSISTANT
+// Role hierarchy: SUPER_ADMIN > OWNER > MANAGER > STYLIST > ASSISTANT
 const ROLE_LEVELS: Record<string, number> = {
+  SUPER_ADMIN: 5,
   OWNER: 4,
   MANAGER: 3,
   STYLIST: 2,
@@ -57,6 +58,32 @@ export async function requireAuth() {
     return {
       session: null,
       error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
+  }
+
+  return { session, error: null };
+}
+
+/**
+ * Require SUPER_ADMIN role. Used for platform-level admin routes.
+ */
+export async function requireSuperAdmin() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    return {
+      session: null,
+      error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
+  }
+
+  if (session.user.role !== "SUPER_ADMIN") {
+    return {
+      session: null,
+      error: NextResponse.json(
+        { error: "Super admin access required" },
+        { status: 403 }
+      ),
     };
   }
 

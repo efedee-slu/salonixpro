@@ -5,6 +5,7 @@ import { authLimiter, apiLimiter, publicLimiter, getClientIp } from "@/lib/ratel
 
 // Routes that require authentication
 const protectedPaths = [
+  "/platform",
   "/dashboard",
   "/appointments",
   "/clients",
@@ -18,6 +19,22 @@ const protectedPaths = [
   "/reports",
   "/settings",
   "/onboarding",
+];
+
+// Salon dashboard paths (everything except /platform and /onboarding)
+const salonPaths = [
+  "/dashboard",
+  "/appointments",
+  "/clients",
+  "/services",
+  "/stylists",
+  "/shop",
+  "/orders",
+  "/expenses",
+  "/payroll",
+  "/profit-loss",
+  "/reports",
+  "/settings",
 ];
 
 // Routes only for unauthenticated users
@@ -107,14 +124,39 @@ export async function middleware(request: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if (isAuthPath && token) {
+    // SUPER_ADMIN goes to platform dashboard
+    if (token.role === "SUPER_ADMIN") {
+      return NextResponse.redirect(new URL("/platform", request.url));
+    }
     if (token.onboardingComplete === false) {
       return NextResponse.redirect(new URL("/onboarding", request.url));
     }
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // Redirect to onboarding if not complete
-  if (isProtectedPath && token && token.onboardingComplete === false) {
+  // --- SUPER_ADMIN routing ---
+  if (token && token.role === "SUPER_ADMIN") {
+    // If SUPER_ADMIN tries to access salon dashboard, redirect to platform
+    const isSalonPath = salonPaths.some(
+      (path) => pathname === path || pathname.startsWith(`${path}/`)
+    );
+    if (isSalonPath) {
+      return NextResponse.redirect(new URL("/platform", request.url));
+    }
+  }
+
+  // Block non-SUPER_ADMIN from /platform routes
+  if (token && token.role !== "SUPER_ADMIN" && pathname.startsWith("/platform")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  // Redirect to onboarding if not complete (skip for SUPER_ADMIN)
+  if (
+    isProtectedPath &&
+    token &&
+    token.role !== "SUPER_ADMIN" &&
+    token.onboardingComplete === false
+  ) {
     const isOnboardingPath = pathname === "/onboarding" || pathname.startsWith("/onboarding/");
     if (!isOnboardingPath) {
       return NextResponse.redirect(new URL("/onboarding", request.url));

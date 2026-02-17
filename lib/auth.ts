@@ -55,6 +55,7 @@ export const authOptions: NextAuthOptions = {
           businessName: user.business.name,
           businessSlug: user.business.slug,
           onboardingComplete: user.business.onboardingComplete,
+          isPlatform: user.business.isPlatform ?? false,
         };
       },
     }),
@@ -69,6 +70,7 @@ export const authOptions: NextAuthOptions = {
         token.businessName = user.businessName;
         token.businessSlug = user.businessSlug;
         token.onboardingComplete = user.onboardingComplete;
+        token.isPlatform = user.isPlatform;
       }
       return token;
     },
@@ -82,6 +84,7 @@ export const authOptions: NextAuthOptions = {
         session.user.businessSlug = token.businessSlug as string;
         // Treat undefined as true for backward compat with existing sessions
         session.user.onboardingComplete = token.onboardingComplete ?? true;
+        session.user.isPlatform = (token.isPlatform as boolean) ?? false;
       }
       return session;
     },

@@ -681,7 +681,48 @@ export async function sendBetaApproved(params: {
   return getResend().emails.send({ from: FROM_EMAIL, to, subject: "You're Approved! Welcome to SalonixPro Beta", html });
 }
 
-// 18. Beta Rejected (to applicant)
+// 18. Beta Auto-Approved Welcome (to applicant - account created)
+export async function sendBetaWelcome(params: {
+  to: string;
+  name: string;
+  salonName: string;
+  username: string;
+  tempPassword: string;
+  bookingUrl: string;
+  trialEndsAt: Date;
+}) {
+  const { to, name, salonName, username, tempPassword, bookingUrl, trialEndsAt } = params;
+
+  const html = baseTemplate(
+    `${heading("Welcome to SalonixPro!")}
+    ${paragraph(`Hi ${name},`, true)}
+    ${successBox("Your beta application has been approved and your salon account is ready!")}
+    ${paragraph(`Your salon <strong>${salonName}</strong> has been set up with a <strong>1-month free beta</strong> period. Here are your login credentials:`, true)}
+    ${detailsTable([
+      { label: "Login URL", value: `<a href="${APP_URL}/login" style="color: #0d9488;">${APP_URL}/login</a>` },
+      { label: "Username", value: username },
+      { label: "Temporary Password", value: tempPassword },
+      { label: "Booking Page", value: `<a href="${bookingUrl}" style="color: #0d9488;">${bookingUrl}</a>` },
+      { label: "Beta Ends", value: fmtDate(trialEndsAt) },
+    ])}
+    ${warningBox("&#9888;&#65039; You must change your password on first login.")}
+    ${button("Sign In Now", `${APP_URL}/login`)}
+    ${paragraph("What's included in your beta:", false)}
+    <ul style="color: #666; font-size: 14px; padding-left: 20px;">
+      <li style="margin-bottom: 8px;"><strong>1 month free</strong> — all features unlocked</li>
+      <li style="margin-bottom: 8px;">Appointments, clients, services, and team management</li>
+      <li style="margin-bottom: 8px;">Online booking page for your clients</li>
+      <li style="margin-bottom: 8px;">Financial reporting (expenses, payroll, P&L)</li>
+      <li style="margin-bottom: 8px;">Priority support from our team</li>
+    </ul>
+    ${footer("Questions? Reply to this email and we'll help you get started.")}`,
+    `Welcome to SalonixPro! Your salon ${salonName} is ready.`
+  );
+
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `Welcome to SalonixPro, ${name}! Your account is ready`, html });
+}
+
+// 19. Beta Rejected (to applicant)
 export async function sendBetaRejected(params: {
   to: string;
   name: string;

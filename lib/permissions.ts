@@ -156,8 +156,8 @@ export async function requirePermission(key: PermissionKey) {
     };
   }
 
-  // OWNER bypasses all permission checks
-  if (session.user.role === "OWNER") {
+  // OWNER and SUPER_ADMIN bypass all permission checks
+  if (session.user.role === "OWNER" || session.user.role === "SUPER_ADMIN") {
     return { session, error: null };
   }
 
@@ -189,8 +189,8 @@ export async function getUserPermissions(
   userId: string,
   role: string
 ): Promise<PermissionFlags> {
-  // OWNER always has full access
-  if (role === "OWNER") {
+  // OWNER and SUPER_ADMIN always have full access
+  if (role === "OWNER" || role === "SUPER_ADMIN") {
     return FULL_PRESET;
   }
 

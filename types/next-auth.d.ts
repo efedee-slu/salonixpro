@@ -12,6 +12,7 @@ declare module "next-auth" {
       businessName: string;
       businessSlug: string;
       onboardingComplete: boolean;
+      isPlatform: boolean;
     } & DefaultSession["user"];
   }
 
@@ -22,6 +23,7 @@ declare module "next-auth" {
     businessName: string;
     businessSlug: string;
     onboardingComplete: boolean;
+    isPlatform: boolean;
   }
 }
 
@@ -34,5 +36,6 @@ declare module "next-auth/jwt" {
     businessName: string;
     businessSlug: string;
     onboardingComplete: boolean;
+    isPlatform: boolean;
   }
 }

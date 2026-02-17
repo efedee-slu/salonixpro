@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -84,8 +84,16 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [permissions, setPermissions] = useState<Record<string, boolean> | null>(null);
   const pathname = usePathname();
+  const router = useRouter();
   const { data: session } = useSession();
   const user = session?.user;
+
+  // Redirect SUPER_ADMIN to platform dashboard
+  useEffect(() => {
+    if (session?.user?.role === "SUPER_ADMIN") {
+      router.replace("/platform");
+    }
+  }, [session, router]);
 
   // Fetch permissions for sidebar filtering
   useEffect(() => {

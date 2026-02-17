@@ -8,7 +8,7 @@ import { sendBetaApproved, sendBetaRejected } from "@/lib/email";
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user || session.user.role !== "OWNER") {
+    if (!session?.user || !["OWNER", "SUPER_ADMIN"].includes(session.user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -57,7 +57,7 @@ export async function GET(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user || session.user.role !== "OWNER") {
+    if (!session?.user || !["OWNER", "SUPER_ADMIN"].includes(session.user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

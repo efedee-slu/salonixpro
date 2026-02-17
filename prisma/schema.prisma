@@ -85,6 +85,8 @@ model Business {
   businessType       BusinessType @default(MULTI_SERVICE)
   onboardingComplete Boolean      @default(false)
 
+  isPlatform Boolean @default(false) // true only for super admin platform business
+
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -184,6 +186,7 @@ model StaffPermission {
 }
 
 enum Role {
+  SUPER_ADMIN
   OWNER
   MANAGER
   STYLIST
