@@ -59,12 +59,13 @@ export async function GET() {
         where: { businessId, createdAt: { gte: startOfMonth } },
       }),
 
-      prisma.order.findMany({
+      prisma.order.aggregate({
         where: {
           businessId,
           completedAt: { gte: startOfToday, lte: endOfToday },
           paymentStatus: "PAID",
         },
+        _sum: { total: true },
       }),
 
       prisma.order.count({
@@ -77,7 +78,13 @@ export async function GET() {
 
       prisma.order.findMany({
         where: { businessId, status: { not: "CART" } },
-        include: {
+        select: {
+          id: true,
+          orderNumber: true,
+          status: true,
+          total: true,
+          customerName: true,
+          createdAt: true,
           client: { select: { firstName: true, lastName: true } },
           items: { select: { productName: true, quantity: true } },
         },
@@ -104,7 +111,9 @@ export async function GET() {
 
       prisma.appointment.findMany({
         where: { businessId, status: "COMPLETED" },
-        include: {
+        select: {
+          id: true,
+          updatedAt: true,
           client: { select: { firstName: true, lastName: true } },
         },
         orderBy: { updatedAt: "desc" },
@@ -113,17 +122,10 @@ export async function GET() {
     ]);
 
     // Calculate today's revenue
-    const completedTodayAppointments = todayAppointments.filter(
-      (a) => a.status === "COMPLETED"
-    );
-    const appointmentRevenue = completedTodayAppointments.reduce(
-      (sum, a) => sum + Number(a.totalPrice),
-      0
-    );
-    const orderRevenue = todayOrders.reduce(
-      (sum, o) => sum + Number(o.total),
-      0
-    );
+    const appointmentRevenue = todayAppointments
+      .filter((a) => a.status === "COMPLETED")
+      .reduce((sum, a) => sum + Number(a.totalPrice), 0);
+    const orderRevenue = Number(todayOrders._sum.total ?? 0);
     const todayRevenue = appointmentRevenue + orderRevenue;
 
     // Build recent activity feed

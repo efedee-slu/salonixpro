@@ -14,9 +14,9 @@ export const authLimiter = redis
   ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(20, "60 s"), prefix: "rl:auth" })
   : null;
 
-// 30 requests per 60 seconds — general authenticated API routes
+// 120 requests per 60 seconds — general authenticated API routes
 export const apiLimiter = redis
-  ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(30, "60 s"), prefix: "rl:api" })
+  ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(120, "60 s"), prefix: "rl:api" })
   : null;
 
 // 10 requests per 60 seconds — portal auth, public booking endpoints

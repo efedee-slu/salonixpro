@@ -63,7 +63,26 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // --- Rate limiting for API routes ---
-  if (pathname.startsWith("/api/")) {
+  // Skip rate limiting for internal dashboard API calls (authenticated via session)
+  const skipRateLimit =
+    pathname.startsWith("/api/dashboard") ||
+    pathname.startsWith("/api/me") ||
+    pathname.startsWith("/api/appointments") ||
+    pathname.startsWith("/api/clients") ||
+    pathname.startsWith("/api/services") ||
+    pathname.startsWith("/api/stylists") ||
+    pathname.startsWith("/api/settings") ||
+    pathname.startsWith("/api/reviews") ||
+    pathname.startsWith("/api/orders") ||
+    pathname.startsWith("/api/products") ||
+    pathname.startsWith("/api/expenses") ||
+    pathname.startsWith("/api/notifications") ||
+    pathname.startsWith("/api/reports") ||
+    pathname.startsWith("/api/profit-loss") ||
+    pathname.startsWith("/api/billing") ||
+    pathname.startsWith("/api/product-costing");
+
+  if (pathname.startsWith("/api/") && !skipRateLimit) {
     const limiter = selectLimiter(pathname);
 
     if (limiter) {
