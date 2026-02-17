@@ -33,6 +33,8 @@ import {
   Linkedin,
   Camera,
   Repeat,
+  ClockAlert,
+  CalendarSync,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -93,6 +95,8 @@ const advancedFeatures = [
   { icon: Star, title: "Client Reviews & Ratings", description: "Build trust with verified client reviews displayed on your booking page." },
   { icon: Camera, title: "Before & After Gallery", description: "Showcase your best work with before/after photo pairs on your booking page." },
   { icon: Repeat, title: "Recurring Appointments", description: "Set up weekly, biweekly, or monthly appointments that auto-schedule for your regular clients." },
+  { icon: ClockAlert, title: "Smart Waitlist", description: "Clients join a waitlist for cancelled slots and get notified automatically when an opening becomes available." },
+  { icon: CalendarSync, title: "Google Calendar Sync", description: "Sync appointments to your stylists' Google Calendars so they always know what's coming up." },
 ];
 
 const steps = [
