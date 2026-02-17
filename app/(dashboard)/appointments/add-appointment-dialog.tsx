@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Plus, X, Repeat, Info } from "lucide-react";
+import { Loader2, Plus, X, Repeat, Info, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,6 +71,8 @@ export function AddAppointmentDialog({
   const [recurringFrequency, setRecurringFrequency] = useState<string>("WEEKLY");
   const [recurringOccurrences, setRecurringOccurrences] = useState(4);
   const [autoExtend, setAutoExtend] = useState(false);
+  const [showWaitlistPrompt, setShowWaitlistPrompt] = useState(false);
+  const [isAddingToWaitlist, setIsAddingToWaitlist] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -164,6 +166,12 @@ export function AddAppointmentDialog({
 
         if (!response.ok) {
           const error = await response.json();
+          // Detect conflict (409 or overlap-related error)
+          if (response.status === 409 || (error.message || error.error || "").toLowerCase().includes("overlap") || (error.message || error.error || "").toLowerCase().includes("conflict")) {
+            setShowWaitlistPrompt(true);
+            setIsLoading(false);
+            return;
+          }
           throw new Error(error.message || "Failed to create appointment");
         }
 
@@ -186,6 +194,7 @@ export function AddAppointmentDialog({
       setRecurringFrequency("WEEKLY");
       setRecurringOccurrences(4);
       setAutoExtend(false);
+      setShowWaitlistPrompt(false);
 
       onSuccess();
       onOpenChange(false);
@@ -197,6 +206,43 @@ export function AddAppointmentDialog({
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAddToWaitlist = async () => {
+    setIsAddingToWaitlist(true);
+    try {
+      const requestedDate = new Date(`${formData.date}T${formData.time}`);
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientId: formData.clientId,
+          stylistId: formData.stylistId,
+          requestedDate: requestedDate.toISOString(),
+          serviceIds: selectedServices,
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Added to waitlist",
+          description: `Client added to waitlist for ${requestedDate.toLocaleDateString()} at ${requestedDate.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`,
+        });
+        setShowWaitlistPrompt(false);
+        onOpenChange(false);
+      } else {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to add to waitlist");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add to waitlist",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingToWaitlist(false);
     }
   };
 
@@ -432,6 +478,48 @@ export function AddAppointmentDialog({
               </div>
             )}
           </div>
+
+          {/* Waitlist Prompt */}
+          {showWaitlistPrompt && (
+            <div className="p-4 rounded-lg border-2 border-amber-300 bg-amber-50 space-y-3">
+              <div className="flex items-start gap-2">
+                <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium text-amber-800">This time slot is already booked</p>
+                  <p className="text-sm text-amber-700 mt-1">
+                    Would you like to add this client to the waitlist? They'll be notified if the slot opens up.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  onClick={handleAddToWaitlist}
+                  disabled={isAddingToWaitlist}
+                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                >
+                  {isAddingToWaitlist ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Adding...
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="w-4 h-4 mr-2" />
+                      Add to Waitlist
+                    </>
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setShowWaitlistPrompt(false)}
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </div>
+          )}
 
           <DialogFooter>
             <Button

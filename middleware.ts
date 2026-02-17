@@ -88,7 +88,9 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api/billing") ||
     pathname.startsWith("/api/product-costing") ||
     pathname.startsWith("/api/gallery") ||
-    pathname.startsWith("/api/recurring-series");
+    pathname.startsWith("/api/recurring-series") ||
+    pathname.startsWith("/api/waitlist") ||
+    pathname.startsWith("/api/public/waitlist");
 
   if (pathname.startsWith("/api/") && !skipRateLimit) {
     const limiter = selectLimiter(pathname);

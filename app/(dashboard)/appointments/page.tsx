@@ -16,6 +16,7 @@ import {
   X,
   Play,
   Repeat,
+  ListTodo,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,7 @@ import { AddAppointmentDialog } from "./add-appointment-dialog";
 import { EditAppointmentDialog } from "./edit-appointment-dialog";
 import { DeleteAppointmentDialog } from "./delete-appointment-dialog";
 import { RecurringSeriesDialog } from "./recurring-series-dialog";
+import { WaitlistDialog } from "./waitlist-dialog";
 
 interface Appointment {
   id: string;
@@ -100,6 +102,8 @@ export default function AppointmentsPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [recurringDialogOpen, setRecurringDialogOpen] = useState(false);
+  const [waitlistDialogOpen, setWaitlistDialogOpen] = useState(false);
+  const [waitlistCount, setWaitlistCount] = useState(0);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const { toast } = useToast();
 
@@ -131,6 +135,15 @@ export default function AppointmentsPage() {
         const json = await serviceRes.json();
         setServices(json.data ?? json);
       }
+
+      // Fetch active waitlist count
+      try {
+        const waitlistRes = await fetch("/api/waitlist?status=ACTIVE&limit=1");
+        if (waitlistRes.ok) {
+          const wlData = await waitlistRes.json();
+          setWaitlistCount(wlData.total || 0);
+        }
+      } catch {}
     } catch (error) {
       toast({
         title: "Error",
@@ -242,6 +255,15 @@ export default function AppointmentsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setWaitlistDialogOpen(true)} className="relative">
+            <Clock className="w-4 h-4 mr-2" />
+            Waitlist
+            {waitlistCount > 0 && (
+              <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-amber-500 text-white text-xs flex items-center justify-center font-bold">
+                {waitlistCount > 99 ? "99+" : waitlistCount}
+              </span>
+            )}
+          </Button>
           <Button variant="outline" onClick={() => setRecurringDialogOpen(true)}>
             <Repeat className="w-4 h-4 mr-2" />
             Recurring Series
@@ -535,6 +557,11 @@ export default function AppointmentsPage() {
         open={recurringDialogOpen}
         onOpenChange={setRecurringDialogOpen}
         onSuccess={handleSuccess}
+      />
+
+      <WaitlistDialog
+        open={waitlistDialogOpen}
+        onOpenChange={setWaitlistDialogOpen}
       />
     </div>
   );

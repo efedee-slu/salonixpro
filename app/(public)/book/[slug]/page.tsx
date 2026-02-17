@@ -168,6 +168,8 @@ export default function PublicBookingPage() {
   const [recurringFrequency, setRecurringFrequency] = useState("WEEKLY");
   const [recurringOccurrences, setRecurringOccurrences] = useState(4);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [waitlistSlot, setWaitlistSlot] = useState<string | null>(null);
+  const [isJoiningWaitlist, setIsJoiningWaitlist] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
   const [bookingReference, setBookingReference] = useState<string | null>(null);
   const [depositInfo, setDepositInfo] = useState<{
@@ -328,6 +330,49 @@ export default function PublicBookingPage() {
       alert("Failed to create booking");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleJoinWaitlist = async () => {
+    if (!business || !selectedStylist || !selectedDate || !waitlistSlot) return;
+    if (!customerInfo.firstName || !customerInfo.email || !customerInfo.phone) {
+      alert("Please fill in your name, email, and phone to join the waitlist.");
+      return;
+    }
+
+    setIsJoiningWaitlist(true);
+    try {
+      const [hours, minutes] = waitlistSlot.split(":").map(Number);
+      const requestedDate = new Date(selectedDate);
+      requestedDate.setHours(hours, minutes, 0, 0);
+
+      const duration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
+      const response = await fetch("/api/public/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          businessId: business.id,
+          stylistId: selectedStylist.id,
+          requestedDate: requestedDate.toISOString(),
+          duration,
+          serviceIds: selectedServices.map((s) => s.id),
+          guestName: `${customerInfo.firstName} ${customerInfo.lastName}`.trim(),
+          guestEmail: customerInfo.email,
+          guestPhone: customerInfo.phone,
+        }),
+      });
+
+      if (response.ok) {
+        setWaitlistSlot(null);
+        alert("You're on the waitlist! We'll email you if this slot opens up.");
+      } else {
+        const err = await response.json();
+        alert(err.error || "Failed to join waitlist");
+      }
+    } catch (err) {
+      alert("Failed to join waitlist");
+    } finally {
+      setIsJoiningWaitlist(false);
     }
   };
 
@@ -1046,15 +1091,25 @@ export default function PublicBookingPage() {
                       No available times for this date
                     </p>
                   ) : (
+                    <>
                     <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                       {availableSlots.map((slot) => (
                         <button
                           key={slot.time}
-                          onClick={() => slot.available && setSelectedTime(slot.time)}
-                          disabled={!slot.available}
+                          onClick={() => {
+                            if (slot.available) {
+                              setSelectedTime(slot.time);
+                              setWaitlistSlot(null);
+                            } else {
+                              setWaitlistSlot(waitlistSlot === slot.time ? null : slot.time);
+                              setSelectedTime(null);
+                            }
+                          }}
                           className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
                             !slot.available
-                              ? "bg-muted text-muted-foreground cursor-not-allowed line-through"
+                              ? waitlistSlot === slot.time
+                                ? "border-2 border-amber-500 bg-amber-50 text-amber-700"
+                                : "border border-dashed border-amber-300 bg-amber-50/50 text-amber-600 hover:border-amber-400 hover:bg-amber-50"
                               : selectedTime === slot.time
                               ? "bg-teal-600 text-white"
                               : "bg-white border hover:border-teal-300"
@@ -1064,6 +1119,80 @@ export default function PublicBookingPage() {
                         </button>
                       ))}
                     </div>
+
+                    {/* Waitlist Prompt */}
+                    {waitlistSlot && (
+                      <div className="mt-4 p-4 rounded-lg border-2 border-amber-300 bg-amber-50">
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="font-medium text-amber-800">This slot is taken</p>
+                            <p className="text-sm text-amber-700 mt-1">
+                              Join the waitlist and we'll email you if it opens up.
+                              {!customerInfo.firstName && " Fill in your details in the next step first, or enter them below."}
+                            </p>
+                            {!customerInfo.firstName && (
+                              <div className="grid gap-2 mt-3 sm:grid-cols-3">
+                                <Input
+                                  placeholder="Name *"
+                                  value={customerInfo.firstName}
+                                  onChange={(e) =>
+                                    setCustomerInfo((prev) => ({ ...prev, firstName: e.target.value }))
+                                  }
+                                  className="bg-white"
+                                />
+                                <Input
+                                  placeholder="Email *"
+                                  type="email"
+                                  value={customerInfo.email}
+                                  onChange={(e) =>
+                                    setCustomerInfo((prev) => ({ ...prev, email: e.target.value }))
+                                  }
+                                  className="bg-white"
+                                />
+                                <Input
+                                  placeholder="Phone *"
+                                  type="tel"
+                                  value={customerInfo.phone}
+                                  onChange={(e) =>
+                                    setCustomerInfo((prev) => ({ ...prev, phone: e.target.value }))
+                                  }
+                                  className="bg-white"
+                                />
+                              </div>
+                            )}
+                            <div className="flex gap-2 mt-3">
+                              <Button
+                                size="sm"
+                                onClick={handleJoinWaitlist}
+                                disabled={isJoiningWaitlist || !customerInfo.email || !customerInfo.phone}
+                                className="bg-amber-600 hover:bg-amber-700 text-white"
+                              >
+                                {isJoiningWaitlist ? (
+                                  <>
+                                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                    Joining...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Clock className="w-3 h-3 mr-1" />
+                                    Join Waitlist
+                                  </>
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setWaitlistSlot(null)}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    </>
                   )}
                 </div>
               )}

@@ -833,7 +833,40 @@ export async function sendReviewRequest(params: {
   return getResend().emails.send({ from: FROM_EMAIL, to, subject: `How was your visit to ${businessName}?`, html });
 }
 
-// 22. Recurring Series Created (to client)
+// 22. Waitlist Spot Available (to client/guest)
+export async function sendWaitlistSpotAvailable(params: {
+  to: string;
+  clientName: string;
+  businessName: string;
+  businessSlug: string;
+  stylistName: string;
+  date: Date | string;
+  services: string[];
+}) {
+  const { to, clientName, businessName, businessSlug, stylistName, date, services } = params;
+
+  const bookingUrl = `${APP_URL}/book/${businessSlug}`;
+
+  const html = baseTemplate(
+    `${heading("A Spot Just Opened Up!")}
+    ${paragraph(`Hi ${clientName},`, true)}
+    ${successBox(`Great news! A spot just opened up at <strong>${businessName}</strong> that matches your waitlist request.`)}
+    ${detailsTable([
+      { label: "Date", value: fmtDate(date) },
+      { label: "Time", value: fmtTime(date) },
+      { label: "Stylist", value: stylistName },
+      { label: "Services", value: services.join(", ") },
+    ])}
+    ${warningBox("This spot may fill up quickly. Book now to secure your appointment!")}
+    ${button("Book Now", bookingUrl)}
+    ${footer(`You received this because you joined the waitlist at ${businessName}.`)}`,
+    `A spot just opened up at ${businessName}! Book now before it's gone.`
+  );
+
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: `A spot just opened up at ${businessName}!`, html });
+}
+
+// 23. Recurring Series Created (to client)
 export async function sendRecurringSeriesCreated(params: {
   to: string;
   clientName: string;

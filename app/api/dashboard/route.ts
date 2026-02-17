@@ -29,6 +29,7 @@ export async function GET() {
       recurringClientCount,
       recentClients,
       recentCompletedAppointments,
+      activeWaitlistCount,
     ] = await Promise.all([
       prisma.appointment.findMany({
         where: {
@@ -126,6 +127,10 @@ export async function GET() {
         orderBy: { updatedAt: "desc" },
         take: 5,
       }),
+
+      prisma.waitlistEntry.count({
+        where: { businessId, status: "ACTIVE" },
+      }),
     ]);
 
     // Calculate today's revenue
@@ -179,6 +184,7 @@ export async function GET() {
         pendingOrders: pendingOrderCount,
         readyOrders: readyOrderCount,
         recurringClients: recurringClientCount,
+        activeWaitlist: activeWaitlistCount,
       },
       todayAppointments,
       recentOrders,

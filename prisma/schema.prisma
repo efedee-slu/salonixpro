@@ -120,6 +120,7 @@ model Business {
   productCostings   ProductCosting[]
   costingTemplates  CostingTemplate[]
   recurringSeries   RecurringSeries[]
+  waitlistEntries   WaitlistEntry[]
 
   @@index([slug])
 }
@@ -286,6 +287,7 @@ model Stylist {
   reviews         Review[]
   galleryItems    GalleryItem[]
   recurringSeries RecurringSeries[]
+  waitlistEntries WaitlistEntry[]
 
   @@index([businessId])
 }
@@ -363,6 +365,7 @@ model Client {
   galleryItems    GalleryItem[]
   orders          Order[]
   recurringSeries RecurringSeries[]
+  waitlistEntries WaitlistEntry[]
 
   @@unique([businessId, phone])
   @@unique([businessId, email])
@@ -689,6 +692,7 @@ enum NotificationType {
   ORDER_CONFIRMED
   GENERAL
   RECURRING_EXTENDED
+  WAITLIST_SPOT_AVAILABLE
 }
 
 // ============================================
@@ -985,4 +989,41 @@ enum SeriesStatus {
   PAUSED
   CANCELLED
   COMPLETED
+}
+
+// ============================================
+// WAITLIST
+// ============================================
+
+model WaitlistEntry {
+  id            String         @id @default(cuid())
+  businessId    String
+  clientId      String?
+  stylistId     String
+  requestedDate DateTime
+  duration      Int
+  serviceIds    Json
+  status        WaitlistStatus @default(ACTIVE)
+  guestName     String?
+  guestEmail    String?
+  guestPhone    String?
+  notifiedAt    DateTime?
+  bookedAt      DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  client   Client?  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  stylist  Stylist  @relation(fields: [stylistId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, stylistId, requestedDate, status])
+  @@index([status])
+}
+
+enum WaitlistStatus {
+  ACTIVE
+  NOTIFIED
+  BOOKED
+  EXPIRED
+  CANCELLED
 }

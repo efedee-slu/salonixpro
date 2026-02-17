@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendAppointmentCancellation, sendReviewRequest } from "@/lib/email";
+import { processWaitlistForCancelledAppointment } from "@/lib/waitlist";
 
 // PATCH update appointment status
 export async function PATCH(
@@ -140,6 +141,16 @@ export async function PATCH(
         cancelReason: body.reason,
         bookingReference: appointment.bookingReference || undefined,
       }).catch((err) => console.error("Failed to send cancellation email:", err));
+    }
+
+    // Trigger waitlist notification on cancellation or no-show
+    if ((status === "CANCELLED" || status === "NO_SHOW") && appointment.stylistId) {
+      processWaitlistForCancelledAppointment({
+        businessId: session.user.businessId,
+        stylistId: appointment.stylistId,
+        requestedDate: appointment.requestedDate,
+        duration: appointment.duration,
+      }).catch((err) => console.error("Waitlist processing error:", err));
     }
 
     // Transform for frontend
