@@ -390,7 +390,7 @@ export async function POST(
       };
     });
 
-    const bookingReference = appointment.bookingReference;
+    const bookingReference = appointment.bookingReference!;
 
     // Create notification for new booking
     await createNotification(
