@@ -1,55 +1,53 @@
-// app/api/auth/change-password/route.ts
+// app/api/auth/reset-password/route.ts
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
-import { authOptions } from "@/lib/auth";
+import crypto from "crypto";
 import bcrypt from "bcryptjs";
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const { token, newPassword } = await request.json();
 
-    if (!session?.user?.id) {
+    if (!token || !newPassword) {
       return NextResponse.json(
-        { error: "Not authenticated" },
-        { status: 401 }
-      );
-    }
-
-    const { currentPassword, newPassword } = await request.json();
-
-    if (!currentPassword || !newPassword) {
-      return NextResponse.json(
-        { error: "Current password and new password are required" },
+        { error: "Token and new password are required" },
         { status: 400 }
       );
     }
 
     if (newPassword.length < 8) {
       return NextResponse.json(
-        { error: "New password must be at least 8 characters" },
+        { error: "Password must be at least 8 characters" },
         { status: 400 }
       );
     }
 
-    // Get user
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+    // Hash the incoming token with SHA-256 to compare against stored hash
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    // Find user with matching token that hasn't expired
+    const user = await prisma.user.findFirst({
+      where: {
+        resetToken: tokenHash,
+        resetTokenExpiresAt: { gt: new Date() },
+      },
     });
 
     if (!user) {
       return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
+        { error: "Invalid or expired reset link. Please request a new one." },
+        { status: 400 }
       );
     }
 
-    // Verify current password
-    const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
-
-    if (!isValid) {
+    // Check new password against current password
+    const isSameAsCurrent = await bcrypt.compare(newPassword, user.passwordHash);
+    if (isSameAsCurrent) {
       return NextResponse.json(
-        { error: "Current password is incorrect" },
+        { error: "New password must be different from your current password" },
         { status: 400 }
       );
     }
@@ -72,9 +70,9 @@ export async function POST(request: Request) {
     }
 
     // Hash new password
-    const passwordHash = await bcrypt.hash(newPassword, 12);
+    const newPasswordHash = await bcrypt.hash(newPassword, 12);
 
-    // Update password, clear flags, and store old hash in history
+    // Update password, clear reset fields, store old hash in history
     await prisma.$transaction([
       prisma.passwordHistory.create({
         data: {
@@ -85,22 +83,22 @@ export async function POST(request: Request) {
       prisma.user.update({
         where: { id: user.id },
         data: {
-          passwordHash,
+          passwordHash: newPasswordHash,
           mustChangePassword: false,
-          tempPasswordExpiresAt: null,
           resetToken: null,
           resetTokenExpiresAt: null,
+          tempPasswordExpiresAt: null,
         },
       }),
     ]);
 
     return NextResponse.json({
-      message: "Password changed successfully",
+      message: "Password reset successfully. You can now sign in.",
     });
   } catch (error) {
-    console.error("Change password error:", error);
+    console.error("Reset password error:", error);
     return NextResponse.json(
-      { error: "Failed to change password" },
+      { error: "Failed to reset password" },
       { status: 500 }
     );
   }

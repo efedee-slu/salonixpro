@@ -44,7 +44,7 @@ const salonPaths = [
 ];
 
 // Routes only for unauthenticated users
-const authPaths = ["/login", "/signup", "/forgot-password"];
+const authPaths = ["/login", "/signup", "/forgot-password", "/reset-password"];
 
 function selectLimiter(pathname: string) {
   // Auth endpoints — strictest limit

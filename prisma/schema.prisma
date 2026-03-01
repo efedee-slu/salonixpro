@@ -155,18 +155,42 @@ model User {
   avatar             String?
   isActive           Boolean  @default(true)
   mustChangePassword Boolean  @default(false)
+
+  // Password reset (token-based)
+  resetToken           String?
+  resetTokenExpiresAt  DateTime?
+
+  // Temp password expiry (staff invites)
+  tempPasswordExpiresAt DateTime?
+
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
   // Relations
-  business    Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  stylist     Stylist?
-  permissions StaffPermission?
+  business        Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  stylist         Stylist?
+  permissions     StaffPermission?
+  passwordHistory PasswordHistory[]
 
   @@unique([businessId, email])
   @@unique([businessId, username])
   @@index([businessId])
   @@index([email])
+}
+
+// ============================================
+// PASSWORD HISTORY
+// ============================================
+
+model PasswordHistory {
+  id           String   @id @default(cuid())
+  userId       String
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 // ============================================

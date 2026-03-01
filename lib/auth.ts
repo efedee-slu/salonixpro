@@ -44,6 +44,17 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid email/username or password");
         }
 
+        // Check if temp password has expired (staff invites have 72hr expiry)
+        if (
+          user.mustChangePassword &&
+          user.tempPasswordExpiresAt &&
+          new Date() > user.tempPasswordExpiresAt
+        ) {
+          throw new Error(
+            "Temporary password has expired. Please contact your salon administrator."
+          );
+        }
+
         // Return user data
         return {
           id: user.id,

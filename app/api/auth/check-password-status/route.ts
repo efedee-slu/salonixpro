@@ -14,11 +14,18 @@ export async function GET() {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { mustChangePassword: true },
+      select: { mustChangePassword: true, tempPasswordExpiresAt: true },
     });
+
+    const tempPasswordExpired = !!(
+      user?.mustChangePassword &&
+      user?.tempPasswordExpiresAt &&
+      new Date() > user.tempPasswordExpiresAt
+    );
 
     return NextResponse.json({
       mustChangePassword: user?.mustChangePassword || false,
+      tempPasswordExpired,
     });
   } catch (error) {
     console.error("Check password status error:", error);
