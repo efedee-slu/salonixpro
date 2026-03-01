@@ -512,28 +512,28 @@ export async function sendOrderConfirmation(params: {
   return getResend().emails.send({ from: FROM_EMAIL, to, subject: `Order Confirmed #${orderNumber} - ${businessName}`, html });
 }
 
-// 12. Password Reset (refactored from inline)
-export async function sendPasswordReset(params: {
+// 12. Password Reset Link (token-based)
+export async function sendPasswordResetLink(params: {
   to: string;
   firstName: string;
-  tempPassword: string;
+  resetUrl: string;
 }) {
-  const { to, firstName, tempPassword } = params;
+  const { to, firstName, resetUrl } = params;
 
   const html = baseTemplate(
-    `${heading("Your temporary password")}
-    ${paragraph(`Hi ${firstName || "there"},<br>We received a request to reset your password. Here's your temporary password:`, true)}
-    <div style="background: #f0fdfa; border: 2px dashed #0d9488; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
-      <p style="color: #666; font-size: 14px; margin: 0 0 8px;">Your temporary password:</p>
-      <p style="font-size: 32px; font-weight: bold; color: #0d9488; margin: 0; letter-spacing: 4px; font-family: monospace;">${tempPassword}</p>
+    `${heading("Reset Your Password")}
+    ${paragraph(`Hi ${firstName || "there"},<br>We received a request to reset your password. Click the button below to create a new password:`, true)}
+    ${button("Reset Password", resetUrl)}
+    ${warningBox("&#9888;&#65039; This link expires in 1 hour. If you didn't request this, you can safely ignore this email.")}
+    ${paragraph("If the button doesn't work, copy and paste this URL into your browser:", true)}
+    <div style="background: #f5f5f5; border-radius: 8px; padding: 12px; margin: 8px 0; word-break: break-all;">
+      <p style="color: #666; font-size: 13px; margin: 0; font-family: monospace;">${resetUrl}</p>
     </div>
-    ${warningBox("&#9888;&#65039; Important: You will be required to change this password when you log in.")}
-    ${button("Sign In Now", `${APP_URL}/login`)}
     ${footer("If you didn't request this, please contact support immediately.<br>Someone may have access to your account.")}`,
-    `Your temporary password for SalonixPro.`
+    `Reset your SalonixPro password.`
   );
 
-  return getResend().emails.send({ from: FROM_EMAIL, to, subject: "Your temporary password - SalonixPro", html });
+  return getResend().emails.send({ from: FROM_EMAIL, to, subject: "Reset your password - SalonixPro", html });
 }
 
 // 13. Portal Verification Code (to client)

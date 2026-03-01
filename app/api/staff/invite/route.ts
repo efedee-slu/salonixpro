@@ -75,6 +75,7 @@ export async function POST(request: Request) {
           phone: phone?.trim() || null,
           role,
           mustChangePassword: true,
+          tempPasswordExpiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72hr expiry
         },
       });
 
@@ -82,6 +83,14 @@ export async function POST(request: Request) {
         data: {
           userId: newUser.id,
           ...preset,
+        },
+      });
+
+      // Store initial password in history
+      await tx.passwordHistory.create({
+        data: {
+          userId: newUser.id,
+          passwordHash,
         },
       });
 

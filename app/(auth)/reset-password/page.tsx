@@ -1,30 +1,48 @@
-// app/(auth)/forgot-password/page.tsx
+// app/(auth)/reset-password/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Scissors, ArrowLeft, Loader2, Mail, CheckCircle2 } from "lucide-react";
+import { Scissors, Eye, EyeOff, Loader2, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("");
+function ResetPasswordForm() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError("");
 
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
-      const response = await fetch("/api/auth/forgot-password", {
+      const response = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ token, newPassword }),
       });
 
       const data = await response.json();
@@ -40,6 +58,28 @@ export default function ForgotPasswordPage() {
       setIsLoading(false);
     }
   };
+
+  // No token provided
+  if (!token) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-8 bg-background">
+        <div className="w-full max-w-md space-y-6 text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+            <AlertCircle className="w-8 h-8 text-red-600" />
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight">Invalid reset link</h2>
+          <p className="text-muted-foreground">
+            This password reset link is invalid or missing. Please request a new one.
+          </p>
+          <Link href="/forgot-password">
+            <Button className="w-full h-12 bg-teal-600 hover:bg-teal-700">
+              Request new reset link
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex">
@@ -98,9 +138,9 @@ export default function ForgotPasswordPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            Forgot your<br />
-            password?<br />
-            <span className="text-white/90">No worries.</span>
+            Create a new<br />
+            password<br />
+            <span className="text-white/90">for your account.</span>
           </motion.h1>
 
           <motion.p
@@ -109,7 +149,7 @@ export default function ForgotPasswordPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            We'll send you a reset link to get back into your account.
+            Choose a strong password that you'll remember to keep your account safe.
           </motion.p>
         </div>
 
@@ -140,15 +180,6 @@ export default function ForgotPasswordPage() {
             <span className="text-2xl font-bold">SalonixPro</span>
           </div>
 
-          {/* Back Link */}
-          <Link
-            href="/login"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to login
-          </Link>
-
           {success ? (
             /* Success State */
             <div className="space-y-6">
@@ -156,42 +187,32 @@ export default function ForgotPasswordPage() {
                 <CheckCircle2 className="w-8 h-8 text-teal-600" />
               </div>
               <div className="text-center">
-                <h2 className="text-2xl font-bold tracking-tight">Check your email</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Password reset!</h2>
                 <p className="mt-2 text-muted-foreground">
-                  We've sent a password reset link to <strong>{email}</strong>
-                </p>
-                <p className="mt-4 text-sm text-muted-foreground">
-                  Click the link in the email to create a new password. The link expires in 1 hour.
+                  Your password has been changed successfully. You can now sign in with your new password.
                 </p>
               </div>
-              
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                <p className="text-sm text-amber-800">
-                  <strong>Didn't receive the email?</strong><br />
-                  Check your spam folder or{" "}
-                  <button
-                    onClick={() => setSuccess(false)}
-                    className="text-teal-600 hover:text-teal-700 font-medium underline"
-                  >
-                    try again
-                  </button>
-                </p>
-              </div>
-
               <Link href="/login">
                 <Button className="w-full h-12 bg-teal-600 hover:bg-teal-700">
-                  Go to login
+                  Sign in
                 </Button>
               </Link>
             </div>
           ) : (
             /* Form State */
             <>
+              {/* Security Icon */}
+              <div className="flex justify-center">
+                <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center">
+                  <ShieldCheck className="w-8 h-8 text-teal-600" />
+                </div>
+              </div>
+
               {/* Header */}
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight">Reset password</h2>
+              <div className="text-center">
+                <h2 className="text-3xl font-bold tracking-tight">Reset your password</h2>
                 <p className="mt-2 text-muted-foreground">
-                  Enter your email and we'll send you a password reset link
+                  Enter your new password below
                 </p>
               </div>
 
@@ -207,20 +228,59 @@ export default function ForgotPasswordPage() {
                   </motion.div>
                 )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="Enter your email address"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      autoComplete="email"
-                      className="h-12 pl-12"
-                    />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="newPassword"
+                        type={showNewPassword ? "text" : "password"}
+                        placeholder="Enter new password (min 8 characters)"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                        minLength={8}
+                        className="h-12 pr-12"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showNewPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Confirm new password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        minLength={8}
+                        className="h-12 pr-12"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -232,13 +292,23 @@ export default function ForgotPasswordPage() {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Sending...
+                      Resetting password...
                     </>
                   ) : (
-                    "Send reset link"
+                    "Reset Password"
                   )}
                 </Button>
               </form>
+
+              {/* Password Tips */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <p className="text-sm font-medium text-muted-foreground mb-2">Password tips:</p>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• At least 8 characters long</li>
+                  <li>• Mix of letters, numbers, and symbols</li>
+                  <li>• Don&apos;t reuse passwords from other sites</li>
+                </ul>
+              </div>
             </>
           )}
 
@@ -254,5 +324,26 @@ export default function ForgotPasswordPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+// Loading fallback for Suspense
+function ResetPasswordLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex items-center gap-3">
+        <Loader2 className="w-6 h-6 animate-spin text-teal-600" />
+        <span className="text-muted-foreground">Loading...</span>
+      </div>
+    </div>
+  );
+}
+
+// Main export wrapped in Suspense
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<ResetPasswordLoading />}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

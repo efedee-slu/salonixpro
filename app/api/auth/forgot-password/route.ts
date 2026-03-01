@@ -1,27 +1,10 @@
 // app/api/auth/forgot-password/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
-import { sendPasswordReset } from "@/lib/email";
+import crypto from "crypto";
+import { sendPasswordResetLink } from "@/lib/email";
 
-// Generate a readable temporary password
-function generateTempPassword(): string {
-  const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-  const numbers = "0123456789";
-
-  let password = "";
-  for (let i = 0; i < 3; i++) {
-    password += letters.charAt(Math.floor(Math.random() * letters.length));
-  }
-  for (let i = 0; i < 4; i++) {
-    password += numbers.charAt(Math.floor(Math.random() * numbers.length));
-  }
-  for (let i = 0; i < 2; i++) {
-    password += letters.charAt(Math.floor(Math.random() * letters.length));
-  }
-
-  return password;
-}
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://salonixpro.com";
 
 export async function POST(request: Request) {
   try {
@@ -37,38 +20,48 @@ export async function POST(request: Request) {
     // Find user by email (across all businesses)
     const user = await prisma.user.findFirst({
       where: { email: email.toLowerCase() },
-      include: { business: true },
     });
 
     // Always return success even if user not found (security)
     if (!user) {
       return NextResponse.json({
-        message: "If an account exists, a temporary password has been sent",
+        message: "If an account exists, a password reset link has been sent",
       });
     }
 
-    // Generate temporary password
-    const tempPassword = generateTempPassword();
-    const passwordHash = await bcrypt.hash(tempPassword, 12);
+    // Generate a 32-byte random token
+    const rawToken = crypto.randomBytes(32).toString("hex");
 
-    // Update user with temp password and flag to force change
+    // Store SHA-256 hash of the token (never store raw token in DB)
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+    // Set 1-hour expiry
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    // Store token hash and expiry (do NOT modify passwordHash)
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        passwordHash,
-        mustChangePassword: true,
+        resetToken: tokenHash,
+        resetTokenExpiresAt: expiresAt,
       },
     });
 
-    // Send email with temporary password
-    await sendPasswordReset({
+    // Build reset URL with raw token
+    const resetUrl = `${APP_URL}/reset-password?token=${rawToken}`;
+
+    // Send email with reset link
+    await sendPasswordResetLink({
       to: email,
       firstName: user.firstName || "there",
-      tempPassword,
+      resetUrl,
     });
 
     return NextResponse.json({
-      message: "If an account exists, a temporary password has been sent",
+      message: "If an account exists, a password reset link has been sent",
     });
   } catch (error) {
     console.error("Forgot password error:", error);

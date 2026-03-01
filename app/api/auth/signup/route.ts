@@ -135,6 +135,14 @@ export async function POST(request: Request) {
       },
     });
 
+    // Store initial password in history
+    await prisma.passwordHistory.create({
+      data: {
+        userId: user.id,
+        passwordHash,
+      },
+    });
+
     // Create default service categories using createMany
     await prisma.serviceCategory.createMany({
       data: defaultServiceCategories.map(cat => ({
