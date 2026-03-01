@@ -273,114 +273,124 @@ export async function POST(
     const endTime = new Date(requestedDate);
     endTime.setMinutes(endTime.getMinutes() + totalDuration);
 
-    // Check for conflicts - get all appointments for this stylist on this day
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
+    // Use interactive transaction to prevent race conditions on concurrent bookings
+    const { appointment, client, depositAmount, depositStatus, paymentDeadline, appointmentStatus } = await prisma.$transaction(async (tx) => {
+      // Check for conflicts inside transaction
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
 
-    const existingAppointments = await prisma.appointment.findMany({
-      where: {
-        businessId: business.id,
-        stylistId: stylistId,
-        status: { notIn: ["CANCELLED", "NO_SHOW"] },
-        requestedDate: { gte: startOfDay, lte: endOfDay },
-      },
-    });
-
-    // Check for overlaps
-    const hasConflict = existingAppointments.some((apt) => {
-      const aptStart = new Date(apt.requestedDate);
-      const aptEnd = new Date(aptStart);
-      aptEnd.setMinutes(aptEnd.getMinutes() + apt.duration);
-
-      return (
-        (requestedDate >= aptStart && requestedDate < aptEnd) ||
-        (endTime > aptStart && endTime <= aptEnd) ||
-        (requestedDate <= aptStart && endTime >= aptEnd)
-      );
-    });
-
-    if (hasConflict) {
-      return NextResponse.json(
-        { error: "This time slot is no longer available" },
-        { status: 400 }
-      );
-    }
-
-    // Find or create client
-    let client = await prisma.client.findFirst({
-      where: {
-        businessId: business.id,
-        OR: [
-          { phone: customer.phone },
-          ...(customer.email ? [{ email: customer.email }] : []),
-        ],
-      },
-    });
-
-    if (!client) {
-      client = await prisma.client.create({
-        data: {
+      const existingAppointments = await tx.appointment.findMany({
+        where: {
           businessId: business.id,
-          firstName: customer.firstName,
-          lastName: customer.lastName,
-          email: customer.email || null,
-          phone: customer.phone,
+          stylistId: stylistId,
+          status: { notIn: ["CANCELLED", "NO_SHOW"] },
+          requestedDate: { gte: startOfDay, lte: endOfDay },
         },
       });
-    }
 
-    // Create appointment
-    const bookingReference = generateBookingReference();
-    
-    // Calculate deposit if required
-    let depositAmount = null;
-    let depositStatus = "NOT_REQUIRED";
-    let paymentDeadline = null;
-    let appointmentStatus = "CONFIRMED";
-    
-    if (business.requiresDeposit) {
-      depositAmount = calculateDeposit(
-        totalPrice,
-        business.depositType,
-        business.depositAmount,
-        business.depositPercentage
-      );
-      depositStatus = "PENDING";
-      paymentDeadline = calculatePaymentDeadline(requestedDate, business.paymentDeadlineHours);
-      appointmentStatus = "PENDING_DEPOSIT";
-    }
+      // Check for overlaps
+      const hasConflict = existingAppointments.some((apt) => {
+        const aptStart = new Date(apt.requestedDate);
+        const aptEnd = new Date(aptStart);
+        aptEnd.setMinutes(aptEnd.getMinutes() + apt.duration);
 
-    const appointment = await prisma.appointment.create({
-      data: {
-        businessId: business.id,
-        clientId: client.id,
-        stylistId: stylistId,
-        requestedDate,
-        duration: totalDuration,
-        totalPrice,
-        status: appointmentStatus as any,
-        notes: customer.notes || null,
-        bookingReference,
-        depositAmount,
-        depositStatus: depositStatus as any,
-        paymentDeadline,
-        services: {
-          create: serviceRecords.map((svc) => ({
-            serviceId: svc.id,
-            serviceName: svc.name,
-            duration: svc.duration,
-            price: svc.price,
-          })),
+        return (
+          (requestedDate >= aptStart && requestedDate < aptEnd) ||
+          (endTime > aptStart && endTime <= aptEnd) ||
+          (requestedDate <= aptStart && endTime >= aptEnd)
+        );
+      });
+
+      if (hasConflict) {
+        throw new Error("SLOT_CONFLICT");
+      }
+
+      // Find or create client
+      let txClient = await tx.client.findFirst({
+        where: {
+          businessId: business.id,
+          OR: [
+            { phone: customer.phone },
+            ...(customer.email ? [{ email: customer.email }] : []),
+          ],
         },
-      },
-      include: {
-        stylist: true,
-        client: true,
-        services: true,
-      },
+      });
+
+      if (!txClient) {
+        txClient = await tx.client.create({
+          data: {
+            businessId: business.id,
+            firstName: customer.firstName,
+            lastName: customer.lastName,
+            email: customer.email || null,
+            phone: customer.phone,
+          },
+        });
+      }
+
+      // Calculate deposit if required
+      let txDepositAmount = null;
+      let txDepositStatus = "NOT_REQUIRED";
+      let txPaymentDeadline = null;
+      let txAppointmentStatus = "CONFIRMED";
+
+      if (business.requiresDeposit) {
+        txDepositAmount = calculateDeposit(
+          totalPrice,
+          business.depositType,
+          business.depositAmount,
+          business.depositPercentage
+        );
+        txDepositStatus = "PENDING";
+        txPaymentDeadline = calculatePaymentDeadline(requestedDate, business.paymentDeadlineHours);
+        txAppointmentStatus = "PENDING_DEPOSIT";
+      }
+
+      const bookingReference = generateBookingReference();
+
+      const txAppointment = await tx.appointment.create({
+        data: {
+          businessId: business.id,
+          clientId: txClient.id,
+          stylistId: stylistId,
+          requestedDate,
+          duration: totalDuration,
+          totalPrice,
+          status: txAppointmentStatus as any,
+          notes: customer.notes || null,
+          bookingReference,
+          depositAmount: txDepositAmount,
+          depositStatus: txDepositStatus as any,
+          paymentDeadline: txPaymentDeadline,
+          services: {
+            create: serviceRecords.map((svc) => ({
+              serviceId: svc.id,
+              serviceName: svc.name,
+              duration: svc.duration,
+              price: svc.price,
+            })),
+          },
+        },
+        include: {
+          stylist: true,
+          client: true,
+          services: true,
+        },
+      });
+
+      return {
+        appointment: txAppointment,
+        client: txClient,
+        depositAmount: txDepositAmount,
+        depositStatus: txDepositStatus,
+        paymentDeadline: txPaymentDeadline,
+        appointmentStatus: txAppointmentStatus,
+      };
     });
+
+    const bookingReference = appointment.bookingReference;
 
     // Create notification for new booking
     await createNotification(
@@ -582,6 +592,13 @@ export async function POST(
       recurring: recurringInfo,
     });
   } catch (error) {
+    // Handle slot conflict from transaction
+    if (error instanceof Error && error.message === "SLOT_CONFLICT") {
+      return NextResponse.json(
+        { error: "This time slot is no longer available" },
+        { status: 400 }
+      );
+    }
     console.error("Error creating booking:", error);
     return NextResponse.json(
       { error: "Failed to create booking" },
