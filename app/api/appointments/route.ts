@@ -39,6 +39,18 @@ export async function GET(request: Request) {
       endDate.setDate(endDate.getDate() + 1);
     }
 
+    // STYLIST role: only show their own appointments
+    let stylistFilter: { stylistId?: string } = {};
+    if (session.user.role === "STYLIST") {
+      const stylist = await prisma.stylist.findFirst({
+        where: { userId: session.user.id, businessId: session.user.businessId },
+        select: { id: true },
+      });
+      if (stylist) {
+        stylistFilter = { stylistId: stylist.id };
+      }
+    }
+
     const appointments = await prisma.appointment.findMany({
       where: {
         businessId: session.user.businessId,
@@ -46,6 +58,7 @@ export async function GET(request: Request) {
           gte: startDate,
           lt: endDate,
         },
+        ...stylistFilter,
       },
       include: {
         client: {
@@ -137,6 +150,37 @@ export async function POST(request: Request) {
     });
     
     const totalDuration = services.reduce((sum, s) => sum + s.duration, 0);
+
+    // Double-booking prevention: check for overlapping appointments with the same stylist
+    const newStart = new Date(startTime);
+    const newEnd = new Date(newStart.getTime() + totalDuration * 60000);
+
+    const startOfDay = new Date(newStart);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(newStart);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const existingAppointments = await prisma.appointment.findMany({
+      where: {
+        businessId: session.user.businessId,
+        stylistId,
+        requestedDate: { gte: startOfDay, lte: endOfDay },
+        status: { notIn: ["CANCELLED", "AUTO_CANCELLED", "NO_SHOW"] },
+      },
+      select: { id: true, requestedDate: true, duration: true },
+    });
+
+    for (const apt of existingAppointments) {
+      const aptStart = new Date(apt.requestedDate);
+      const aptEnd = new Date(aptStart.getTime() + apt.duration * 60000);
+
+      if (newStart < aptEnd && newEnd > aptStart) {
+        return NextResponse.json(
+          { error: "This time slot conflicts with an existing appointment for the selected stylist" },
+          { status: 409 }
+        );
+      }
+    }
 
     // Create appointment with services (including snapshot data)
     const appointment = await prisma.appointment.create({

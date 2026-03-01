@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/permissions";
+import { requireRole } from "@/lib/rbac";
 
 export async function GET() {
   try {
@@ -208,6 +209,46 @@ export async function PUT(request: Request) {
     console.error("Error updating settings:", error);
     return NextResponse.json(
       { error: "Failed to update settings" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE business (OWNER only)
+export async function DELETE() {
+  try {
+    const { session, error } = await requireRole("OWNER");
+    if (error) return error;
+
+    const businessId = session.user.businessId;
+
+    const business = await prisma.business.findUnique({
+      where: { id: businessId },
+      select: { id: true, name: true, email: true, isPlatform: true },
+    });
+
+    if (!business) {
+      return NextResponse.json({ error: "Business not found" }, { status: 404 });
+    }
+
+    // Prevent deletion of platform pseudo-business
+    if (business.isPlatform) {
+      return NextResponse.json(
+        { error: "Cannot delete the platform business." },
+        { status: 403 }
+      );
+    }
+
+    // Delete the business (cascade will handle all related data)
+    await prisma.business.delete({
+      where: { id: businessId },
+    });
+
+    return NextResponse.json({ success: true, deleted: business.name });
+  } catch (err) {
+    console.error("Delete business error:", err);
+    return NextResponse.json(
+      { error: "Failed to delete business. Please try again." },
       { status: 500 }
     );
   }

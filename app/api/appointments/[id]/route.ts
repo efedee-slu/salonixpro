@@ -98,6 +98,39 @@ export async function PUT(
       }));
     }
 
+    // Double-booking prevention: check for overlapping appointments with the same stylist
+    const targetStylistId = stylistId || existingAppointment.stylistId;
+    const newStart = new Date(startTime || existingAppointment.requestedDate);
+    const newEnd = new Date(newStart.getTime() + totalDuration * 60000);
+
+    const startOfDay = new Date(newStart);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(newStart);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const conflictingAppointments = await prisma.appointment.findMany({
+      where: {
+        businessId: session.user.businessId,
+        stylistId: targetStylistId,
+        id: { not: params.id },
+        requestedDate: { gte: startOfDay, lte: endOfDay },
+        status: { notIn: ["CANCELLED", "AUTO_CANCELLED", "NO_SHOW"] },
+      },
+      select: { id: true, requestedDate: true, duration: true },
+    });
+
+    for (const apt of conflictingAppointments) {
+      const aptStart = new Date(apt.requestedDate);
+      const aptEnd = new Date(aptStart.getTime() + apt.duration * 60000);
+
+      if (newStart < aptEnd && newEnd > aptStart) {
+        return NextResponse.json(
+          { error: "This time slot conflicts with an existing appointment for the selected stylist" },
+          { status: 409 }
+        );
+      }
+    }
+
     // Delete existing services
     await prisma.appointmentService.deleteMany({
       where: { appointmentId: params.id },
