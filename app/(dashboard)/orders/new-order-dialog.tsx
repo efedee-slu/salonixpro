@@ -57,6 +57,7 @@ export function NewOrderDialog({
 }: NewOrderDialogProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [products, setProducts] = useState<Product[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -111,6 +112,7 @@ export function NewOrderDialog({
   };
 
   const addToCart = (product: Product) => {
+    setErrors((prev) => ({ ...prev, cart: "" }));
     const existing = cart.find((item) => item.product.id === product.id);
     const available = getAvailableStock(product);
 
@@ -172,12 +174,11 @@ export function NewOrderDialog({
   );
 
   const handleSubmit = async () => {
-    if (cart.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please add at least one product to the order",
-        variant: "destructive",
-      });
+    const newErrors: Record<string, string> = {};
+    if (cart.length === 0) newErrors.cart = "Please add at least one product to the order";
+    if (customerType === "existing" && !selectedClient) newErrors.client = "Please select a client";
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
@@ -305,6 +306,7 @@ export function NewOrderDialog({
           <div className="flex flex-col overflow-hidden border rounded-lg">
             <div className="p-3 border-b bg-muted/30">
               <h3 className="font-semibold">Cart ({cart.length} items)</h3>
+              {errors.cart && <p className="text-xs text-red-500 mt-1">{errors.cart}</p>}
             </div>
             <div className="flex-1 overflow-y-auto p-2 space-y-2 max-h-[200px]">
               {cart.length === 0 ? (
@@ -385,6 +387,7 @@ export function NewOrderDialog({
                 </Button>
               </div>
 
+              {errors.client && <p className="text-xs text-red-500">{errors.client}</p>}
               {customerType === "existing" ? (
                 <div className="space-y-2">
                   {selectedClient ? (
@@ -421,6 +424,7 @@ export function NewOrderDialog({
                               onClick={() => {
                                 setSelectedClient(client);
                                 setClientSearch("");
+                                setErrors((prev) => ({ ...prev, client: "" }));
                               }}
                             >
                               {client.firstName} {client.lastName} - {client.phone}

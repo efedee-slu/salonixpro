@@ -95,6 +95,7 @@ export function EditAppointmentDialog({
 }: EditAppointmentDialogProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     clientId: "",
     stylistId: "",
@@ -126,6 +127,7 @@ export function EditAppointmentDialog({
         ? prev.filter((id) => id !== serviceId)
         : [...prev, serviceId]
     );
+    setErrors((prev) => ({ ...prev, services: "" }));
   };
 
   const totalDuration = selectedServices.reduce((sum, id) => {
@@ -138,17 +140,20 @@ export function EditAppointmentDialog({
     return sum + Number(service?.price || 0);
   }, 0);
 
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.clientId) newErrors.clientId = "Please select a client";
+    if (!formData.stylistId) newErrors.stylistId = "Please select a stylist";
+    if (!formData.date) newErrors.date = "Date is required";
+    if (!formData.time) newErrors.time = "Time is required";
+    if (selectedServices.length === 0) newErrors.services = "Please select at least one service";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (selectedServices.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please select at least one service",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!validate()) return;
 
     setIsLoading(true);
 
@@ -211,9 +216,8 @@ export function EditAppointmentDialog({
             <select
               id="edit-clientId"
               value={formData.clientId}
-              onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-              className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              required
+              onChange={(e) => { setFormData({ ...formData, clientId: e.target.value }); setErrors((prev) => ({ ...prev, clientId: "" })); }}
+              className={`w-full h-10 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring ${errors.clientId ? "border-red-500" : "border-input"}`}
             >
               <option value="">Select a client</option>
               {clients.map((client) => (
@@ -222,6 +226,7 @@ export function EditAppointmentDialog({
                 </option>
               ))}
             </select>
+            {errors.clientId && <p className="text-xs text-red-500">{errors.clientId}</p>}
           </div>
 
           {/* Stylist Selection */}
@@ -230,9 +235,8 @@ export function EditAppointmentDialog({
             <select
               id="edit-stylistId"
               value={formData.stylistId}
-              onChange={(e) => setFormData({ ...formData, stylistId: e.target.value })}
-              className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              required
+              onChange={(e) => { setFormData({ ...formData, stylistId: e.target.value }); setErrors((prev) => ({ ...prev, stylistId: "" })); }}
+              className={`w-full h-10 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring ${errors.stylistId ? "border-red-500" : "border-input"}`}
             >
               <option value="">Select a stylist</option>
               {stylists.map((stylist) => (
@@ -241,6 +245,7 @@ export function EditAppointmentDialog({
                 </option>
               ))}
             </select>
+            {errors.stylistId && <p className="text-xs text-red-500">{errors.stylistId}</p>}
           </div>
 
           {/* Status */}
@@ -287,7 +292,8 @@ export function EditAppointmentDialog({
           {/* Services Selection */}
           <div className="space-y-2">
             <Label>Services *</Label>
-            <div className="border rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
+            {errors.services && <p className="text-xs text-red-500">{errors.services}</p>}
+            <div className={`border rounded-lg p-3 max-h-48 overflow-y-auto space-y-2 ${errors.services ? "border-red-500" : ""}`}>
               {services.map((service) => (
                 <div
                   key={service.id}

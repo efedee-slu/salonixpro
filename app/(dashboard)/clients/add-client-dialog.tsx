@@ -25,6 +25,7 @@ interface AddClientDialogProps {
 export function AddClientDialog({ open, onOpenChange, onSuccess }: AddClientDialogProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -34,8 +35,21 @@ export function AddClientDialog({ open, onOpenChange, onSuccess }: AddClientDial
     notes: "",
   });
 
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
+    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
+    if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
     setIsLoading(true);
 
     try {
@@ -95,20 +109,22 @@ export function AddClientDialog({ open, onOpenChange, onSuccess }: AddClientDial
               <Input
                 id="firstName"
                 value={formData.firstName}
-                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                onChange={(e) => { setFormData({ ...formData, firstName: e.target.value }); setErrors((prev) => ({ ...prev, firstName: "" })); }}
                 placeholder="John"
-                required
+                className={errors.firstName ? "border-red-500" : ""}
               />
+              {errors.firstName && <p className="text-xs text-red-500">{errors.firstName}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="lastName">Last Name *</Label>
               <Input
                 id="lastName"
                 value={formData.lastName}
-                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                onChange={(e) => { setFormData({ ...formData, lastName: e.target.value }); setErrors((prev) => ({ ...prev, lastName: "" })); }}
                 placeholder="Doe"
-                required
+                className={errors.lastName ? "border-red-500" : ""}
               />
+              {errors.lastName && <p className="text-xs text-red-500">{errors.lastName}</p>}
             </div>
           </div>
 
@@ -118,10 +134,11 @@ export function AddClientDialog({ open, onOpenChange, onSuccess }: AddClientDial
               id="phone"
               type="tel"
               value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              onChange={(e) => { setFormData({ ...formData, phone: e.target.value }); setErrors((prev) => ({ ...prev, phone: "" })); }}
               placeholder="758-123-4567"
-              required
+              className={errors.phone ? "border-red-500" : ""}
             />
+            {errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}
           </div>
 
           <div className="space-y-2">
@@ -130,9 +147,11 @@ export function AddClientDialog({ open, onOpenChange, onSuccess }: AddClientDial
               id="email"
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={(e) => { setFormData({ ...formData, email: e.target.value }); setErrors((prev) => ({ ...prev, email: "" })); }}
               placeholder="john@example.com"
+              className={errors.email ? "border-red-500" : ""}
             />
+            {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
           </div>
 
           <div className="space-y-2">

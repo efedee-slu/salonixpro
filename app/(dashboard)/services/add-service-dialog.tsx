@@ -32,6 +32,7 @@ interface AddServiceDialogProps {
 export function AddServiceDialog({ open, onOpenChange, categories, onSuccess }: AddServiceDialogProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -41,8 +42,18 @@ export function AddServiceDialog({ open, onOpenChange, categories, onSuccess }: 
     isActive: true,
   });
 
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.name.trim()) newErrors.name = "Service name is required";
+    if (!formData.price || parseFloat(formData.price) <= 0) newErrors.price = "Price must be greater than 0";
+    if (!formData.duration || formData.duration < 5) newErrors.duration = "Duration must be at least 5 minutes";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
     setIsLoading(true);
 
     try {
@@ -105,10 +116,11 @@ export function AddServiceDialog({ open, onOpenChange, categories, onSuccess }: 
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) => { setFormData({ ...formData, name: e.target.value }); setErrors((prev) => ({ ...prev, name: "" })); }}
               placeholder="e.g., Women's Haircut"
-              required
+              className={errors.name ? "border-red-500" : ""}
             />
+            {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
           </div>
 
           <div className="space-y-2">
@@ -148,9 +160,10 @@ export function AddServiceDialog({ open, onOpenChange, categories, onSuccess }: 
                 min="5"
                 step="5"
                 value={formData.duration}
-                onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 30 })}
-                required
+                onChange={(e) => { setFormData({ ...formData, duration: parseInt(e.target.value) || 30 }); setErrors((prev) => ({ ...prev, duration: "" })); }}
+                className={errors.duration ? "border-red-500" : ""}
               />
+              {errors.duration && <p className="text-xs text-red-500">{errors.duration}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="price">Price (EC$) *</Label>
@@ -160,10 +173,11 @@ export function AddServiceDialog({ open, onOpenChange, categories, onSuccess }: 
                 min="0"
                 step="0.01"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                onChange={(e) => { setFormData({ ...formData, price: e.target.value }); setErrors((prev) => ({ ...prev, price: "" })); }}
                 placeholder="0.00"
-                required
+                className={errors.price ? "border-red-500" : ""}
               />
+              {errors.price && <p className="text-xs text-red-500">{errors.price}</p>}
             </div>
           </div>
 

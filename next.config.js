@@ -73,16 +73,8 @@ const nextConfig = {
           },
         ],
       },
-      // CORS: restrict font/static asset responses to salonixpro.com
-      {
-        source: '/fonts/(.*)',
-        headers: [
-          {
-            key: 'Access-Control-Allow-Origin',
-            value: 'https://salonixpro.com',
-          },
-        ],
-      },
+      // CORS is handled dynamically in middleware.ts to support both
+      // https://salonixpro.com and https://www.salonixpro.com origins.
       // Cache-control for robots.txt (1 hour)
       {
         source: '/robots.txt',

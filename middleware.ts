@@ -3,6 +3,22 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 import { authLimiter, apiLimiter, publicLimiter, getClientIp } from "@/lib/ratelimit";
 
+// CORS: only allow requests from salonixpro.com origins
+const ALLOWED_ORIGINS = new Set([
+  "https://salonixpro.com",
+  "https://www.salonixpro.com",
+]);
+
+function setCorsHeaders(response: NextResponse, origin: string | null) {
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    response.headers.set("Access-Control-Allow-Origin", origin);
+    response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+    response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    response.headers.set("Access-Control-Max-Age", "86400");
+    response.headers.set("Vary", "Origin");
+  }
+}
+
 // Routes that require authentication
 const protectedPaths = [
   "/platform",
@@ -67,6 +83,14 @@ function selectLimiter(pathname: string) {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const origin = request.headers.get("origin");
+
+  // --- CORS preflight handling for API routes ---
+  if (pathname.startsWith("/api/") && request.method === "OPTIONS") {
+    const response = new NextResponse(null, { status: 204 });
+    setCorsHeaders(response, origin);
+    return response;
+  }
 
   // --- Rate limiting for API routes ---
   // Skip rate limiting for internal dashboard API calls (authenticated via session)
@@ -101,7 +125,7 @@ export async function middleware(request: NextRequest) {
         const { success, limit, remaining, reset } = await limiter.limit(ip);
 
         if (!success) {
-          return NextResponse.json(
+          const rateLimitResponse = NextResponse.json(
             { error: "Too many requests. Please try again later." },
             {
               status: 429,
@@ -112,6 +136,8 @@ export async function middleware(request: NextRequest) {
               },
             }
           );
+          setCorsHeaders(rateLimitResponse, origin);
+          return rateLimitResponse;
         }
 
         // Attach rate limit headers to successful responses
@@ -119,11 +145,14 @@ export async function middleware(request: NextRequest) {
         response.headers.set("X-RateLimit-Limit", limit.toString());
         response.headers.set("X-RateLimit-Remaining", remaining.toString());
         response.headers.set("X-RateLimit-Reset", reset.toString());
+        setCorsHeaders(response, origin);
         return response;
       } catch (rateLimitError) {
         // If rate limiter fails (e.g. Redis connection issue), allow the request through
         console.error("Rate limiter error, allowing request:", rateLimitError);
-        return NextResponse.next();
+        const fallbackResponse = NextResponse.next();
+        setCorsHeaders(fallbackResponse, origin);
+        return fallbackResponse;
       }
     }
 
@@ -131,7 +160,9 @@ export async function middleware(request: NextRequest) {
     if (!process.env.UPSTASH_REDIS_REST_URL) {
       console.warn("Rate limiting disabled: UPSTASH credentials not configured");
     }
-    return NextResponse.next();
+    const noLimiterResponse = NextResponse.next();
+    setCorsHeaders(noLimiterResponse, origin);
+    return noLimiterResponse;
   }
 
   // --- Page-level auth (existing logic) ---

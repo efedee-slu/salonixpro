@@ -37,6 +37,7 @@ export function AddProductDialog({
 }: AddProductDialogProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isUploading, setIsUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -93,8 +94,18 @@ export function AddProductDialog({
     }
   };
 
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.sku.trim()) newErrors.sku = "SKU is required";
+    if (!formData.name.trim()) newErrors.name = "Product name is required";
+    if (!formData.retailPrice || parseFloat(formData.retailPrice) <= 0) newErrors.retailPrice = "Retail price must be greater than 0";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
     setIsLoading(true);
 
     try {
@@ -206,10 +217,11 @@ export function AddProductDialog({
               <Input
                 id="sku"
                 value={formData.sku}
-                onChange={(e) => setFormData({ ...formData, sku: e.target.value.toUpperCase() })}
+                onChange={(e) => { setFormData({ ...formData, sku: e.target.value.toUpperCase() }); setErrors((prev) => ({ ...prev, sku: "" })); }}
                 placeholder="HAIR-001"
-                required
+                className={errors.sku ? "border-red-500" : ""}
               />
+              {errors.sku && <p className="text-xs text-red-500">{errors.sku}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="categoryId">Category</Label>
@@ -234,10 +246,11 @@ export function AddProductDialog({
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) => { setFormData({ ...formData, name: e.target.value }); setErrors((prev) => ({ ...prev, name: "" })); }}
               placeholder="Brazilian Body Wave"
-              required
+              className={errors.name ? "border-red-500" : ""}
             />
+            {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
           </div>
 
           <div className="space-y-2">
@@ -321,10 +334,11 @@ export function AddProductDialog({
                   step="0.01"
                   min="0"
                   value={formData.retailPrice}
-                  onChange={(e) => setFormData({ ...formData, retailPrice: e.target.value })}
+                  onChange={(e) => { setFormData({ ...formData, retailPrice: e.target.value }); setErrors((prev) => ({ ...prev, retailPrice: "" })); }}
                   placeholder="150.00"
-                  required
+                  className={errors.retailPrice ? "border-red-500" : ""}
                 />
+                {errors.retailPrice && <p className="text-xs text-red-500">{errors.retailPrice}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="salePrice">Sale Price (EC$)</Label>
